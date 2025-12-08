@@ -11,5 +11,6 @@
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-  }
+  },
+  "exclude": ["scripts/**/*"]
 }
