@@ -3,7 +3,7 @@ import * as mongoose from "mongoose";
 import { mainConfig } from "../configs/main.config";
 
 class DataBaseService {
-    async connectToDataBase(): Promise<void> {
+    async connectToDB(): Promise<void> {
         let retries = 0;
         const max_retries = mainConfig.DB_MAX_RETIRES;
         while (retries < max_retries) {
@@ -26,6 +26,10 @@ class DataBaseService {
                 await this.toSleep(5000);
             }
         }
+    }
+    async disconnectDB(): Promise<void> {
+        await mongoose.disconnect();
+        console.log("Database successfully disconnected");
     }
     async toSleep(ms: number): Promise<void> {
         await new Promise((resolve) => setTimeout(resolve, ms));
