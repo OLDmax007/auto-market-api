@@ -6,8 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf dist && tsc",
     "start": "rimraf dist && tsc-watch --onSuccess \"npm run watch:server\"",
-    "watch:server": "tsx src/main.ts --watch"
-
+    "watch:server": "tsx src/main.ts --watch",
+    "seed:permissions": "tsx scripts/seed-permissions-and-roles.ts"
   },
   "author": "",
   "license": "ISC",
@@ -18,9 +18,8 @@
     "mongoose": "^9.0.0"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6",
-    "typescript": "^5.8.2",
     "@eslint/js": "^9.39.1",
+    "@types/express": "^5.0.6",
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^8.48.0",
     "@typescript-eslint/parser": "^8.48.0",
@@ -30,7 +29,8 @@
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "rimraf": "^6.1.2",
-    "tsc-watch": "^7.2.0",
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "typescript": "^5.8.2",
+    "tsc-watch": "^7.2.0"
   }
 }
