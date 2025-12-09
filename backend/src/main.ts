@@ -10,7 +10,7 @@ app.use(express.json());
 const startServer = async () => {
     try {
         const PORT = mainConfig.PORT;
-        await dataBaseService.connectToDataBase();
+        await dataBaseService.connectToDB();
         app.listen(PORT, () => {
             console.log(`Server is starting on the port ${PORT}`);
         });
