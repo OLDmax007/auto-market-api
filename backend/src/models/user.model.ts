@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { UserType } from "../types/user.type";
 
 const { Schema, model } = mongoose;
@@ -19,6 +20,11 @@ const userSchema = new Schema(
         organizationId: {
             type: Schema.Types.ObjectId,
             ref: "Organization",
+            default: null,
+        },
+        planType: {
+            type: String,
+            enum: PlanTypeEnum,
             default: null,
         },
         isActive: { type: Boolean, default: true },
