@@ -14,3 +14,5 @@ export type TokenPayloadType = Pick<
 > & {
     userId: string;
 };
+
+export type TokenPairType = Pick<TokenType, "accessToken" | "refreshToken">;
