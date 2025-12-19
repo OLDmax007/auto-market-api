@@ -6,14 +6,22 @@ import { UserCreateDtoType, UserLoginDtoType } from "../types/user.type";
 
 class AuthController {
     public async signUp(req: Request, res: Response, next: NextFunction) {
-        const dto = req.body as UserCreateDtoType;
-        const data = await authService.signUp(dto);
-        res.status(HttpStatusEnum.CREATED).json(data);
+        try {
+            const dto = req.body as UserCreateDtoType;
+            const data = await authService.signUp(dto);
+            res.status(HttpStatusEnum.CREATED).json(data);
+        } catch (e) {
+            next(e);
+        }
     }
     public async signIn(req: Request, res: Response, next: NextFunction) {
-        const dto = req.body as UserLoginDtoType;
-        const data = await authService.signIn(dto);
-        res.status(HttpStatusEnum.OK).json(data);
+        try {
+            const dto = req.body as UserLoginDtoType;
+            const data = await authService.signIn(dto);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e) {
+            next(e);
+        }
     }
 }
 
