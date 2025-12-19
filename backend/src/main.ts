@@ -2,11 +2,14 @@ import express, { NextFunction, Request, Response } from "express";
 
 import { mainConfig } from "./configs/main.config";
 import { ApiError } from "./errors/api.error";
+import { apiRouter } from "./routes/api.router";
 import { dataBaseService } from "./services/database.service";
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use("/", apiRouter);
 
 app.use((err: ApiError, req: Request, res: Response, next: NextFunction) => {
     const status = err.status || 500;
