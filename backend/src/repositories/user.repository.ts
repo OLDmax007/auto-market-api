@@ -10,6 +10,10 @@ class UserRepository {
         return User.findById(id);
     }
 
+    public getByEmail(email: string): Promise<UserType> {
+        return User.findOne({ email });
+    }
+
     public create(dto: UserCreateDbType): Promise<UserType> {
         return User.create(dto);
     }
