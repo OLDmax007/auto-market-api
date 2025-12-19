@@ -23,3 +23,5 @@ export type UserCreateDtoType = Pick<
 
 export type UserCreateDbType = Pick<UserType, "platformRoleId" | "planType"> &
     UserCreateDtoType;
+
+export type UserLoginDtoType = Pick<UserType, "email" | "password">;
