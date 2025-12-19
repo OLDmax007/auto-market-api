@@ -25,18 +25,29 @@ class TokenService {
     }
 
     public verifyToken(token: string, tokenType: TokenTypeEnum) {
-        let secret: string;
-        switch (tokenType) {
-            case TokenTypeEnum.ACCESS:
-                secret = mainConfig.JWT_ACCESS_SECRET;
-                break;
-            case TokenTypeEnum.REFRESH:
-                secret = mainConfig.JWT_REFRESH_SECRET;
-                break;
-            default:
-                throw new ApiError(HttpStatusEnum.UNAUTHORIZED, "Unauthorized");
+        try {
+            let secret: string;
+            switch (tokenType) {
+                case TokenTypeEnum.ACCESS:
+                    secret = mainConfig.JWT_ACCESS_SECRET;
+                    break;
+                case TokenTypeEnum.REFRESH:
+                    secret = mainConfig.JWT_REFRESH_SECRET;
+                    break;
+                default:
+                    throw new ApiError(
+                        HttpStatusEnum.UNAUTHORIZED,
+                        "Unauthorized",
+                    );
+            }
+            return jwt.verify(token, secret);
+        } catch (e: unknown) {
+            console.error(e);
+            throw new ApiError(
+                HttpStatusEnum.UNAUTHORIZED,
+                "Invalid or expired token",
+            );
         }
-        return jwt.verify(token, secret);
     }
 }
 
