@@ -49,6 +49,16 @@ class UserService {
 
         return updatedUser;
     }
+
+    public async checkEmailUniqueness(email: string): Promise<void> {
+        const user = await userRepository.getByEmail(email);
+        if (user) {
+            throw new ApiError(
+                HttpStatusEnum.CONFLICT,
+                "User already is exists",
+            );
+        }
+    }
 }
 
 export const userService = new UserService();
