@@ -25,6 +25,17 @@ class AuthMiddleware {
                     );
                 }
 
+                const isTokenValid = await tokenService.isTokenValid(
+                    token,
+                    tokenType,
+                );
+
+                if (!isTokenValid)
+                    throw new ApiError(
+                        HttpStatusEnum.UNAUTHORIZED,
+                        "User not authenticated. Please log in or register.",
+                    );
+
                 const payload = tokenService.verifyToken(token, tokenType);
 
                 if (!payload) {
