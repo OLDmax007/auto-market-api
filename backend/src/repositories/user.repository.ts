@@ -17,6 +17,16 @@ class UserRepository {
     public create(dto: UserCreateDbType): Promise<UserType> {
         return User.create(dto);
     }
+
+    public updateById(id: string, platformRoleId: string): Promise<UserType> {
+        return User.findByIdAndUpdate(
+            id,
+            {
+                platformRoleId,
+            },
+            { new: true },
+        );
+    }
 }
 
 export const userRepository = new UserRepository();
