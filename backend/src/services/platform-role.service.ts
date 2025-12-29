@@ -5,10 +5,10 @@ import { platformRoleRepository } from "../repositories/platform-role.repository
 import { PlatformRoleType } from "../types/permissions/platform-role.type";
 
 class PlatformRoleService {
-    public async getDefaultVisitor(): Promise<PlatformRoleType> {
-        const role = await platformRoleRepository.getByName(
-            PlatformRoleEnum.VISITOR,
-        );
+    public async getPlatformRole(
+        roleName: PlatformRoleEnum,
+    ): Promise<PlatformRoleType> {
+        const role = await platformRoleRepository.getByName(roleName);
 
         if (!role) {
             throw new ApiError(HttpStatusEnum.NOT_FOUND, "Role not found");
