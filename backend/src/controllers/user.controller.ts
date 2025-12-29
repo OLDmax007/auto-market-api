@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { userService } from "../services/user.service";
+import { TokenPayloadType } from "../types/token.type";
 
 class UserController {
     public async getAll(req: Request, res: Response, next: NextFunction) {
@@ -17,6 +18,16 @@ class UserController {
         try {
             const { userId } = req.params as { userId: string };
             const data = await userService.getById(userId);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async becomeSeller(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = req.res.locals.payload as TokenPayloadType;
+            const data = await userService.becomeSeller(userId);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
