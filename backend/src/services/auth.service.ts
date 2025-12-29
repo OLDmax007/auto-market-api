@@ -2,7 +2,11 @@ import { HttpStatusEnum } from "../enums/http-status.enum";
 import { ApiError } from "../errors/api.error";
 import { tokenRepository } from "../repositories/token.repository";
 import { userRepository } from "../repositories/user.repository";
-import { TokenPairType } from "../types/token.type";
+import {
+    TokenPairType,
+    TokenPayloadType,
+    TokenType,
+} from "../types/token.type";
 import {
     UserCreateDtoType,
     UserLoginDtoType,
@@ -54,6 +58,7 @@ class AuthService {
 
         return { user, tokens };
     }
+
     public async signIn(
         dto: UserLoginDtoType,
     ): Promise<{ user: UserType; tokens: TokenPairType }> {
@@ -108,6 +113,27 @@ class AuthService {
         });
 
         return { user, tokens };
+    }
+
+    public async refresh({
+        userId,
+        firstName,
+        lastName,
+        email,
+        platformRoleId,
+    }: TokenPayloadType): Promise<TokenType> {
+        await tokenRepository.deleteAllByUserId(userId);
+        const tokens = tokenService.generateTokens({
+            userId,
+            firstName,
+            lastName,
+            email,
+            platformRoleId,
+        });
+        return tokenRepository.create({
+            ...tokens,
+            userId,
+        });
     }
 }
 
