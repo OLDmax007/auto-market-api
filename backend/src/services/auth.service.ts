@@ -16,6 +16,7 @@ class AuthService {
     public async signUp(
         dto: UserCreateDtoType,
     ): Promise<{ user: UserType; tokens: TokenPairType }> {
+        await userService.checkEmailUniqueness(dto.email);
         const password = await passwordService.hashPassword(dto.password);
 
         const user = await userService.create({
