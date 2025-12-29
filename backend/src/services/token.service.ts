@@ -4,7 +4,7 @@ import { mainConfig } from "../configs/main.config";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { TokenTypeEnum } from "../enums/token-type.enum";
 import { ApiError } from "../errors/api.error";
-import { TokenPayloadType } from "../types/token.type";
+import { TokenPairType, TokenPayloadType } from "../types/token.type";
 
 const {
     JWT_ACCESS_SECRET,
@@ -14,7 +14,7 @@ const {
 } = mainConfig;
 
 class TokenService {
-    public generateTokens(payload: TokenPayloadType) {
+    public generateTokens(payload: TokenPayloadType): TokenPairType {
         const accessToken = jwt.sign(payload, JWT_ACCESS_SECRET, {
             expiresIn: JWT_ACCESS_LIFETIME,
         });
@@ -24,7 +24,10 @@ class TokenService {
         return { accessToken, refreshToken };
     }
 
-    public verifyToken(token: string, tokenType: TokenTypeEnum) {
+    public verifyToken(
+        token: string,
+        tokenType: TokenTypeEnum,
+    ): TokenPayloadType {
         try {
             let secret: string;
             switch (tokenType) {
@@ -40,9 +43,12 @@ class TokenService {
                         "Unauthorized",
                     );
             }
-            return jwt.verify(token, secret);
+            return jwt.verify(token, secret) as TokenPayloadType;
         } catch (e: unknown) {
-            console.error(e);
+            if (e instanceof Error) {
+                console.error(e.message);
+            }
+
             throw new ApiError(
                 HttpStatusEnum.UNAUTHORIZED,
                 "Invalid or expired token",
