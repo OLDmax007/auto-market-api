@@ -13,6 +13,8 @@ export type TokenPayloadType = Pick<
     "firstName" | "lastName" | "platformRoleId" | "email"
 > & {
     userId: string;
+    iat?: number;
+    exp?: number;
 };
 
 export type TokenPairType = Pick<TokenType, "accessToken" | "refreshToken">;
