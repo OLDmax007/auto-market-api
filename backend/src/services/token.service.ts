@@ -4,6 +4,7 @@ import { mainConfig } from "../configs/main.config";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { TokenTypeEnum } from "../enums/token-type.enum";
 import { ApiError } from "../errors/api.error";
+import { Token } from "../models/token.model";
 import { TokenPairType, TokenPayloadType } from "../types/token.type";
 
 const {
@@ -54,6 +55,17 @@ class TokenService {
                 "Invalid or expired token",
             );
         }
+    }
+
+    public async isTokenValid(
+        token: string,
+        type: TokenTypeEnum,
+    ): Promise<boolean> {
+        const tokenRecord = await Token.findOne({
+            [type]: token,
+        });
+
+        return !!tokenRecord;
     }
 }
 
