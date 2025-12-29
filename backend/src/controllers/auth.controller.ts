@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { authService } from "../services/auth.service";
+import { TokenPayloadType } from "../types/token.type";
 import { UserCreateDtoType, UserLoginDtoType } from "../types/user.type";
 
 class AuthController {
@@ -18,6 +19,16 @@ class AuthController {
         try {
             const dto = req.body as UserLoginDtoType;
             const data = await authService.signIn(dto);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async refresh(req: Request, res: Response, next: NextFunction) {
+        try {
+            const payload = req.res.locals.payload as TokenPayloadType;
+            const data = await authService.refresh(payload);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
