@@ -4,7 +4,7 @@ import { mainConfig } from "../configs/main.config";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { TokenTypeEnum } from "../enums/token-type.enum";
 import { ApiError } from "../errors/api.error";
-import { Token } from "../models/token.model";
+import { tokenRepository } from "../repositories/token.repository";
 import { TokenPairType, TokenPayloadType } from "../types/token.type";
 
 const {
@@ -61,7 +61,7 @@ class TokenService {
         token: string,
         type: TokenTypeEnum,
     ): Promise<boolean> {
-        const tokenRecord = await Token.findOne({
+        const tokenRecord = await tokenRepository.getOneByParams({
             [type]: token,
         });
 
