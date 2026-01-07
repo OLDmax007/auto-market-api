@@ -1,5 +1,8 @@
+import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
+import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { ApiError } from "../errors/api.error";
+import { subscriptionRepository } from "../repositories/subscription.repository";
 import { tokenRepository } from "../repositories/token.repository";
 import { userRepository } from "../repositories/user.repository";
 import {
@@ -23,17 +26,33 @@ class AuthService {
         await userService.checkEmailUniqueness(dto.email);
         const password = await passwordService.hashPassword(dto.password);
 
-        const user = await userService.create({
+        const createdUser = await userService.create({
             ...dto,
             password,
         });
 
-        if (!user) {
+        if (!createdUser) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
                 "Problem with register user",
             );
         }
+
+        const { _id: subscriptionId } = await subscriptionRepository.create({
+            userId: createdUser._id,
+            planType: PlanTypeEnum.BASIC,
+            price: {
+                amount: 0,
+                currency: CurrencyEnum.UAH,
+            },
+            activeFrom: null,
+            activeTo: null,
+            isActive: true,
+        });
+
+        const user = await userRepository.updateById(createdUser._id, {
+            subscriptionId,
+        });
 
         const {
             _id: userId,
