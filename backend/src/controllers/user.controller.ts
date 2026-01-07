@@ -33,6 +33,20 @@ class UserController {
             next(e);
         }
     }
+
+    public async upgradeToPremium(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { userId } = req.res.locals.payload as TokenPayloadType;
+            const data = await userService.upgradeToPremium(userId);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
 }
 
 export const userController = new UserController();
