@@ -1,16 +1,16 @@
-import { PlanTypeEnum } from "../enums/plan-type.enum";
-import { BaseType } from "./base.type";
+import { BaseType, CurrencyType } from "./base.type";
 
 export type UserType = {
     _id: string;
+    platformRoleId: string;
+    organizationId: string;
+    subscriptionId?: string;
     firstName: string;
     lastName: string;
     age: number;
     password: string;
     email: string;
-    platformRoleId: string;
-    organizationId: string;
-    planType: PlanTypeEnum | null;
+    balance: CurrencyType;
     isActive: boolean;
     isVerified: boolean;
     deletedAt: Date | null;
@@ -21,7 +21,7 @@ export type UserCreateDtoType = Pick<
     "firstName" | "lastName" | "age" | "email" | "password"
 >;
 
-export type UserCreateDbType = Pick<UserType, "platformRoleId" | "planType"> &
+export type UserCreateDbType = Pick<UserType, "platformRoleId"> &
     UserCreateDtoType;
 
 export type UserLoginDtoType = Pick<UserType, "email" | "password">;
