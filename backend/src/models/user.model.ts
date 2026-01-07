@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { PlanTypeEnum } from "../enums/plan-type.enum";
+import { CurrencyEnum } from "../enums/currency.enum";
 import { UserType } from "../types/user.type";
 
 const { Schema, model } = mongoose;
@@ -12,6 +12,10 @@ const userSchema = new Schema(
         age: { type: Number, required: true },
         password: { type: String, required: true },
         email: { type: String, unique: true, required: true },
+        balance: {
+            amount: { type: Number, default: 0 },
+            currency: { type: String, default: CurrencyEnum.UAH },
+        },
         platformRoleId: {
             type: Schema.Types.ObjectId,
             ref: "PlatformRole",
@@ -22,9 +26,9 @@ const userSchema = new Schema(
             ref: "Organization",
             default: null,
         },
-        planType: {
-            type: String,
-            enum: PlanTypeEnum,
+        subscriptionId: {
+            type: Schema.Types.ObjectId,
+            ref: "Subscription",
             default: null,
         },
         isActive: { type: Boolean, default: true },
