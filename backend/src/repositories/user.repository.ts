@@ -18,14 +18,8 @@ class UserRepository {
         return User.create(dto);
     }
 
-    public updateById(id: string, platformRoleId: string): Promise<UserType> {
-        return User.findByIdAndUpdate(
-            id,
-            {
-                platformRoleId,
-            },
-            { new: true },
-        );
+    public updateById(id: string, data: Partial<UserType>): Promise<UserType> {
+        return User.findByIdAndUpdate(id, data, { new: true });
     }
 }
 
