@@ -26,6 +26,9 @@ router.patch(
     userController.upgradeToPremium,
 );
 
-router.post;
-
+router.patch(
+    "/top-up-balance",
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userController.topUpBalance,
+);
 export const userRouter = router;
