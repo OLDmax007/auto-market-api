@@ -7,11 +7,11 @@ import { ApiError } from "../errors/api.error";
 import { paymentRepository } from "../repositories/payment.repository";
 import { subscriptionRepository } from "../repositories/subscription.repository";
 import { userRepository } from "../repositories/user.repository";
-import { CurrencyType } from "../types/base.type";
 import { SubscriptionType } from "../types/billing/subcription.type";
+import { CurrencyAmountType } from "../types/rate.type";
 import { UserCreateDtoType, UserType } from "../types/user.type";
 import { platformRoleService } from "./platform-role.service";
-import { privatBankService } from "./privatbank.service";
+import { pricingService } from "./pricing.service";
 
 class UserService {
     public getAll(): Promise<UserType[]> {
@@ -67,8 +67,6 @@ class UserService {
     }
 
     public async upgradeToPremium(id: string): Promise<SubscriptionType> {
-        // await exchangeRateService.exchangeRates();
-
         const { _id: userId, subscriptionId } = await userService.getById(id);
 
         const userSubscription =
@@ -135,11 +133,11 @@ class UserService {
     }
     public async topUpBalance(
         id: string,
-        { amount, currency }: CurrencyType,
-    ): Promise<{ balance: CurrencyType; credited: CurrencyType }> {
+        { amount, currency }: CurrencyAmountType,
+    ): Promise<{ balance: CurrencyAmountType; credited: CurrencyAmountType }> {
         let { balance } = await userService.getById(id);
 
-        const convertedMoney = await privatBankService.convertToUAH(
+        const convertedMoney = await pricingService.convertToUAH(
             amount,
             currency,
         );
