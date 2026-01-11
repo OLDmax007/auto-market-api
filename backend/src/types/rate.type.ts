@@ -7,10 +7,10 @@ export type PrivatBankRateType = {
     sale: string;
 };
 
-export type NonUAHCurrency = Exclude<CurrencyEnum, CurrencyEnum.UAH>;
+export type NonUAHCurrencyType = Exclude<CurrencyEnum, CurrencyEnum.UAH>;
 
-export type FormattedRates = {
-    [currency in NonUAHCurrency]: {
+export type FormattedRatesType = {
+    [currency in NonUAHCurrencyType]: {
         buy: number;
         sale: number;
     };
