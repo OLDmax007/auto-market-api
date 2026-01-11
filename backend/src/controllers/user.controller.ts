@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { userService } from "../services/user.service";
-import { CurrencyType } from "../types/base.type";
+import { CurrencyAmountType } from "../types/rate.type";
 import { TokenPayloadType } from "../types/token.type";
 
 class UserController {
@@ -49,10 +49,10 @@ class UserController {
         }
     }
 
-    public async toUpBalance(req: Request, res: Response, next: NextFunction) {
+    public async topUpBalance(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId } = req.res.locals.payload as TokenPayloadType;
-            const dto = req.body as CurrencyType;
+            const dto = req.body as CurrencyAmountType;
             const data = await userService.topUpBalance(userId, dto);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
