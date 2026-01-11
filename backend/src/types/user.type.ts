@@ -1,4 +1,5 @@
-import { BaseType, CurrencyType } from "./base.type";
+import { BaseType } from "./base.type";
+import { CurrencyAmountType } from "./rate.type";
 
 export type UserType = {
     _id: string;
@@ -10,7 +11,7 @@ export type UserType = {
     age: number;
     password: string;
     email: string;
-    balance: CurrencyType;
+    balance: CurrencyAmountType;
     isActive: boolean;
     isVerified: boolean;
     deletedAt: Date | null;
