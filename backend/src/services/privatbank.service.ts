@@ -1,8 +1,8 @@
 import axios from "axios";
 
 import { urls } from "../constants/urls";
-import { CurrencyEnum } from "../enums/currency.enum";
 import { PrivatBankRateType } from "../types/billing/privatbank-rate.type";
+import { FormattedRatesType, NonUAHCurrencyType } from "../types/rate.type";
 
 class PrivatBankService {
     public async getRates(): Promise<PrivatBankRateType[]> {
@@ -10,16 +10,17 @@ class PrivatBankService {
         return data;
     }
 
-    public async convertToUAH(
-        money: number,
-        currency: CurrencyEnum,
-    ): Promise<number> {
-        if (currency === CurrencyEnum.UAH) {
-            return money;
-        }
+    public async getRatesFormatted(): Promise<FormattedRatesType> {
         const rates = await this.getRates();
-        const rate = rates.find((rate) => rate.ccy === currency);
-        return money * Number(rate.sale);
+        const formattedRates = rates.reduce((acc, rate) => {
+            acc[rate.ccy as NonUAHCurrencyType] = {
+                buy: Number(rate.buy),
+                sale: Number(rate.sale),
+            };
+            return acc;
+        }, {});
+
+        return formattedRates as FormattedRatesType;
     }
 }
 
