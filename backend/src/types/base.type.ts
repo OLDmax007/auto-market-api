@@ -5,7 +5,7 @@ export type BaseType = {
     updatedAt: Date;
 };
 
-export type CurrencyType = {
+export type CurrencyAmountType = {
     amount: number;
     currency: CurrencyEnum;
 };
