@@ -1,6 +1,4 @@
 import { CurrencyEnum } from "../enums/currency.enum";
-import { HttpStatusEnum } from "../enums/http-status.enum";
-import { ApiError } from "../errors/api.error";
 import { CurrencyAmountType } from "../types/rate.type";
 import { privatBankService } from "./privatbank.service";
 
@@ -20,9 +18,14 @@ class PricingService {
         money: number,
         currency: CurrencyEnum,
     ): Promise<CurrencyAmountType[]> {
-        const { USD, EUR } = await privatBankService.getRatesFormatted();
+        const rates = await privatBankService.getRatesFormatted();
 
-        const prices = [] as CurrencyAmountType[];
+        if (!rates.USD || !rates.EUR) {
+            throw new Error("Currency rates not available");
+        }
+
+        const prices: CurrencyAmountType[] = [];
+        const { USD, EUR } = rates;
 
         switch (currency) {
             case CurrencyEnum.UAH:
@@ -70,10 +73,7 @@ class PricingService {
                 });
                 break;
             default:
-                throw new ApiError(
-                    HttpStatusEnum.BAD_REQUEST,
-                    `Unsupported currency: ${currency}`,
-                );
+                throw new Error(`Unsupported currency: ${currency}`);
         }
 
         return prices;
