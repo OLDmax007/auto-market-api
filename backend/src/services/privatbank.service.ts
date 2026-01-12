@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import { urls } from "../constants/urls";
+import { rateRepository } from "../repositories/rate.repository";
 import {
     FormattedRatesType,
     NonUAHCurrencyType,
@@ -14,7 +15,7 @@ class PrivatBankService {
     }
 
     public async getRatesFormatted(): Promise<FormattedRatesType> {
-        const rates = await this.getRates();
+        const rates = await rateRepository.getAll();
         const formattedRates = rates.reduce((acc, rate) => {
             acc[rate.ccy as NonUAHCurrencyType] = {
                 buy: Number(rate.buy),
