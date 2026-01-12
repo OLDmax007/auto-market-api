@@ -1,8 +1,11 @@
 import axios from "axios";
 
 import { urls } from "../constants/urls";
-import { PrivatBankRateType } from "../types/billing/privatbank-rate.type";
-import { FormattedRatesType, NonUAHCurrencyType } from "../types/rate.type";
+import {
+    FormattedRatesType,
+    NonUAHCurrencyType,
+    PrivatBankRateType,
+} from "../types/rate.type";
 
 class PrivatBankService {
     public async getRates(): Promise<PrivatBankRateType[]> {
