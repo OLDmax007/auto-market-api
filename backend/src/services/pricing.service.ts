@@ -1,8 +1,14 @@
 import { CurrencyEnum } from "../enums/currency.enum";
+import { rateRepository } from "../repositories/rate.repository";
 import { CurrencyAmountType } from "../types/rate.type";
 import { privatBankService } from "./privatbank.service";
 
 class PricingService {
+    public async updateRates(): Promise<void> {
+        const rates = await privatBankService.getRates();
+        await rateRepository.upsertRates(rates);
+    }
+
     public async convertToUAH(
         money: number,
         currency: CurrencyEnum,
