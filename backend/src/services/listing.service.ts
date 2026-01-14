@@ -1,7 +1,11 @@
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { ApiError } from "../errors/api.error";
 import { listingRepository } from "../repositories/listing.repository";
-import { ListingCreateDtoType, ListingType } from "../types/listing.type";
+import {
+    ListingCreateDbType,
+    ListingCreateDtoType,
+    ListingType,
+} from "../types/listing.type";
 import { pricingService } from "./pricing.service";
 import { userService } from "./user.service";
 
@@ -38,6 +42,23 @@ class ListingService {
             publishedAt: new Date(),
             ...newDto,
         });
+    }
+
+    public async updateById(
+        id: string,
+        { enteredPrice, ...newDto }: Partial<ListingCreateDtoType>,
+    ): Promise<ListingType> {
+        const updateDto: Partial<ListingCreateDbType> = { ...newDto };
+
+        if (enteredPrice) {
+            const { amount, currency } = enteredPrice;
+            updateDto.prices = await pricingService.calculateListingPrices(
+                amount,
+                currency,
+            );
+        }
+
+        return listingRepository.updateById(id, updateDto);
     }
 }
 
