@@ -49,6 +49,8 @@ export const ListingSchema = new Schema(
         },
         prices: [
             {
+                _id: false,
+                mainCurrency: { type: Boolean },
                 amount: { type: Number, required: true },
                 currency: { type: String, required: true },
             },
@@ -59,9 +61,7 @@ export const ListingSchema = new Schema(
         isActive: { type: Boolean, default: false },
         publishedAt: { type: Date, default: null },
     },
-    {
-        timestamps: true,
-    },
+    { timestamps: true, versionKey: false },
 );
 
 export const Listing = model<ListingType>("Listing", ListingSchema);
