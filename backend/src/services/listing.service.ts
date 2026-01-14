@@ -60,6 +60,10 @@ class ListingService {
 
         return listingRepository.updateById(id, updateDto);
     }
+
+    public deleteById(id: string): Promise<ListingType> {
+        return listingRepository.deleteById(id);
+    }
 }
 
 export const listingService = new ListingService();
