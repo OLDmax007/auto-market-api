@@ -17,6 +17,7 @@ export type FormattedRatesType = {
 };
 
 export type CurrencyAmountType = {
+    mainCurrency?: boolean;
     amount: number;
     currency: CurrencyEnum;
 };
