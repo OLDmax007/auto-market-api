@@ -35,6 +35,17 @@ class ListingController {
             next(e);
         }
     }
+
+    public async updateById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const dto = req.body as Partial<ListingCreateDtoType>;
+            const data = await listingService.updateById(listingId, dto);
+            res.status(HttpStatusEnum.CREATED).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
 }
 
 export const listingController = new ListingController();
