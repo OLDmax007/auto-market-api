@@ -4,7 +4,7 @@ import { CurrencyAmountType } from "./rate.type";
 export type UserType = {
     _id: string;
     platformRoleId: string;
-    organizationId: string;
+    organizationId: string | null;
     subscriptionId?: string;
     firstName: string;
     lastName: string;
