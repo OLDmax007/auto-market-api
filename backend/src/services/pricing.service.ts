@@ -41,6 +41,7 @@ class PricingService {
         switch (currency) {
             case CurrencyEnum.UAH:
                 prices.push({
+                    mainCurrency: true,
                     currency: CurrencyEnum.UAH,
                     amount: money,
                 });
@@ -60,6 +61,7 @@ class PricingService {
                     amount: uahFromUsd,
                 });
                 prices.push({
+                    mainCurrency: true,
                     currency: CurrencyEnum.USD,
                     amount: money,
                 });
@@ -79,6 +81,7 @@ class PricingService {
                     amount: uahFromEur / USD.sale,
                 });
                 prices.push({
+                    mainCurrency: true,
                     currency: CurrencyEnum.EUR,
                     amount: money,
                 });
