@@ -21,3 +21,16 @@ export enum CarCategoryEnum {
     BUS = "Bus",
     ELECTRIC = "Electric",
 }
+
+export enum CarMarkEnum {
+    BMW = "BMW",
+    Daewoo = "Daewoo",
+}
+
+export enum BmwModelsEnum {
+    X5 = "X5",
+}
+
+export enum DaewooModelsEnum {
+    Lanos = "Lanos",
+}
