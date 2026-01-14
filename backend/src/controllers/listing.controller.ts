@@ -46,6 +46,16 @@ class ListingController {
             next(e);
         }
     }
+
+    public async deleteById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const data = await listingService.deleteById(listingId);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
 }
 
 export const listingController = new ListingController();
