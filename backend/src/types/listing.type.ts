@@ -26,6 +26,7 @@ export type ListingType = {
     city: string;
     main_photo_url: string;
     isActive: boolean;
+    profanityCheckAttempts: number;
     publishedAt: Date | null;
 } & BaseType;
 
@@ -38,6 +39,8 @@ export type ListingCreateDtoType = Omit<
     | "updatedAt"
     | "publishedAt"
     | "prices"
+    | "isActive"
+    | "profanityCheckAttempts"
 > & {
     enteredPrice: CurrencyAmountType;
 };
@@ -46,3 +49,10 @@ export type ListingCreateDbType = Omit<
     ListingType,
     "_id" | "createdAt" | "updatedAt"
 >;
+
+export type ListingModerationResultType = {
+    isProfanity: boolean;
+    isActive: boolean;
+    profanityCheckAttempts: number;
+    maxAttempts: number;
+};
