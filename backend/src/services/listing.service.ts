@@ -70,7 +70,26 @@ class ListingService {
         id: string,
         { enteredPrice, ...newDto }: Partial<ListingCreateDtoType>,
     ): Promise<ListingType> {
-        const updateDto: Partial<ListingCreateDbType> = { ...newDto };
+        const listing = await this.getById(id);
+        if ((listing.profanityCheckAttempts ?? 0) >= 3) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "PROFANITY_ATTEMPTS_EXCEEDED",
+            );
+        }
+
+        const { isActive, profanityCheckAttempts } =
+            await this.checkListingForProfanity(
+                newDto.title,
+                newDto.description,
+                listing.profanityCheckAttempts,
+            );
+
+        const updateDto: Partial<ListingCreateDbType> = {
+            ...newDto,
+            isActive,
+            profanityCheckAttempts,
+        };
 
         if (enteredPrice) {
             const { amount, currency } = enteredPrice;
@@ -80,7 +99,7 @@ class ListingService {
             );
         }
 
-        return listingRepository.updateById(id, updateDto);
+        return listingRepository.updateById(id, { ...updateDto });
     }
 
     public deleteById(id: string): Promise<ListingType> {
