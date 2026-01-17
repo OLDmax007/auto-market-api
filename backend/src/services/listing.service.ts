@@ -4,9 +4,11 @@ import { listingRepository } from "../repositories/listing.repository";
 import {
     ListingCreateDbType,
     ListingCreateDtoType,
+    ListingModerationResultType,
     ListingType,
 } from "../types/listing.type";
 import { pricingService } from "./pricing.service";
+import { profanityService } from "./profanity.service";
 import { userService } from "./user.service";
 
 class ListingService {
@@ -41,6 +43,8 @@ class ListingService {
             prices,
             publishedAt: new Date(),
             ...newDto,
+            profanityCheckAttempts: 0,
+            isActive: false,
         });
     }
 
@@ -63,6 +67,41 @@ class ListingService {
 
     public deleteById(id: string): Promise<ListingType> {
         return listingRepository.deleteById(id);
+    }
+
+    public async checkListingForProfanity(
+        title: string,
+        description: string,
+        currentAttempts: number = 0,
+    ): Promise<ListingModerationResultType> {
+        const maxAttempts = 3;
+        const isProfanity = profanityService.hasAnyProfanity(
+            title,
+            description,
+        );
+
+        let profanityCheckAttempts = currentAttempts;
+        let isActive = true;
+
+        if (isProfanity) {
+            if (currentAttempts >= 0) {
+                profanityCheckAttempts += 1;
+            }
+
+            isActive = false;
+            if (profanityCheckAttempts >= maxAttempts) {
+                isActive = false;
+            }
+        } else {
+            profanityCheckAttempts = 0;
+        }
+
+        return {
+            isProfanity,
+            isActive,
+            profanityCheckAttempts,
+            maxAttempts,
+        };
     }
 }
 
