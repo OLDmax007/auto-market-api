@@ -22,7 +22,10 @@ class ListingService {
     public async create(
         userId: string,
         { enteredPrice: { amount, currency }, ...newDto }: ListingCreateDtoType,
-    ): Promise<ListingType> {
+    ): Promise<{
+        listing: ListingType;
+        moderation: ListingModerationResultType;
+    }> {
         const { organizationId } = await userService.getById(userId);
 
         const prices = await pricingService.calculateListingPrices(
@@ -37,15 +40,25 @@ class ListingService {
             );
         }
 
-        return listingRepository.create({
+        const moderation = await this.checkListingForProfanity(
+            newDto.title,
+            newDto.description,
+            -1,
+        );
+
+        const listing = await listingRepository.create({
             userId,
             organizationId,
             prices,
             publishedAt: new Date(),
+            isActive: moderation.isActive,
+            profanityCheckAttempts: moderation.profanityCheckAttempts,
             ...newDto,
-            profanityCheckAttempts: 0,
-            isActive: false,
         });
+        return {
+            listing,
+            moderation,
+        };
     }
 
     public async updateById(
