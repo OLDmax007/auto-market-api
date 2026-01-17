@@ -20,6 +20,7 @@
     "express": "^5.1.0",
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.2",
+    "leo-profanity": "^1.9.0",
     "mongoose": "^9.0.0"
   },
   "devDependencies": {
