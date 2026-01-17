@@ -16,9 +16,14 @@ class ListingService {
         return listingRepository.getAll();
     }
 
-    public getById(id: string): Promise<ListingType> {
-        return listingRepository.getById(id);
+    public async getById(id: string): Promise<ListingType> {
+        const listing = await listingRepository.getById(id);
+        if (!listing) {
+            throw new ApiError(HttpStatusEnum.NOT_FOUND, "Listing not found");
+        }
+        return listing;
     }
+
     public async create(
         userId: string,
         { enteredPrice: { amount, currency }, ...newDto }: ListingCreateDtoType,
