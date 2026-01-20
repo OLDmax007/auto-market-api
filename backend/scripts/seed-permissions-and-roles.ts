@@ -3,11 +3,10 @@ import {PlatformPermissionEnum} from "../src/enums/platform-permission.enum";
 import {OrgRole} from "../src/models/permissions/org-role.model";
 import {Permission} from "../src/models/permissions/permission.model";
 import {PlatformRole} from "../src/models/permissions/platform-role.model";
-import {dataBaseService} from "../src/services/database.service";
 import {orgRolePermissionsMap} from "../src/configs/org-role-perm-map.config";
 import {platformRolePermissionsMap} from "../src/configs/platform-role-perm-map.config";
 
-const seedPermissionsAndRoles = async () => {
+export const seedPermissionsAndRoles = async () => {
     await Permission.deleteMany({});
     await OrgRole.deleteMany({});
     await PlatformRole.deleteMany({});
@@ -53,13 +52,3 @@ const seedPermissionsAndRoles = async () => {
     console.log("Roles and permissions seeded successfully");
 };
 
-(async () => {
-    try {
-        await dataBaseService.connectToDB();
-        await seedPermissionsAndRoles();
-        await dataBaseService.disconnectDB();
-        console.log("DONE!!!");
-    } catch (err) {
-        console.error(err);
-    }
-})();
