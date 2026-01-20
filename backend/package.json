@@ -7,7 +7,7 @@
     "build": "rimraf dist && tsc",
     "start": "rimraf dist && tsc-watch --onSuccess \"npm run watch:server\"",
     "watch:server": "tsx src/main.ts --watch",
-    "seed:permissions": "tsx scripts/seed-permissions-and-roles.ts"
+    "seed": "tsx scripts/main-seed.ts"
   },
   "author": "",
   "license": "ISC",
