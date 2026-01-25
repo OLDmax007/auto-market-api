@@ -1,12 +1,13 @@
 import { CarMarkEnum } from "../enums/car.enum";
+import { CarMapType } from "../types/car.type";
 
-export const CarMap = [
+export const CarMap: CarMapType[] = [
     {
-        mark: CarMarkEnum.BMW,
+        make: CarMarkEnum.BMW,
         models: ["X5"],
     },
     {
-        mark: CarMarkEnum.Daewoo,
+        make: CarMarkEnum.Daewoo,
         models: ["Lanos"],
     },
 ];
