@@ -18,8 +18,8 @@ class UserService {
         return userRepository.getAll();
     }
 
-    public getById(id: string): Promise<UserType> {
-        const user = userRepository.getById(id);
+    public async getById(id: string): Promise<UserType> {
+        const user = await userRepository.getById(id);
 
         if (!user) {
             throw new ApiError(HttpStatusEnum.NOT_FOUND, "User not found");
