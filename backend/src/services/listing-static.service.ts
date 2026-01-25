@@ -49,9 +49,6 @@ class ListingStaticsService {
     }
 
     public async createViews(dto: ListingStaticsCreateDtoType) {
-        const listing = await this.getViewsByListingId(dto.listingId);
-        if (listing) return listing;
-
         return listingStaticRepository.createViews(dto);
     }
 
