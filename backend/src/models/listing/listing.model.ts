@@ -1,13 +1,12 @@
 import { model, Schema } from "mongoose";
 
 import {
-    BmwModelsEnum,
-    CarCategoryEnum,
     CarMarkEnum,
-    DaewooModelsEnum,
     EngineEnum,
     TransmissionEnum,
 } from "../../enums/car.enum";
+import { CountryEnum } from "../../enums/country-enum";
+import { RegionEnum } from "../../enums/region-enum";
 import { ListingType } from "../../types/listing.type";
 
 export const ListingSchema = new Schema(
@@ -22,17 +21,11 @@ export const ListingSchema = new Schema(
             ref: "Organization",
             default: null,
         },
-        category: {
-            type: String,
-            enum: CarCategoryEnum,
-            required: true,
-        },
         title: { type: String, required: true },
         description: { type: String, required: true },
         make: { type: String, enum: CarMarkEnum, required: true },
         model: {
             type: String,
-            enum: BmwModelsEnum || DaewooModelsEnum,
             required: true,
         },
         year: { type: Number, required: true },
@@ -55,6 +48,12 @@ export const ListingSchema = new Schema(
                 currency: { type: String, required: true },
             },
         ],
+        country: {
+            type: String,
+            enum: CountryEnum,
+            default: CountryEnum.UKRAINE,
+        },
+        region: { type: String, enum: RegionEnum, required: true },
         city: { type: String, required: true },
         main_photo_url: { type: String, required: true },
         profanityCheckAttempts: { type: Number, default: 0 },
@@ -64,4 +63,4 @@ export const ListingSchema = new Schema(
     { timestamps: true, versionKey: false },
 );
 
-export const Listing = model<ListingType>("Listing", ListingSchema);
+export const Listing = model<ListingType>("listings", ListingSchema);
