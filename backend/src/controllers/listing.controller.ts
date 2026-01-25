@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { listingService } from "../services/listing.service";
+import { listingStaticService } from "../services/listing-static.service";
 import { ListingCreateDtoType } from "../types/listing.type";
 import { TokenPayloadType } from "../types/token.type";
 
@@ -54,6 +55,23 @@ class ListingController {
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
+        }
+    }
+
+    public async getPremiumListingStats(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const data =
+                await listingStaticService.getPremiumStatsByListingId(
+                    listingId,
+                );
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (err) {
+            next(err);
         }
     }
 }
