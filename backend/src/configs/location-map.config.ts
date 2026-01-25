@@ -1,6 +1,7 @@
 import { RegionEnum } from "../enums/region-enum";
+import { LocationMapType } from "../types/location.type";
 
-export const LocationMap = [
+export const LocationMap: LocationMapType[] = [
     {
         region: RegionEnum.VINNYTSIA,
         cities: [
