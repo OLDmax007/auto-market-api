@@ -34,4 +34,11 @@ router.delete(
     listingController.deleteById,
 );
 
+router.get(
+    "/:listingId/statistics",
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    commonMiddleware.isValidId("listingId"),
+    listingController.getPremiumListingStats,
+);
+
 export const listingRouter = router;
