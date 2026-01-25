@@ -7,6 +7,9 @@ import {
     ListingModerationResultType,
     ListingType,
 } from "../types/listing.type";
+import { carService } from "./car.service";
+import { listingStaticService } from "./listing-static.service";
+import { locationService } from "./location.service";
 import { pricingService } from "./pricing.service";
 import { profanityService } from "./profanity.service";
 import { userService } from "./user.service";
@@ -21,6 +24,9 @@ class ListingService {
         if (!listing) {
             throw new ApiError(HttpStatusEnum.NOT_FOUND, "Listing not found");
         }
+
+        await listingStaticService.incrementViewsByListingId(listing._id);
+
         return listing;
     }
 
@@ -31,6 +37,24 @@ class ListingService {
         listing: ListingType;
         moderation: ListingModerationResultType;
     }> {
+        const { cities } = await locationService.getCitiesByRegion(
+            newDto.region,
+        );
+        if (!cities.includes(newDto.city)) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                `City '${newDto.city}' does not exist in region '${newDto.region}'`,
+            );
+        }
+
+        const { make, models } = await carService.getModelsByMake(newDto.make);
+        if (!models.includes(newDto.model)) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                `Model '${newDto.model}' does not exist for make '${make}'`,
+            );
+        }
+
         const { organizationId } = await userService.getById(userId);
 
         const prices = await pricingService.calculateListingPrices(
@@ -60,6 +84,17 @@ class ListingService {
             profanityCheckAttempts: moderation.profanityCheckAttempts,
             ...newDto,
         });
+
+        await listingStaticService.createViews({
+            listingId: listing._id,
+            views: {
+                all: 0,
+                day: 0,
+                month: 0,
+                week: 0,
+            },
+        });
+
         return {
             listing,
             moderation,
