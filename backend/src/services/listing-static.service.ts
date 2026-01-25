@@ -2,9 +2,40 @@ import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PeriodEnum } from "../enums/period.enum";
 import { ApiError } from "../errors/api.error";
 import { listingStaticRepository } from "../repositories/listing-static.repository";
-import { ListingStaticsCreateDtoType } from "../types/listing-statics.type";
+import {
+    ListingAveragePriceByLocationType,
+    ListingStaticsCreateDtoType,
+    ListingStaticsType,
+} from "../types/listing-statics.type";
+import { listingService } from "./listing.service";
+import { marketAnalyticsService } from "./market-analytics.service";
 
 class ListingStaticsService {
+    async getPremiumStatsByListingId(listingId: string): Promise<{
+        views: ListingStaticsType["views"];
+        averagePrice: ListingAveragePriceByLocationType;
+    }> {
+        const { model, make, country, region, city } =
+            await listingService.getById(listingId);
+
+        const { views } =
+            await listingStaticService.getViewsByListingId(listingId);
+
+        const avgPrices =
+            await marketAnalyticsService.getAveragePriceByLocations({
+                model,
+                make,
+                country,
+                region,
+                city,
+            });
+
+        return {
+            views,
+            averagePrice: avgPrices,
+        };
+    }
+
     public async getViewsByListingId(listingId: string) {
         const stats =
             await listingStaticRepository.getViewsByListingId(listingId);
