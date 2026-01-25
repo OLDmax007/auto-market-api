@@ -12,25 +12,7 @@ export enum TransmissionEnum {
     ROBOTIC = "Robotic",
 }
 
-export enum CarCategoryEnum {
-    LIGHT_CAR = "Light Car",
-    HEAVY_CAR = "Heavy Car",
-    SUV = "SUV",
-    VAN = "Van",
-    TRUCK = "Truck",
-    BUS = "Bus",
-    ELECTRIC = "Electric",
-}
-
 export enum CarMarkEnum {
     BMW = "BMW",
     Daewoo = "Daewoo",
-}
-
-export enum BmwModelsEnum {
-    X5 = "X5",
-}
-
-export enum DaewooModelsEnum {
-    Lanos = "Lanos",
 }
