@@ -20,7 +20,4 @@ const LocationSchema = new Schema(
     { timestamps: true, versionKey: false },
 );
 
-export const LocationModel = model<LocationMapType>(
-    "locations",
-    LocationSchema,
-);
+export const Location = model<LocationMapType>("locations", LocationSchema);
