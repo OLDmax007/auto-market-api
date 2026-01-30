@@ -4,7 +4,7 @@ import { CarMapType } from "../types/car.type";
 
 class CarRepository {
     public async getAll(): Promise<CarMapType[]> {
-        return Car.findOne();
+        return Car.find();
     }
 
     public async getByMake(make: CarMarkEnum): Promise<CarMapType> {
