@@ -1,3 +1,5 @@
+import "./models/index";
+
 import express, { NextFunction, Request, Response } from "express";
 
 import { mainConfig } from "./configs/main.config";
