@@ -24,6 +24,7 @@ const permissionSchema = new Schema(
 );
 
 export const Permission = model<PermissionType>(
-    "permissions",
+    "Permission",
     permissionSchema,
+    "permissions",
 );
