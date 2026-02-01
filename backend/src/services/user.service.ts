@@ -18,6 +18,17 @@ class UserService {
         return userRepository.getAll();
     }
 
+    public async getManyByPlatformId(
+        platformRoleId: string,
+    ): Promise<UserType[]> {
+        const users = await userRepository.getManyByPlatformId(platformRoleId);
+
+        if (!users.length) {
+            throw new ApiError(HttpStatusEnum.NOT_FOUND, "Users not found");
+        }
+        return users;
+    }
+
     public async getById(id: string): Promise<UserType> {
         const user = await userRepository.getById(id);
 
@@ -29,7 +40,7 @@ class UserService {
 
     public async create(dto: UserCreateDtoType): Promise<UserType> {
         const { _id } = await platformRoleService.getPlatformRole(
-            PlatformRoleEnum.VISITOR,
+            PlatformRoleEnum.MANAGER,
         );
 
         return userRepository.create({
