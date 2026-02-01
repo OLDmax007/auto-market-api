@@ -16,6 +16,18 @@ class PlatformRoleService {
 
         return role;
     }
+
+    public async getPlatformRoleById(
+        roleId: string,
+    ): Promise<PlatformRoleType> {
+        const role = await platformRoleRepository.getById(roleId);
+
+        if (!role) {
+            throw new ApiError(HttpStatusEnum.NOT_FOUND, "Role not found");
+        }
+
+        return role;
+    }
 }
 
 export const platformRoleService = new PlatformRoleService();
