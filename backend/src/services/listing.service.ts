@@ -10,6 +10,7 @@ import {
 import { carService } from "./car.service";
 import { listingStaticService } from "./listing-static.service";
 import { locationService } from "./location.service";
+import { moderationService } from "./moderation/moderation.service";
 import { pricingService } from "./pricing.service";
 import { profanityService } from "./profanity.service";
 import { userService } from "./user.service";
@@ -85,6 +86,19 @@ class ListingService {
             ...newDto,
         });
 
+        if (
+            moderation.isProfanity &&
+            moderation.profanityCheckAttempts >= moderation.maxAttempts
+        ) {
+            await moderationService.sendListWithInactiveListingToModeration(
+                {
+                    title: listing.title,
+                    _id: listing._id,
+                    userId: listing.userId,
+                },
+                moderation,
+            );
+        }
         await listingStaticService.createViews({
             listingId: listing._id,
             views: {
@@ -106,24 +120,36 @@ class ListingService {
         { enteredPrice, ...newDto }: Partial<ListingCreateDtoType>,
     ): Promise<ListingType> {
         const listing = await this.getById(id);
-        if ((listing.profanityCheckAttempts ?? 0) >= 3) {
+
+        const moderation = await this.checkListingForProfanity(
+            newDto.title,
+            newDto.description,
+            listing.profanityCheckAttempts,
+        );
+
+        if (
+            moderation.isProfanity &&
+            moderation.profanityCheckAttempts >= moderation.maxAttempts
+        ) {
+            await moderationService.sendListWithInactiveListingToModeration(
+                {
+                    title: listing.title,
+                    _id: listing._id,
+                    userId: listing.userId,
+                },
+                moderation,
+            );
+
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
-                "PROFANITY_ATTEMPTS_EXCEEDED",
+                "profanity attempts exceeded",
             );
         }
 
-        const { isActive, profanityCheckAttempts } =
-            await this.checkListingForProfanity(
-                newDto.title,
-                newDto.description,
-                listing.profanityCheckAttempts,
-            );
-
         const updateDto: Partial<ListingCreateDbType> = {
             ...newDto,
-            isActive,
-            profanityCheckAttempts,
+            isActive: moderation.isActive,
+            profanityCheckAttempts: moderation.profanityCheckAttempts,
         };
 
         if (enteredPrice) {

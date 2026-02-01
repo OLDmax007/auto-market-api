@@ -13,6 +13,7 @@ export type TokenPayloadType = Pick<
     "firstName" | "lastName" | "platformRoleId" | "email"
 > & {
     userId: string;
+    permissionIds: string[];
     iat?: number;
     exp?: number;
 };
