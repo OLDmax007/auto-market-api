@@ -1,3 +1,4 @@
+import { emailConstants } from "../constants/email-data";
 import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
@@ -15,7 +16,9 @@ import {
     UserLoginDtoType,
     UserType,
 } from "../types/user.type";
+import { emailService } from "./email.service";
 import { passwordService } from "./password.service";
+import { platformRoleService } from "./platform-role.service";
 import { tokenService } from "./token.service";
 import { userService } from "./user.service";
 
@@ -37,6 +40,12 @@ class AuthService {
                 "Problem with register user",
             );
         }
+
+        await emailService.sendEmail(
+            createdUser.email,
+            emailConstants.WELCOME,
+            {},
+        );
 
         const { _id: subscriptionId } = await subscriptionRepository.create({
             userId: createdUser._id,
@@ -62,12 +71,16 @@ class AuthService {
             platformRoleId,
         } = user;
 
+        const { permissionIds } =
+            await platformRoleService.getPlatformRoleById(platformRoleId);
+
         const tokens = tokenService.generateTokens({
             userId,
             firstName,
             lastName,
             email,
             platformRoleId,
+            permissionIds,
         });
 
         await tokenRepository.create({
@@ -118,12 +131,16 @@ class AuthService {
             platformRoleId,
         } = user;
 
+        const { permissionIds } =
+            await platformRoleService.getPlatformRoleById(platformRoleId);
+
         const tokens = tokenService.generateTokens({
             userId,
             firstName,
             lastName,
             email,
             platformRoleId,
+            permissionIds,
         });
 
         await tokenRepository.create({
@@ -134,24 +151,14 @@ class AuthService {
         return { user, tokens };
     }
 
-    public async refresh({
-        userId,
-        firstName,
-        lastName,
-        email,
-        platformRoleId,
-    }: TokenPayloadType): Promise<TokenType> {
-        await tokenRepository.deleteAllByUserId(userId);
+    public async refresh(payload: TokenPayloadType): Promise<TokenType> {
+        await tokenRepository.deleteAllByUserId(payload.userId);
         const tokens = tokenService.generateTokens({
-            userId,
-            firstName,
-            lastName,
-            email,
-            platformRoleId,
+            ...payload,
         });
         return tokenRepository.create({
             ...tokens,
-            userId,
+            userId: payload.userId,
         });
     }
 }
