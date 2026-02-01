@@ -6,6 +6,11 @@ class UserRepository {
         return User.find();
     }
 
+    public getManyByPlatformId(platformRoleId: string): Promise<UserType[]> {
+        return User.find({ platformRoleId });
+    }
+    s;
+
     public getById(id: string): Promise<UserType> {
         return User.findById(id);
     }
