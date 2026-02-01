@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
+import { PlatformPermissionEnum } from "../enums/platform-permission.enum";
 import { TokenTypeEnum } from "../enums/token-type.enum";
 import { ApiError } from "../errors/api.error";
 import { tokenService } from "../services/token.service";
+import { TokenPayloadType } from "../types/token.type";
 
 class AuthMiddleware {
     public checkToken(tokenType: TokenTypeEnum) {
@@ -47,6 +49,31 @@ class AuthMiddleware {
 
                 req.res.locals.payload = payload;
 
+                next();
+            } catch (e: unknown) {
+                next(e);
+            }
+        };
+    }
+
+    public checkPermission(permission: PlatformPermissionEnum) {
+        return (req: Request, res: Response, next: NextFunction) => {
+            try {
+                const payload = res.locals.payload as TokenPayloadType;
+
+                if (!payload.permissionIds?.length) {
+                    throw new ApiError(
+                        HttpStatusEnum.FORBIDDEN,
+                        "Access not allowed: No permissions found",
+                    );
+                }
+
+                if (!payload.permissionIds.includes(permission)) {
+                    throw new ApiError(
+                        HttpStatusEnum.FORBIDDEN,
+                        "You have no permission for this action",
+                    );
+                }
                 next();
             } catch (e: unknown) {
                 next(e);
