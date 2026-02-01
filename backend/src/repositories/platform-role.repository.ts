@@ -3,6 +3,10 @@ import { PlatformRole } from "../models/permissions/platform-role.model";
 import { PlatformRoleType } from "../types/permissions/platform-role.type";
 
 class PlatformRoleRepository {
+    public getById(roleId: string): Promise<PlatformRoleType | null> {
+        return PlatformRole.findById(roleId).populate("permissionIds");
+    }
+
     public getByName(role: PlatformRoleEnum): Promise<PlatformRoleType> {
         return PlatformRole.findOne({
             role,
