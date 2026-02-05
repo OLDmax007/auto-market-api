@@ -30,7 +30,6 @@ const organizationSchema = new Schema(
         },
         address: { type: addressSchema, required: true },
         isActive: { type: Boolean, default: true, required: true },
-        deletedAt: { type: Date, default: null },
     },
     { timestamps: true, versionKey: false },
 );

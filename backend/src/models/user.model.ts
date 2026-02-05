@@ -33,7 +33,6 @@ const userSchema = new Schema(
         },
         isActive: { type: Boolean, default: true },
         isVerified: { type: Boolean, default: false },
-        deletedAt: { type: Date, default: null },
     },
     { timestamps: true, versionKey: false },
 );
