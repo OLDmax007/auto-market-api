@@ -41,6 +41,18 @@ export type ListingCreateDtoType = Omit<
     enteredPrice: CurrencyAmountType;
 };
 
+export type ListingUpdateUserDtoType = Partial<ListingCreateDtoType> & {
+    enteredPrice?: CurrencyAmountType;
+};
+
+export type ListingUpdateManagerDtoType = Partial<ListingCreateDtoType> & {
+    isActive?: boolean;
+    profanityCheckAttempts?: number;
+};
+
+export type ListingUpdateAdminDtoType = Partial<ListingType> & {
+    enteredPrice?: CurrencyAmountType;
+};
 export type ListingCreateDbType = Omit<
     ListingType,
     "_id" | "createdAt" | "updatedAt"

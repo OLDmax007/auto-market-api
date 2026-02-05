@@ -14,7 +14,6 @@ export type UserType = {
     balance: CurrencyAmountType;
     isActive: boolean;
     isVerified: boolean;
-    deletedAt: Date | null;
 } & BaseType;
 
 export type UserCreateDtoType = Pick<
@@ -25,4 +24,6 @@ export type UserCreateDtoType = Pick<
 export type UserCreateDbType = Pick<UserType, "platformRoleId"> &
     UserCreateDtoType;
 
+export type UserUpdateDtoType = Omit<UserCreateDtoType, "password" | "email">;
+export type UserUpdateByAdminDtoType = Partial<UserType>;
 export type UserLoginDtoType = Pick<UserType, "email" | "password">;
