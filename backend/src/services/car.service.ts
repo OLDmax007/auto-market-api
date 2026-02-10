@@ -21,6 +21,19 @@ class CarService {
         }
         return { makes };
     }
+
+    public async validateCarModel(
+        make: CarMarkEnum,
+        model: string,
+    ): Promise<void> {
+        const { models } = await carService.getModelsByMake(make);
+        if (!models.includes(model)) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                `Model '${model}' does not exist for make '${make}'`,
+            );
+        }
+    }
 }
 
 export const carService = new CarService();
