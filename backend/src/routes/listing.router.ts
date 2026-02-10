@@ -27,6 +27,20 @@ router.patch(
     listingController.updateById,
 );
 
+router.patch(
+    "/:listingId/activate",
+    commonMiddleware.isValidId("listingId"),
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    listingController.activateListing,
+);
+
+router.patch(
+    "/:listingId/deactivate",
+    commonMiddleware.isValidId("listingId"),
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    listingController.deactivateListing,
+);
+
 router.delete(
     "/:listingId",
     commonMiddleware.isValidId("listingId"),
