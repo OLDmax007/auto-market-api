@@ -24,6 +24,11 @@ export type UserCreateDtoType = Pick<
 export type UserCreateDbType = Pick<UserType, "platformRoleId"> &
     UserCreateDtoType;
 
-export type UserUpdateDtoType = Omit<UserCreateDtoType, "password" | "email">;
-export type UserUpdateByAdminDtoType = Partial<UserType>;
+export type UserUpdateDtoType = Partial<
+    Pick<UserType, "firstName" | "lastName" | "age" | "password">
+>;
+
+export type UserUpdateByAdminDtoType = Partial<
+    Omit<UserType, "_id" | "createdAt" | "updatedAt">
+>;
 export type UserLoginDtoType = Pick<UserType, "email" | "password">;
