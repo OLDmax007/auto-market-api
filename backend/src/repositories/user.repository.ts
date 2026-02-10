@@ -1,5 +1,10 @@
 import { User } from "../models/user.model";
-import { UserCreateDbType, UserType } from "../types/user.type";
+import {
+    UserCreateDbType,
+    UserType,
+    UserUpdateByAdminDtoType,
+    UserUpdateDtoType,
+} from "../types/user.type";
 
 class UserRepository {
     public getAll(): Promise<UserType[]> {
@@ -23,8 +28,15 @@ class UserRepository {
         return User.create(dto);
     }
 
-    public updateById(id: string, data: Partial<UserType>): Promise<UserType> {
-        return User.findByIdAndUpdate(id, data, { new: true });
+    public updateById<T extends UserUpdateDtoType | UserUpdateByAdminDtoType>(
+        id: string,
+        dto: T,
+    ): Promise<UserType> {
+        return User.findByIdAndUpdate(id, dto, { new: true });
+    }
+
+    public deleteById(id: string): Promise<UserType> {
+        return User.findByIdAndDelete(id);
     }
 }
 
