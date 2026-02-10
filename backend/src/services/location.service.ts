@@ -17,6 +17,19 @@ class LocationService {
         }
         return location;
     }
+
+    public async validateCityInRegion(
+        region: RegionEnum,
+        city: string,
+    ): Promise<void> {
+        const { cities } = await this.getCitiesByRegion(region);
+        if (!cities.includes(city)) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                `City '${city}' does not exist in region '${region}'`,
+            );
+        }
+    }
 }
 
 export const locationService = new LocationService();
