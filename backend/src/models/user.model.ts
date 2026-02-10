@@ -32,7 +32,7 @@ const userSchema = new Schema(
             default: null,
         },
         isActive: { type: Boolean, default: true },
-        isVerified: { type: Boolean, default: false },
+        isVerified: { type: Boolean, default: true },
     },
     { timestamps: true, versionKey: false },
 );
