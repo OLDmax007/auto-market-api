@@ -9,7 +9,14 @@ import { subscriptionRepository } from "../repositories/subscription.repository"
 import { userRepository } from "../repositories/user.repository";
 import { SubscriptionType } from "../types/billing/subcription.type";
 import { CurrencyAmountType } from "../types/rate.type";
-import { UserCreateDtoType, UserType } from "../types/user.type";
+import {
+    UserCreateDtoType,
+    UserType,
+    UserUpdateByAdminDtoType,
+    UserUpdateDtoType,
+} from "../types/user.type";
+import { listingService } from "./listing.service";
+import { passwordService } from "./password.service";
 import { platformRoleService } from "./platform-role.service";
 import { pricingService } from "./pricing.service";
 
@@ -40,12 +47,88 @@ class UserService {
 
     public async create(dto: UserCreateDtoType): Promise<UserType> {
         const { _id } = await platformRoleService.getPlatformRole(
-            PlatformRoleEnum.MANAGER,
+            PlatformRoleEnum.VISITOR,
         );
 
         return userRepository.create({
             platformRoleId: _id,
             ...dto,
+        });
+    }
+
+    private async update(
+        id: string,
+        dto: UserUpdateDtoType | UserUpdateByAdminDtoType,
+    ): Promise<UserType> {
+        await this.getById(id);
+
+        const updateData = { ...dto };
+
+        if (updateData.password) {
+            updateData.password = await passwordService.hashPassword(
+                updateData.password,
+            );
+        }
+
+        return userRepository.updateById(id, updateData);
+    }
+
+    public async updateMe(
+        id: string,
+        dto: UserUpdateDtoType,
+    ): Promise<UserType> {
+        await this.getById(id);
+        return this.update(id, dto);
+    }
+
+    public async updateByAdmin(
+        id: string,
+        dto: UserUpdateByAdminDtoType,
+    ): Promise<UserType> {
+        await this.getById(id);
+        return this.update(id, dto);
+    }
+
+    public async deleteById(id: string): Promise<UserType> {
+        const user = await this.getById(id);
+        const { role } = await platformRoleService.getPlatformRoleById(
+            user.platformRoleId,
+        );
+
+        if (role === PlatformRoleEnum.ADMIN) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "You cannot delete a user with Administrator privileges",
+            );
+        }
+        await listingService.deactivateManyByUserId(id);
+
+        return userRepository.deleteById(id);
+    }
+
+    public async activateUser(id: string): Promise<UserType> {
+        const user = await this.getById(id);
+
+        if (user.isActive) {
+            return user;
+        }
+
+        return userRepository.updateById(id, {
+            isActive: true,
+        });
+    }
+
+    public async deactivateUser(id: string): Promise<UserType> {
+        const user = await this.getById(id);
+
+        if (!user.isActive) {
+            return user;
+        }
+
+        await listingService.deactivateManyByUserId(id);
+
+        return userRepository.updateById(id, {
+            isActive: false,
         });
     }
 
