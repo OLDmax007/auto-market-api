@@ -8,6 +8,7 @@ import { commonMiddleware } from "../middlewares/common.middleware";
 const router = Router();
 
 router.get("/", userController.getAll);
+
 router.get(
     "/:userId",
     commonMiddleware.isValidId("userId"),
@@ -15,20 +16,27 @@ router.get(
 );
 
 router.patch(
-    "/become-seller",
+    "/:userId/admin",
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
-    userController.becomeSeller,
+    userController.updateByAdmin,
 );
 
 router.patch(
-    "/upgrade-plan",
+    "/:userId/activate",
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
-    userController.upgradeToPremium,
+    userController.activateUser,
 );
 
 router.patch(
-    "/top-up-balance",
+    "/:userId/deactivate",
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
-    userController.topUpBalance,
+    userController.deactivateUser,
 );
+
+router.delete(
+    "/:userId",
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userController.deleteById,
+);
+
 export const userRouter = router;
