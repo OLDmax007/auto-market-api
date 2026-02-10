@@ -24,6 +24,12 @@ class ListingRepository {
     public deleteById(id: string): Promise<ListingType> {
         return Listing.findByIdAndDelete(id);
     }
+
+    public async deactivateManyByUserId(
+        userId: string,
+    ): Promise<{ matchedCount: number; modifiedCount: number }> {
+        return Listing.updateMany({ userId }, { isActive: false });
+    }
 }
 
 export const listingRepository = new ListingRepository();
