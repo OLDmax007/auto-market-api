@@ -9,11 +9,15 @@ export const platformRolePermissionsMap: Record<
     [PlatformRoleEnum.SELLER]: [
         PlatformPermissionEnum.LISTING_CREATE,
         PlatformPermissionEnum.LISTING_EDIT,
+        PlatformPermissionEnum.CAR_GET_MAKES,
+        PlatformPermissionEnum.CAR_GET_MAKES,
     ],
     [PlatformRoleEnum.MANAGER]: [
         PlatformPermissionEnum.LISTING_CREATE,
         PlatformPermissionEnum.LISTING_EDIT,
         PlatformPermissionEnum.LISTING_DELETE,
+        PlatformPermissionEnum.CAR_GET_MAKES,
+        PlatformPermissionEnum.CAR_GET_MAKES,
     ],
     [PlatformRoleEnum.ADMIN]: Object.values(PlatformPermissionEnum),
 };
