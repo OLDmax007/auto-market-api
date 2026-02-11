@@ -19,7 +19,11 @@ class ListingController {
     public async getById(req: Request, res: Response, next: NextFunction) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const data = await listingService.getById(listingId);
+            const payload = res.locals.payload as TokenPayloadType;
+            const data = await listingService.getFullInfoWithIncrement(
+                listingId,
+                payload,
+            );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
