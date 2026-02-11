@@ -1,0 +1,28 @@
+import { ManipulateType } from "dayjs";
+
+export const timeUnitsMap: Record<string, ManipulateType> = {
+    m: "minute",
+    min: "minute",
+    minute: "minute",
+    minutes: "minute",
+    h: "hour",
+    hr: "hour",
+    hour: "hour",
+    hours: "hour",
+    d: "day",
+    day: "day",
+    days: "day",
+    w: "week",
+    week: "week",
+    weeks: "week",
+    s: "second",
+    sec: "second",
+    second: "second",
+    seconds: "second",
+    month: "month",
+    months: "month",
+    M: "month",
+    y: "year",
+    year: "year",
+    years: "year",
+};
