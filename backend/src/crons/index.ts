@@ -1,3 +1,4 @@
+import { removeOldTokensCron } from "./remove-old-tokens.cron";
 import {
     resetDayViewsCron,
     resetMonthViewsCron,
@@ -10,4 +11,5 @@ export const cronRunner = () => {
     resetDayViewsCron.start();
     resetWeekViewsCron.start();
     resetMonthViewsCron.start();
+    removeOldTokensCron.start();
 };
