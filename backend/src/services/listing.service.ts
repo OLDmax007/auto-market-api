@@ -1,4 +1,5 @@
 import { HttpStatusEnum } from "../enums/http-status.enum";
+import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
 import { listingRepository } from "../repositories/listing.repository";
@@ -20,6 +21,7 @@ import { moderationService } from "./moderation/moderation.service";
 import { platformRoleService } from "./platform-role.service";
 import { pricingService } from "./pricing.service";
 import { profanityService } from "./profanity.service";
+import { subscriptionService } from "./subscription.service";
 import { userService } from "./user.service";
 
 class ListingService {
@@ -32,8 +34,33 @@ class ListingService {
         if (!listing) {
             throw new ApiError(HttpStatusEnum.NOT_FOUND, "Listing not found");
         }
+        return listing;
+    }
 
-        await listingStaticService.incrementViewsByListingId(listing._id);
+    public async getFullInfoWithIncrement(
+        listingId: string,
+        payload?: TokenPayloadType,
+    ): Promise<ListingType> {
+        const listing = await this.getById(listingId);
+
+        let isOwner = false;
+        let isStaff = false;
+
+        if (payload) {
+            const { role } = await platformRoleService.getPlatformRoleById(
+                payload.platformRoleId,
+            );
+            isOwner = String(listing.userId) === String(payload.userId);
+            isStaff = [
+                PlatformRoleEnum.ADMIN,
+                PlatformRoleEnum.MANAGER,
+            ].includes(role);
+        }
+        console.log(isOwner, isStaff);
+
+        if (!isOwner && !isStaff) {
+            await listingStaticService.incrementViewsByListingId(listing._id);
+        }
 
         return listing;
     }
@@ -45,6 +72,7 @@ class ListingService {
         listing: ListingType;
         moderation: ListingModerationResultType;
     }> {
+        await this.checkUserLimit(userId);
         await locationService.validateCityInRegion(newDto.region, newDto.city);
         await carService.validateCarModel(newDto.make, newDto.model);
 
@@ -303,6 +331,25 @@ class ListingService {
             profanityCheckAttempts,
             maxAttempts,
         };
+    }
+
+    private async checkUserLimit(userId: string): Promise<void> {
+        const user = await userService.getById(userId);
+        const currentListingsCount =
+            await listingRepository.countByUserId(userId);
+
+        const { planType, isActive } = await subscriptionService.getById(
+            user.subscriptionId,
+        );
+        const limit =
+            planType === PlanTypeEnum.PREMIUM && isActive ? Infinity : 1;
+
+        if (currentListingsCount >= limit) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "Limit reached. Upgrade your account!",
+            );
+        }
     }
 }
 
