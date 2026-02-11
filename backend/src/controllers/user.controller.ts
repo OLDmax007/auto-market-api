@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
+import { subscriptionService } from "../services/subscription.service";
 import { userService } from "../services/user.service";
 import { CurrencyAmountType } from "../types/rate.type";
 import { TokenPayloadType } from "../types/token.type";
@@ -117,7 +118,7 @@ class UserController {
     ) {
         try {
             const { userId } = res.locals.payload as TokenPayloadType;
-            const data = await userService.upgradeToPremium(userId);
+            const data = await subscriptionService.upgradeToPremium(userId);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
