@@ -30,6 +30,10 @@ class ListingRepository {
     ): Promise<{ matchedCount: number; modifiedCount: number }> {
         return Listing.updateMany({ userId }, { isActive: false });
     }
+
+    public async countByUserId(userId: string): Promise<number> {
+        return Listing.countDocuments({ userId });
+    }
 }
 
 export const listingRepository = new ListingRepository();
