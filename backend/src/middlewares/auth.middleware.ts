@@ -8,7 +8,7 @@ import { tokenService } from "../services/token.service";
 import { TokenPayloadType } from "../types/token.type";
 
 class AuthMiddleware {
-    public checkToken(tokenType: TokenTypeEnum) {
+    public checkToken(tokenType: TokenTypeEnum, isOptional: boolean = false) {
         return async (req: Request, res: Response, next: NextFunction) => {
             try {
                 const authHeader = req.headers.authorization;
@@ -41,6 +41,7 @@ class AuthMiddleware {
                 const payload = tokenService.verifyToken(token, tokenType);
 
                 if (!payload) {
+                    if (isOptional) return next();
                     throw new ApiError(
                         HttpStatusEnum.UNAUTHORIZED,
                         "No payload found",
@@ -51,6 +52,9 @@ class AuthMiddleware {
 
                 next();
             } catch (e: unknown) {
+                if (isOptional) {
+                    return next();
+                }
                 next(e);
             }
         };
