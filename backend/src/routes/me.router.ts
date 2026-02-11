@@ -7,12 +7,12 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 const router = Router();
 
 router.get(
-    "/me",
+    "/",
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userController.getMe,
 );
 router.patch(
-    "/me",
+    "/",
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userController.updateMe,
 );
