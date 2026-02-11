@@ -15,7 +15,7 @@ class SubscriptionRepository {
 
     public updateById(
         id: string,
-        dto: Omit<SubscriptionCreateType, "userId">,
+        dto: Partial<Omit<SubscriptionCreateType, "userId">>,
     ): Promise<SubscriptionType> {
         return Subscription.findByIdAndUpdate(id, dto, { new: true });
     }
