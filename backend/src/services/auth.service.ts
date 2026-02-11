@@ -3,7 +3,6 @@ import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { ApiError } from "../errors/api.error";
-import { subscriptionRepository } from "../repositories/subscription.repository";
 import { tokenRepository } from "../repositories/token.repository";
 import { userRepository } from "../repositories/user.repository";
 import {
@@ -19,6 +18,7 @@ import {
 import { emailService } from "./email.service";
 import { passwordService } from "./password.service";
 import { platformRoleService } from "./platform-role.service";
+import { subscriptionService } from "./subscription.service";
 import { tokenService } from "./token.service";
 import { userService } from "./user.service";
 
@@ -41,13 +41,7 @@ class AuthService {
             );
         }
 
-        await emailService.sendEmail(
-            createdUser.email,
-            emailConstants.WELCOME,
-            {},
-        );
-
-        const { _id: subscriptionId } = await subscriptionRepository.create({
+        const { _id: subscriptionId } = await subscriptionService.create({
             userId: createdUser._id,
             planType: PlanTypeEnum.BASIC,
             price: {
@@ -71,7 +65,7 @@ class AuthService {
             platformRoleId,
         } = user;
 
-        const { permissionIds } =
+        const { role, permissionIds } =
             await platformRoleService.getPlatformRoleById(platformRoleId);
 
         const tokens = tokenService.generateTokens({
@@ -81,12 +75,19 @@ class AuthService {
             email,
             platformRoleId,
             permissionIds,
+            role,
         });
 
         await tokenRepository.create({
             ...tokens,
             userId,
         });
+
+        await emailService.sendEmail(
+            createdUser.email,
+            emailConstants.WELCOME,
+            {},
+        );
 
         return { user, tokens };
     }
@@ -131,7 +132,7 @@ class AuthService {
             platformRoleId,
         } = user;
 
-        const { permissionIds } =
+        const { permissionIds, role } =
             await platformRoleService.getPlatformRoleById(platformRoleId);
 
         const tokens = tokenService.generateTokens({
@@ -141,6 +142,7 @@ class AuthService {
             email,
             platformRoleId,
             permissionIds,
+            role,
         });
 
         await tokenRepository.create({
