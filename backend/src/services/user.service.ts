@@ -1,13 +1,8 @@
 import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
-import { PaymentStatusEnum } from "../enums/payment-status.enum";
-import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
-import { paymentRepository } from "../repositories/payment.repository";
-import { subscriptionRepository } from "../repositories/subscription.repository";
 import { userRepository } from "../repositories/user.repository";
-import { SubscriptionType } from "../types/billing/subcription.type";
 import { CurrencyAmountType } from "../types/rate.type";
 import {
     UserCreateDtoType,
@@ -160,71 +155,71 @@ class UserService {
         }
     }
 
-    public async upgradeToPremium(id: string): Promise<SubscriptionType> {
-        const { _id: userId, subscriptionId } = await userService.getById(id);
-
-        const userSubscription =
-            await subscriptionRepository.getById(subscriptionId);
-
-        if (
-            userSubscription &&
-            userSubscription.planType === PlanTypeEnum.PREMIUM
-        ) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "User already has PREMIUM subscription",
-            );
-        }
-        const price = { amount: 500, currency: CurrencyEnum.UAH };
-
-        const today = new Date();
-
-        const { balance } = await userRepository.updateById(userId, {
-            balance: {
-                amount: 10000,
-                currency: CurrencyEnum.UAH,
-            },
-        });
-
-        if (balance.amount < price.amount) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "User does not has enough money",
-            );
-        }
-
-        await paymentRepository.create({
-            subscriptionId,
-            userId,
-            price: {
-                amount: price.amount,
-                currency: CurrencyEnum.UAH,
-            },
-            paidAt: today,
-            status: PaymentStatusEnum.SUCCESS,
-        });
-
-        await userRepository.updateById(userId, {
-            balance: {
-                amount: balance.amount - price.amount,
-                currency: CurrencyEnum.UAH,
-            },
-        });
-
-        const activeTo = new Date(today);
-        activeTo.setDate(activeTo.getDate() + 30);
-
-        return subscriptionRepository.updateById(subscriptionId, {
-            price: {
-                amount: price.amount,
-                currency: CurrencyEnum.UAH,
-            },
-            activeFrom: today,
-            activeTo,
-            planType: PlanTypeEnum.PREMIUM,
-            isActive: true,
-        });
-    }
+    // public async upgradeToPremium(id: string): Promise<SubscriptionType> {
+    //     const { _id: userId, subscriptionId } = await userService.getById(id);
+    //
+    //     const userSubscription =
+    //         await subscriptionRepository.getById(subscriptionId);
+    //
+    //     if (
+    //         userSubscription &&
+    //         userSubscription.planType === PlanTypeEnum.PREMIUM
+    //     ) {
+    //         throw new ApiError(
+    //             HttpStatusEnum.BAD_REQUEST,
+    //             "User already has PREMIUM subscription",
+    //         );
+    //     }
+    //     const price = { amount: 500, currency: CurrencyEnum.UAH };
+    //
+    //     const today = new Date();
+    //
+    //     const { balance } = await userRepository.updateById(userId, {
+    //         balance: {
+    //             amount: 10000,
+    //             currency: CurrencyEnum.UAH,
+    //         },
+    //     });
+    //
+    //     if (balance.amount < price.amount) {
+    //         throw new ApiError(
+    //             HttpStatusEnum.BAD_REQUEST,
+    //             "User does not has enough money",
+    //         );
+    //     }
+    //
+    //     await paymentRepository.create({
+    //         subscriptionId,
+    //         userId,
+    //         price: {
+    //             amount: price.amount,
+    //             currency: CurrencyEnum.UAH,
+    //         },
+    //         paidAt: today,
+    //         status: PaymentStatusEnum.SUCCESS,
+    //     });
+    //
+    //     await userRepository.updateById(userId, {
+    //         balance: {
+    //             amount: balance.amount - price.amount,
+    //             currency: CurrencyEnum.UAH,
+    //         },
+    //     });
+    //
+    //     const activeTo = new Date(today);
+    //     activeTo.setDate(activeTo.getDate() + 30);
+    //
+    //     return subscriptionRepository.updateById(subscriptionId, {
+    //         price: {
+    //             amount: price.amount,
+    //             currency: CurrencyEnum.UAH,
+    //         },
+    //         activeFrom: today,
+    //         activeTo,
+    //         planType: PlanTypeEnum.PREMIUM,
+    //         isActive: true,
+    //     });
+    // }
     public async topUpBalance(
         id: string,
         { amount, currency }: CurrencyAmountType,
