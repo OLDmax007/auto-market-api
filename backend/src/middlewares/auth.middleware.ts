@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
+import { ActionTokenEnum } from "../enums/action-token.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlatformPermissionEnum } from "../enums/platform-permission.enum";
 import { TokenTypeEnum } from "../enums/token-type.enum";
@@ -55,6 +56,34 @@ class AuthMiddleware {
                 if (isOptional) {
                     return next();
                 }
+                next(e);
+            }
+        };
+    }
+
+    public checkActionToken(tokenType: ActionTokenEnum) {
+        return async (req: Request, res: Response, next: NextFunction) => {
+            try {
+                const token = req.query.token as string;
+
+                if (!token) {
+                    throw new ApiError(
+                        HttpStatusEnum.BAD_REQUEST,
+                        "Token is required in query parameters",
+                    );
+                }
+                const payload = tokenService.verifyToken(token, tokenType);
+
+                if (!payload) {
+                    throw new ApiError(
+                        HttpStatusEnum.UNAUTHORIZED,
+                        "Invalid or expired token payload",
+                    );
+                }
+
+                res.locals.payload = payload;
+                next();
+            } catch (e: unknown) {
                 next(e);
             }
         };
