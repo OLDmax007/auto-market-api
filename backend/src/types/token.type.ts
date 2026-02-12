@@ -19,5 +19,6 @@ export type TokenPayloadType = Pick<
     iat?: number;
     exp?: number;
 };
+export type TokenPayloadBuildType = Omit<TokenPayloadType, "exp" | "iat">;
 
 export type TokenPairType = Pick<TokenType, "accessToken" | "refreshToken">;
