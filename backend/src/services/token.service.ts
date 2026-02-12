@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
 import { mainConfig } from "../configs/main.config";
+import { ActionTokenEnum } from "../enums/action-token.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { TokenTypeEnum } from "../enums/token-type.enum";
 import { ApiError } from "../errors/api.error";
@@ -12,6 +13,10 @@ const {
     JWT_ACCESS_LIFETIME,
     JWT_REFRESH_SECRET,
     JWT_REFRESH_LIFETIME,
+    JWT_VERIFY_SECRET,
+    JWT_VERIFY_LIFETIME,
+    JWT_RECOVERY_SECRET,
+    JWT_RECOVERY_LIFETIME,
 } = mainConfig;
 
 class TokenService {
@@ -24,19 +29,46 @@ class TokenService {
         });
         return { accessToken, refreshToken };
     }
+    public generateActionToken(
+        payload: TokenPayloadType,
+        tokenType: ActionTokenEnum,
+    ): string {
+        let secret: string;
+        let expiresIn: any;
+
+        switch (tokenType) {
+            case ActionTokenEnum.VERIFY:
+                secret = JWT_VERIFY_SECRET;
+                expiresIn = JWT_VERIFY_LIFETIME;
+                break;
+            case ActionTokenEnum.RECOVER:
+                secret = JWT_RECOVERY_SECRET;
+                expiresIn = JWT_RECOVERY_LIFETIME;
+                break;
+        }
+        return jwt.sign(payload, secret, {
+            expiresIn,
+        });
+    }
 
     public verifyToken(
         token: string,
-        tokenType: TokenTypeEnum,
+        tokenType: TokenTypeEnum | ActionTokenEnum,
     ): TokenPayloadType {
         try {
             let secret: string;
             switch (tokenType) {
                 case TokenTypeEnum.ACCESS:
-                    secret = mainConfig.JWT_ACCESS_SECRET;
+                    secret = JWT_ACCESS_SECRET;
                     break;
                 case TokenTypeEnum.REFRESH:
-                    secret = mainConfig.JWT_REFRESH_SECRET;
+                    secret = JWT_REFRESH_SECRET;
+                    break;
+                case ActionTokenEnum.VERIFY:
+                    secret = JWT_VERIFY_SECRET;
+                    break;
+                case ActionTokenEnum.RECOVER:
+                    secret = JWT_RECOVERY_SECRET;
                     break;
                 default:
                     throw new ApiError(
