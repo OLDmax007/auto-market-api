@@ -3,6 +3,7 @@ import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { ApiError } from "../errors/api.error";
+import { buildTokenPayload } from "../helpers/payload.helper";
 import { tokenRepository } from "../repositories/token.repository";
 import { userRepository } from "../repositories/user.repository";
 import {
@@ -57,37 +58,21 @@ class AuthService {
             subscriptionId,
         });
 
-        const {
-            _id: userId,
-            firstName,
-            lastName,
-            email,
-            platformRoleId,
-        } = user;
+        const { _id: userId, email, platformRoleId } = user;
 
         const { role, permissionIds } =
             await platformRoleService.getPlatformRoleById(platformRoleId);
 
-        const tokens = tokenService.generateTokens({
-            userId,
-            firstName,
-            lastName,
-            email,
-            platformRoleId,
-            permissionIds,
-            role,
-        });
+        const payload = buildTokenPayload(user, role, permissionIds);
+
+        const tokens = tokenService.generateTokens(payload);
 
         await tokenRepository.create({
             ...tokens,
             userId,
         });
 
-        await emailService.sendEmail(
-            createdUser.email,
-            emailConstants.WELCOME,
-            {},
-        );
+        await emailService.sendEmail(email, emailConstants.WELCOME, {});
 
         return { user, tokens };
     }
@@ -103,14 +88,7 @@ class AuthService {
                 "Email or password is invalid",
             );
         }
-
-        const { deletedCount } = await tokenRepository.deleteAllByUserId(
-            user._id,
-        );
-
-        if (!deletedCount) {
-            throw new ApiError(HttpStatusEnum.NOT_FOUND, "Token not found");
-        }
+        await tokenRepository.deleteAllByUserId(user._id);
 
         const isValidPassword = await passwordService.comparePassword(
             dto.password,
@@ -124,26 +102,14 @@ class AuthService {
             );
         }
 
-        const {
-            _id: userId,
-            firstName,
-            lastName,
-            email,
-            platformRoleId,
-        } = user;
+        const { _id: userId, platformRoleId } = user;
 
         const { permissionIds, role } =
             await platformRoleService.getPlatformRoleById(platformRoleId);
 
-        const tokens = tokenService.generateTokens({
-            userId,
-            firstName,
-            lastName,
-            email,
-            platformRoleId,
-            permissionIds,
-            role,
-        });
+        const payload = buildTokenPayload(user, role, permissionIds);
+
+        const tokens = tokenService.generateTokens(payload);
 
         await tokenRepository.create({
             ...tokens,
