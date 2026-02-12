@@ -44,11 +44,11 @@ class AuthMiddleware {
                     if (isOptional) return next();
                     throw new ApiError(
                         HttpStatusEnum.UNAUTHORIZED,
-                        "No payload found",
+                        "Invalid or expired token payload",
                     );
                 }
 
-                req.res.locals.payload = payload;
+                res.locals.payload = payload;
 
                 next();
             } catch (e: unknown) {
