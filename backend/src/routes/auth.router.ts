@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { authController } from "../controllers/auth.controller";
+import { ActionTokenEnum } from "../enums/action-token.enum";
 import { TokenTypeEnum } from "../enums/token-type.enum";
 import { authMiddleware } from "../middlewares/auth.middleware";
 
@@ -13,6 +14,12 @@ router.post(
     "/refresh",
     authMiddleware.checkToken(TokenTypeEnum.REFRESH),
     authController.refresh,
+);
+
+router.patch(
+    "/verify",
+    authMiddleware.checkActionToken(ActionTokenEnum.VERIFY),
+    authController.verify,
 );
 
 export const authRouter = router;

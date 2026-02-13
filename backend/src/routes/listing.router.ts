@@ -11,6 +11,7 @@ router.get("/", listingController.getAll);
 router.get(
     "/:listingId",
     commonMiddleware.isValidId("listingId"),
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS, true),
     listingController.getById,
 );
 
