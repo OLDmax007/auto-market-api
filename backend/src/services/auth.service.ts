@@ -1,8 +1,10 @@
 import { emailConstants } from "../constants/email-data";
+import { ActionTokenEnum } from "../enums/action-token.enum";
 import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { ApiError } from "../errors/api.error";
+import { buildLink } from "../helpers/link-builder.helper";
 import { buildTokenPayload } from "../helpers/payload.helper";
 import { tokenRepository } from "../repositories/token.repository";
 import { userRepository } from "../repositories/user.repository";
@@ -58,7 +60,7 @@ class AuthService {
             subscriptionId,
         });
 
-        const { _id: userId, email, platformRoleId } = user;
+        const { _id: userId, firstName, lastName, platformRoleId } = user;
 
         const { role, permissionIds } =
             await platformRoleService.getPlatformRoleById(platformRoleId);
@@ -72,7 +74,21 @@ class AuthService {
             userId,
         });
 
-        await emailService.sendEmail(email, emailConstants.WELCOME, {});
+        const token = tokenService.generateActionToken(
+            payload,
+            ActionTokenEnum.VERIFY,
+        );
+
+        await emailService.sendEmail(
+            "maxsim.dobrovolskyimd@gmail.com",
+            emailConstants.WELCOME,
+            {
+                firstName,
+                lastName,
+                catalogLink: buildLink("/cars/mark"),
+                verifyLink: buildLink("/verify", token),
+            },
+        );
 
         return { user, tokens };
     }
@@ -129,6 +145,13 @@ class AuthService {
             userId: payload.userId,
         });
     }
+
+    public verify = async (userId: string): Promise<UserType> => {
+        return userService.update(userId, {
+            isActive: true,
+            isVerified: true,
+        });
+    };
 }
 
 export const authService = new AuthService();
