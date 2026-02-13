@@ -5,7 +5,7 @@ import { config } from "dotenv";
 config({ path: path.resolve(__dirname, "../../../.env") });
 
 type MainConfig = {
-    FRONTEND_URL: String;
+    FRONTEND_URL: string;
     HOST: string;
     PORT: string;
     MONGO_URI: string;
