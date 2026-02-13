@@ -27,8 +27,18 @@ class AuthController {
 
     public async refresh(req: Request, res: Response, next: NextFunction) {
         try {
-            const payload = req.res.locals.payload as TokenPayloadType;
+            const payload = res.locals.payload as TokenPayloadType;
             const data = await authService.refresh(payload);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async verify(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = res.locals.payload as TokenPayloadType;
+            const data = await authService.verify(userId);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
