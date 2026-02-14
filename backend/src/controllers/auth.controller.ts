@@ -44,6 +44,20 @@ class AuthController {
             next(e);
         }
     }
+
+    public async requestEmailVerification(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { email } = req.body as { email: string };
+            const data = await authService.requestEmailVerification(email);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
 }
 
 export const authController = new AuthController();
