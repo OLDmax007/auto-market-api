@@ -9,11 +9,11 @@ export const buildTokenPayload = (
 ): TokenPayloadBuildType => {
     return {
         userId: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
         platformRoleId: user.platformRoleId,
         role,
+        isActive: user.isActive,
+        isVerified: user.isVerified,
+        isPremium: !!user.subscriptionId,
         permissionIds,
     };
 };
