@@ -22,4 +22,10 @@ router.patch(
     authController.verify,
 );
 
+router.post(
+    "/verify/resend",
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authController.requestEmailVerification,
+);
+
 export const authRouter = router;
