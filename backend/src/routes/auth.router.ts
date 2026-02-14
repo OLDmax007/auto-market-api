@@ -28,4 +28,12 @@ router.post(
     authController.requestEmailVerification,
 );
 
+router.post("/recovery-password", authController.requestRecoverPassword);
+
+router.patch(
+    "/reset-password",
+    authMiddleware.checkActionToken(ActionTokenEnum.RECOVER),
+    authController.resetPassword,
+);
+
 export const authRouter = router;
