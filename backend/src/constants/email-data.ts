@@ -24,10 +24,10 @@ export const emailConstants: IEmailConstants<typeof EmailEnum> = {
     },
     [EmailEnum.VERIFY_USER]: {
         subject: "Please verify your email address",
-        template: "user-verify",
+        template: "user-verification",
     },
-    [EmailEnum.RECOVERY_PASSWORD]: {
-        subject: "Password recovery request",
-        template: "recover-password",
+    [EmailEnum.RECOVER_PASSWORD]: {
+        subject: "Confirm Password Reset",
+        template: "recovery-password",
     },
 };
