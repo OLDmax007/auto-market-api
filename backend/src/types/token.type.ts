@@ -11,11 +11,12 @@ export type TokenType = {
 
 export type TokenPayloadType = Pick<
     UserType,
-    "firstName" | "lastName" | "platformRoleId" | "email"
+    "platformRoleId" | "isActive" | "isVerified"
 > & {
     userId: string;
     permissionIds: string[];
     role: PlatformRoleEnum;
+    isPremium: boolean;
     iat?: number;
     exp?: number;
 };
