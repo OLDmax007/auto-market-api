@@ -60,7 +60,7 @@ class AuthService {
             subscriptionId,
         });
 
-        const { _id: userId, firstName, lastName, platformRoleId } = user;
+        const { _id: userId, email, platformRoleId } = user;
 
         const { role, permissionIds } =
             await platformRoleService.getPlatformRoleById(platformRoleId);
@@ -79,16 +79,10 @@ class AuthService {
             ActionTokenEnum.VERIFY,
         );
 
-        await emailService.sendEmail(
-            "maxsim.dobrovolskyimd@gmail.com",
-            emailConstants.WELCOME,
-            {
-                firstName,
-                lastName,
-                catalogLink: buildLink("/cars/mark"),
-                verifyLink: buildLink("/verify", token),
-            },
-        );
+        await emailService.sendEmail(email, emailConstants.WELCOME, {
+            catalogLink: buildLink("/cars/mark"),
+            verifyLink: buildLink("/verify", token),
+        });
 
         return { user, tokens };
     }
@@ -151,6 +145,27 @@ class AuthService {
             isActive: true,
             isVerified: true,
         });
+    };
+
+    public requestEmailVerification = async (
+        inputEmail: string,
+    ): Promise<UserType> => {
+        const user = await userService.getByEmail(inputEmail);
+
+        const { role, permissionIds } =
+            await platformRoleService.getPlatformRoleById(user.platformRoleId);
+
+        const payload = buildTokenPayload(user, role, permissionIds);
+
+        const token = tokenService.generateActionToken(
+            payload,
+            ActionTokenEnum.VERIFY,
+        );
+
+        await emailService.sendEmail(user.email, emailConstants.VERIFY_USER, {
+            verifyLink: buildLink("/verify", token),
+        });
+        return user;
     };
 }
 
