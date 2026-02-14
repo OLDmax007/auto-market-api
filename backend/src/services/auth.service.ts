@@ -1,6 +1,7 @@
 import { emailConstants } from "../constants/email-data";
 import { ActionTokenEnum } from "../enums/action-token.enum";
 import { CurrencyEnum } from "../enums/currency.enum";
+import { EmailEnum } from "../enums/email.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { ApiError } from "../errors/api.error";
@@ -80,7 +81,7 @@ class AuthService {
         );
 
         await emailService.sendEmail(email, emailConstants.WELCOME, {
-            catalogLink: buildLink("/cars/mark"),
+            catalogLink: buildLink("/cars/makes"),
             verifyLink: buildLink("/verify", token),
         });
 
@@ -147,8 +148,13 @@ class AuthService {
         });
     };
 
-    public requestEmailVerification = async (
+    public sendAuthActionEmail = async (
         inputEmail: string,
+        config: {
+            emailType: EmailEnum;
+            tokenType: ActionTokenEnum;
+            path: string;
+        },
     ): Promise<UserType> => {
         const user = await userService.getByEmail(inputEmail);
 
@@ -159,13 +165,26 @@ class AuthService {
 
         const token = tokenService.generateActionToken(
             payload,
-            ActionTokenEnum.VERIFY,
+            config.tokenType,
         );
 
-        await emailService.sendEmail(user.email, emailConstants.VERIFY_USER, {
-            verifyLink: buildLink("/verify", token),
-        });
+        await emailService.sendEmail(
+            user.email,
+            emailConstants[config.emailType],
+            {
+                link: buildLink(config.path, token),
+            },
+        );
         return user;
+    };
+
+    public resetPassword = async (
+        userId: string,
+        password: string,
+    ): Promise<UserType> => {
+        return userService.update(userId, {
+            password,
+        });
     };
 }
 
