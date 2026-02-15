@@ -1,5 +1,6 @@
 import { model, Schema } from "mongoose";
 
+import { OrgPermissionEnum } from "../../enums/org-permission.enum";
 import { OrgRoleEnum } from "../../enums/org-role.enum";
 import { OrgRoleType } from "../../types/permissions/org-role.type";
 
@@ -11,10 +12,10 @@ const orgRoleSchema = new Schema(
             required: true,
             default: OrgRoleEnum.ORG_OWNER,
         },
-        permissionIds: [
+        permissions: [
             {
-                type: Schema.Types.ObjectId,
-                ref: "Permission",
+                type: String,
+                enum: OrgPermissionEnum,
                 required: true,
             },
         ],

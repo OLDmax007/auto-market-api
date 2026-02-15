@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+import { PlatformPermissionEnum } from "../../enums/platform-permission.enum";
 import { PlatformRoleEnum } from "../../enums/platform-role.enum";
 import { PlatformRoleType } from "../../types/permissions/platform-role.type";
 
@@ -13,10 +14,10 @@ const platformRoleSchema = new Schema(
             required: true,
             default: PlatformRoleEnum.VISITOR,
         },
-        permissionIds: [
+        permissions: [
             {
-                type: Schema.Types.ObjectId,
-                ref: "Permission",
+                type: String,
+                enum: PlatformPermissionEnum,
                 required: true,
             },
         ],
