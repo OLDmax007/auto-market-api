@@ -3,6 +3,7 @@ import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
 import { ensureEntityExists } from "../helpers/ensure-entity.helper";
+import { listingRepository } from "../repositories/listing.repository";
 import { userRepository } from "../repositories/user.repository";
 import { CurrencyAmountType } from "../types/rate.type";
 import {
@@ -11,7 +12,6 @@ import {
     UserUpdateByAdminDtoType,
     UserUpdateDtoType,
 } from "../types/user.type";
-import { listingService } from "./listing.service";
 import { passwordService } from "./password.service";
 import { platformRoleService } from "./platform-role.service";
 import { pricingService } from "./pricing.service";
@@ -21,25 +21,17 @@ class UserService {
         return userRepository.getAll();
     }
 
-    public async getManyByPlatformId(
-        platformRoleId: string,
-    ): Promise<UserType[]> {
-        const users = await userRepository.getManyByPlatformId(platformRoleId);
-
-        if (!users.length) {
-            throw new ApiError(HttpStatusEnum.NOT_FOUND, "Users not found");
-        }
-        return users;
-    }
-
     public async getById(id: string): Promise<UserType> {
         const user = await userRepository.getById(id);
         return ensureEntityExists<UserType>(user, "User not found");
     }
 
-    public async getByEmail(email: string): Promise<UserType> {
+    public async getByEmail(
+        email: string,
+        errorMessage = "User not found",
+    ): Promise<UserType> {
         const user = await userRepository.getByEmail(email);
-        return ensureEntityExists<UserType>(user, "User not found");
+        return ensureEntityExists<UserType>(user, errorMessage);
     }
 
     public async create(dto: UserCreateDtoType): Promise<UserType> {
@@ -53,98 +45,140 @@ class UserService {
         });
     }
 
-    public async update(
-        id: string,
-        dto: UserUpdateDtoType | UserUpdateByAdminDtoType,
-    ): Promise<UserType> {
-        await this.getById(id);
-
-        const updateData = { ...dto };
-
-        if (updateData.password) {
-            updateData.password = await passwordService.hashPassword(
-                updateData.password,
-            );
-        }
-
-        return userRepository.updateById(id, updateData);
-    }
-
     public async updateMe(
         id: string,
         dto: UserUpdateDtoType,
     ): Promise<UserType> {
-        await this.getById(id);
-        return this.update(id, dto);
+        return userRepository.updateById(id, dto);
     }
 
     public async updateByAdmin(
         id: string,
+        initiatorId: string,
+        initiatorRole: PlatformRoleEnum,
         dto: UserUpdateByAdminDtoType,
     ): Promise<UserType> {
-        await this.getById(id);
-        return this.update(id, dto);
-    }
-
-    public async deleteById(id: string): Promise<UserType> {
-        const user = await this.getById(id);
-        const { role } = await platformRoleService.getPlatformRoleById(
-            user.platformRoleId,
+        const user = await this.getTargetUserWithHierarchyCheck(
+            id,
+            initiatorId,
+            initiatorRole,
+            "update",
         );
 
-        if (role === PlatformRoleEnum.ADMIN) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "You cannot delete a user with Administrator privileges",
-            );
+        if (dto.password) {
+            dto.password = await passwordService.hashPassword(dto.password);
         }
-        await listingService.deactivateManyByUserId(id);
-
-        return userRepository.deleteById(id);
+        return userRepository.updateById(user._id, dto);
     }
 
-    public async activateUser(id: string): Promise<UserType> {
-        const user = await this.getById(id);
+    public async deleteById(
+        id: string,
+        initiatorId: string,
+        initiatorRole: PlatformRoleEnum,
+    ): Promise<UserType> {
+        const user = await this.getTargetUserWithHierarchyCheck(
+            id,
+            initiatorId,
+            initiatorRole,
+            "delete",
+        );
+
+        await listingRepository.deleteAllByUserId(user._id);
+
+        return userRepository.deleteById(user._id);
+    }
+
+    public async activateUser(
+        id: string,
+        initiatorId: string,
+        initiatorRole: PlatformRoleEnum,
+    ): Promise<UserType> {
+        const user = await this.getTargetUserWithHierarchyCheck(
+            id,
+            initiatorId,
+            initiatorRole,
+            "activate",
+        );
 
         if (user.isActive) {
-            return user;
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "User account is already activated.",
+            );
         }
+        await listingRepository.activateCleanByUserId(user._id);
 
         return userRepository.updateById(id, {
             isActive: true,
         });
     }
 
-    public async deactivateUser(id: string): Promise<UserType> {
-        const user = await this.getById(id);
+    public async deactivateUser(
+        id: string,
+        initiatorId: string,
+        initiatorRole: PlatformRoleEnum,
+    ): Promise<UserType> {
+        const user = await this.getTargetUserWithHierarchyCheck(
+            id,
+            initiatorId,
+            initiatorRole,
+            "deactivate",
+        );
 
         if (!user.isActive) {
-            return user;
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "User account is already deactivated.",
+            );
         }
 
-        await listingService.deactivateManyByUserId(id);
+        await listingRepository.deactivateByUserId(user._id);
 
         return userRepository.updateById(id, {
             isActive: false,
         });
     }
 
-    public async becomeSeller(id: string): Promise<UserType> {
+    public async becomeSeller(
+        id: string,
+        currentPlatformRoleId: string,
+    ): Promise<UserType> {
         const { _id: sellerRoleId } = await platformRoleService.getPlatformRole(
             PlatformRoleEnum.SELLER,
         );
 
-        const user = await this.getById(id);
-
-        if (String(user.platformRoleId) === String(sellerRoleId)) {
+        if (String(currentPlatformRoleId) === String(sellerRoleId)) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
                 "User is already seller",
             );
         }
+
         return userRepository.updateById(id, {
             platformRoleId: sellerRoleId,
         });
+    }
+
+    public async topUpBalance(
+        id: string,
+        currentBalance: CurrencyAmountType,
+        { amount, currency }: CurrencyAmountType,
+    ): Promise<{ balance: CurrencyAmountType; credited: CurrencyAmountType }> {
+        const convertedMoney = await pricingService.convertToUAH(
+            amount,
+            currency,
+        );
+
+        const updatedBalance = {
+            amount: currentBalance.amount + convertedMoney,
+            currency: CurrencyEnum.UAH,
+        };
+
+        await userRepository.updateById(id, {
+            balance: updatedBalance,
+        });
+
+        return { balance: updatedBalance, credited: { amount, currency } };
     }
 
     public async checkEmailUniqueness(email: string): Promise<void> {
@@ -157,27 +191,57 @@ class UserService {
         }
     }
 
-    public async topUpBalance(
-        id: string,
-        { amount, currency }: CurrencyAmountType,
-    ): Promise<{ balance: CurrencyAmountType; credited: CurrencyAmountType }> {
-        let { balance } = await userService.getById(id);
+    public checkIsActive(isActive: boolean): void {
+        if (!isActive) {
+            throw new ApiError(HttpStatusEnum.FORBIDDEN, "User is inactive");
+        }
+    }
 
-        const convertedMoney = await pricingService.convertToUAH(
-            amount,
-            currency,
+    private checkNotSelfAction(
+        currentId: string,
+        initiatorId: string,
+        action: string,
+    ): void {
+        if (currentId === initiatorId) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                `Access denied: You cannot ${action} your own account via this method`,
+            );
+        }
+    }
+
+    private async getTargetUserWithHierarchyCheck(
+        id: string,
+        initiatorId: string,
+        initiatorRole: PlatformRoleEnum,
+        action: string,
+    ): Promise<UserType> {
+        this.checkNotSelfAction(id, initiatorId, action);
+
+        const user = await this.getById(id);
+
+        const { role } = await platformRoleService.getPlatformRoleById(
+            user.platformRoleId,
         );
 
-        balance.amount += convertedMoney;
+        if (role === PlatformRoleEnum.ADMIN) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                `Access denied: Cannot ${action} an Administrator`,
+            );
+        }
 
-        await userRepository.updateById(id, {
-            balance: {
-                amount: balance.amount,
-                currency: CurrencyEnum.UAH,
-            },
-        });
+        if (
+            initiatorRole === PlatformRoleEnum.MANAGER &&
+            role === PlatformRoleEnum.MANAGER
+        ) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                `Access denied: Managers cannot ${action} other Managers`,
+            );
+        }
 
-        return { balance, credited: { amount, currency } };
+        return user;
     }
 }
 
