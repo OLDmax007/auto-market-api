@@ -95,6 +95,15 @@ class PricingService {
 
         return prices;
     }
+
+    public async getCalculatedPrices(
+        enteredPrice: CurrencyAmountType,
+    ): Promise<CurrencyAmountType[]> {
+        return pricingService.calculateListingPrices(
+            enteredPrice.amount,
+            enteredPrice.currency,
+        );
+    }
 }
 
 export const pricingService = new PricingService();
