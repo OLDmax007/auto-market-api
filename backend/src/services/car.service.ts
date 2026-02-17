@@ -6,11 +6,15 @@ import { CarMapType } from "../types/car.type";
 
 class CarService {
     public async getModelsByMake(make: CarMarkEnum): Promise<CarMapType> {
-        const { models } = await carRepository.getByMake(make);
-        if (!models.length) {
-            throw new ApiError(HttpStatusEnum.NOT_FOUND, `"Models not found`);
+        const cars = await carRepository.getByMake(make);
+
+        if (!cars) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                `Car make "${make}" not found`,
+            );
         }
-        return { make, models };
+        return { make, models: cars.models };
     }
 
     public async getAllMakes(): Promise<{ makes: CarMarkEnum[] }> {
