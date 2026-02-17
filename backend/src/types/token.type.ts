@@ -1,4 +1,3 @@
-import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { BaseType } from "./base.type";
 import { UserType } from "./user.type";
 
@@ -11,12 +10,9 @@ export type TokenType = {
 
 export type TokenPayloadType = Pick<
     UserType,
-    "platformRoleId" | "isActive" | "isVerified"
+    "email" | "firstName" | "lastName"
 > & {
     userId: string;
-    permissionIds: string[];
-    role: PlatformRoleEnum;
-    isPremium: boolean;
     iat?: number;
     exp?: number;
 };
