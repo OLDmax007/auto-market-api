@@ -25,7 +25,7 @@ export type UserCreateDbType = Pick<UserType, "platformRoleId"> &
     UserCreateDtoType;
 
 export type UserUpdateDtoType = Partial<
-    Pick<UserType, "firstName" | "lastName" | "age" | "password">
+    Pick<UserType, "firstName" | "lastName" | "age">
 >;
 
 export type UserUpdateByAdminDtoType = Partial<
