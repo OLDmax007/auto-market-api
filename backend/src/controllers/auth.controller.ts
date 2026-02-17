@@ -29,8 +29,10 @@ class AuthController {
 
     public async refresh(req: Request, res: Response, next: NextFunction) {
         try {
-            const payload = res.locals.payload as TokenPayloadType;
-            const data = await authService.refresh(payload);
+            const payload = res.locals.tokenPayload as TokenPayloadType;
+            const refreshToken = res.locals.tokenInfo as string;
+
+            const data = await authService.refresh(payload, refreshToken);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
@@ -39,7 +41,7 @@ class AuthController {
 
     public async verify(req: Request, res: Response, next: NextFunction) {
         try {
-            const { userId } = res.locals.payload as TokenPayloadType;
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await authService.verify(userId);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
@@ -89,7 +91,7 @@ class AuthController {
         next: NextFunction,
     ) {
         try {
-            const { userId } = res.locals.payload as TokenPayloadType;
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const { password } = req.body as { password: string };
             const data = await authService.resetPassword(userId, password);
             res.status(HttpStatusEnum.OK).json(data);
