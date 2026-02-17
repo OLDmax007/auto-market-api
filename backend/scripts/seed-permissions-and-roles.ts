@@ -1,54 +1,37 @@
-import {OrgPermissionEnum} from "../src/enums/org-permission.enum";
+import {OrgRole, Permission, PlatformRole} from "../src/models";
 import {PlatformPermissionEnum} from "../src/enums/platform-permission.enum";
-import {OrgRole} from "../src/models/permissions/org-role.model";
-import {Permission} from "../src/models/permissions/permission.model";
-import {PlatformRole} from "../src/models/permissions/platform-role.model";
-import {orgRolePermissionsMap} from "../src/configs/org-role-perm-map.config";
-import {platformRolePermissionsMap} from "../src/configs/platform-role-perm-map.config";
+import {OrgPermissionEnum} from "../src/enums/org-permission.enum";
+import {platformRolePermissionsMap} from "../src/mappers/platform-role-perm.map";
+import {orgRolePermissionsMap} from "../src/mappers/org-role-perm.map";
 
 export const seedPermissionsAndRoles = async () => {
     await Permission.deleteMany({});
     await OrgRole.deleteMany({});
     await PlatformRole.deleteMany({});
 
-    const allPermissions = [
-        ...Object.values(PlatformPermissionEnum).map((p) => ({ name: p })),
-        ...Object.values(OrgPermissionEnum).map((p) => ({ name: p })),
+    const allPermNames = [
+        ...Object.values(PlatformPermissionEnum),
+        ...Object.values(OrgPermissionEnum),
     ];
 
-    const permissions = await Permission.create(allPermissions);
+    await Permission.insertMany(allPermNames.map(name => ({ name })));
 
-    const permissionsMap = permissions.reduce(
-        (acc, p) => {
-            acc[p.name] = p._id;
-            return acc;
-        },
-        {} as Record<PlatformPermissionEnum | OrgPermissionEnum, string>,
-    );
+    const platformRolesData = Object.entries(platformRolePermissionsMap).map(([role, perms]) => ({
+        role,
+        permissions: perms,
+        description: `Platform role: ${role}`
+    }));
 
+    const orgRolesData = Object.entries(orgRolePermissionsMap).map(([role, perms]) => ({
+        role,
+        permissions: perms,
+        description: `Org role: ${role}`
+    }));
 
-    for (const [role, permissions] of Object.entries(platformRolePermissionsMap)) {
-        const permissionIds = permissions
-            .map((p) => permissionsMap[p as PlatformPermissionEnum])
-            .filter(Boolean);
-        await PlatformRole.findOneAndUpdate(
-            { role },
-            { $set: { permissionIds, description: `Platform role: ${role}` } },
-            { upsert: true }
-        )
-    }
+    await Promise.all([
+        PlatformRole.insertMany(platformRolesData),
+        OrgRole.insertMany(orgRolesData)
+    ]);
 
-    for (const [role, permissions] of Object.entries(orgRolePermissionsMap)) {
-        const permissionIds = permissions
-            .map((p) => permissionsMap[p as OrgPermissionEnum])
-            .filter(Boolean);
-        await OrgRole.findOneAndUpdate(
-            { role },
-            { $set: { permissionIds, description: `Org role: ${role}` } },
-            { upsert: true }
-        )
-    }
-
-    console.log("Roles and permissions seeded successfully");
+    console.log("✅ Roles (with string names) and Permission reference seeded!");
 };
-
