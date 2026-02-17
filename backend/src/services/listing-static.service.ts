@@ -1,5 +1,6 @@
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PeriodEnum } from "../enums/period.enum";
+import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { ApiError } from "../errors/api.error";
 import { listingStaticRepository } from "../repositories/listing-static.repository";
 import {
@@ -9,29 +10,63 @@ import {
 } from "../types/listing-statics.type";
 import { listingService } from "./listing.service";
 import { marketAnalyticsService } from "./market-analytics.service";
+import { subscriptionService } from "./subscription.service";
 
 class ListingStaticsService {
-    async getPremiumStatsByListingId(listingId: string): Promise<{
+    async getPremiumStatsByListingId(
+        subscriptionId: string,
+        userId: string,
+        listingId: string,
+    ): Promise<{
         views: ListingStaticsType["views"];
         averagePrice: ListingAveragePriceByLocationType;
     }> {
-        const { model, make, country, region, city } =
-            await listingService.getById(listingId);
+        const { isActive, planType } =
+            await subscriptionService.getById(subscriptionId);
 
-        const { views } =
-            await listingStaticService.getViewsByListingId(listingId);
+        const {
+            model,
+            make,
+            country,
+            region,
+            city,
+            userId: userIdByListing,
+        } = await listingService.getById(listingId);
 
-        const avgPrices =
-            await marketAnalyticsService.getAveragePriceByLocations({
+        if (userIdByListing !== userId) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "You can only view statistics for your own listings.",
+            );
+        }
+
+        if (!isActive) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "Your subscription is inactive",
+            );
+        }
+
+        if (planType === PlanTypeEnum.BASIC) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "Upgrade premium plan!",
+            );
+        }
+
+        const [stats, avgPrices] = await Promise.all([
+            this.getViewsByListingId(listingId),
+            marketAnalyticsService.getAveragePriceByLocations({
                 model,
                 make,
                 country,
                 region,
                 city,
-            });
+            }),
+        ]);
 
         return {
-            views,
+            views: stats.views,
             averagePrice: avgPrices,
         };
     }
