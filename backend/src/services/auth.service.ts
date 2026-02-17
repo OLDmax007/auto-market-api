@@ -21,7 +21,6 @@ import {
 } from "../types/user.type";
 import { emailService } from "./email.service";
 import { passwordService } from "./password.service";
-import { platformRoleService } from "./platform-role.service";
 import { subscriptionService } from "./subscription.service";
 import { tokenService } from "./token.service";
 import { userService } from "./user.service";
@@ -61,12 +60,9 @@ class AuthService {
             subscriptionId,
         });
 
-        const { _id: userId, email, platformRoleId } = user;
+        const { _id: userId, email } = user;
 
-        const { role, permissionIds } =
-            await platformRoleService.getPlatformRoleById(platformRoleId);
-
-        const payload = buildTokenPayload(user, role, permissionIds);
+        const payload = buildTokenPayload(user);
 
         const tokens = tokenService.generateTokens(payload);
 
@@ -91,14 +87,11 @@ class AuthService {
     public async signIn(
         dto: UserLoginDtoType,
     ): Promise<{ user: UserType; tokens: TokenPairType }> {
-        const user = await userRepository.getByEmail(dto.email);
+        const user = await userService.getByEmail(
+            dto.email,
+            "Email or password is incorrect",
+        );
 
-        if (!user) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "Email or password is invalid",
-            );
-        }
         await tokenRepository.deleteAllByUserId(user._id);
 
         const isValidPassword = await passwordService.comparePassword(
@@ -113,12 +106,11 @@ class AuthService {
             );
         }
 
-        const { _id: userId, platformRoleId } = user;
+        const { _id: userId, isActive } = user;
 
-        const { permissionIds, role } =
-            await platformRoleService.getPlatformRoleById(platformRoleId);
+        userService.checkIsActive(isActive);
 
-        const payload = buildTokenPayload(user, role, permissionIds);
+        const payload = buildTokenPayload(user);
 
         const tokens = tokenService.generateTokens(payload);
 
@@ -130,19 +122,26 @@ class AuthService {
         return { user, tokens };
     }
 
-    public async refresh(payload: TokenPayloadType): Promise<TokenType> {
-        await tokenRepository.deleteAllByUserId(payload.userId);
+    public async refresh(
+        { userId, firstName, lastName, email }: TokenPayloadType,
+        refreshToken: string,
+    ): Promise<TokenType> {
         const tokens = tokenService.generateTokens({
-            ...payload,
+            userId,
+            firstName,
+            lastName,
+            email,
         });
         return tokenRepository.create({
             ...tokens,
-            userId: payload.userId,
+            userId,
         });
     }
 
     public verify = async (userId: string): Promise<UserType> => {
-        return userService.update(userId, {
+        const user = await userService.getById(userId);
+        userService.checkIsActive(user.isActive);
+        return userRepository.updateById(userId, {
             isActive: true,
             isVerified: true,
         });
@@ -156,12 +155,14 @@ class AuthService {
             path: string;
         },
     ): Promise<UserType> => {
-        const user = await userService.getByEmail(inputEmail);
+        const user = await userService.getByEmail(
+            inputEmail,
+            "Email is incorrect",
+        );
 
-        const { role, permissionIds } =
-            await platformRoleService.getPlatformRoleById(user.platformRoleId);
+        userService.checkIsActive(user.isActive);
 
-        const payload = buildTokenPayload(user, role, permissionIds);
+        const payload = buildTokenPayload(user);
 
         const token = tokenService.generateActionToken(
             payload,
@@ -182,8 +183,13 @@ class AuthService {
         userId: string,
         password: string,
     ): Promise<UserType> => {
-        return userService.update(userId, {
-            password,
+        const user = await userService.getById(userId);
+        userService.checkIsActive(user.isActive);
+
+        const hashedPassword = await passwordService.hashPassword(password);
+
+        return userRepository.updateById(userId, {
+            password: hashedPassword,
         });
     };
 }
