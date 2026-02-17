@@ -1,5 +1,6 @@
 import {Car} from "../src/models/car.model";
-import {CarMap} from "../src/configs/car-map.config";
+import {CarMap} from "../src/mappers/car.map";
+
 
 export const seedCars = async () => {
     try {

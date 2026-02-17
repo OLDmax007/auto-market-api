@@ -1,5 +1,5 @@
-import {LocationMap} from "../src/configs/location-map.config";
 import {Location} from "../src/models/location.model";
+import {LocationMap} from "../src/mappers/location.map";
 
 export const seedLocations = async () => {
     try {
