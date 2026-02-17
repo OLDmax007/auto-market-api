@@ -24,11 +24,19 @@ class ListingRepository {
     public deleteById(id: string): Promise<ListingType> {
         return Listing.findByIdAndDelete(id);
     }
+    public async deleteAllByUserId(userId: string) {
+        return Listing.deleteMany({ userId });
+    }
 
-    public async deactivateManyByUserId(
-        userId: string,
-    ): Promise<{ matchedCount: number; modifiedCount: number }> {
-        return Listing.updateMany({ userId }, { isActive: false });
+    public async deactivateByUserId(userId: string) {
+        return Listing.updateMany({ userId }, { $set: { isActive: false } });
+    }
+
+    public async activateCleanByUserId(userId: string) {
+        return Listing.updateMany(
+            { userId, isProfanity: false },
+            { $set: { isActive: true } },
+        );
     }
 
     public async countByUserId(userId: string): Promise<number> {
