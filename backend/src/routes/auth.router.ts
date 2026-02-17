@@ -4,6 +4,7 @@ import { authController } from "../controllers/auth.controller";
 import { ActionTokenEnum } from "../enums/action-token.enum";
 import { TokenTypeEnum } from "../enums/token-type.enum";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { userMiddleware } from "../middlewares/user.middleware";
 
 const router = Router();
 
@@ -13,6 +14,7 @@ router.post("/sign-in", authController.signIn);
 router.post(
     "/refresh",
     authMiddleware.checkToken(TokenTypeEnum.REFRESH),
+    userMiddleware.isActiveUser,
     authController.refresh,
 );
 
