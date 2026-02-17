@@ -30,7 +30,6 @@ class ListingStaticsRepository {
     }
 
     public resetViews(period: PeriodEnum) {
-        console.log(period);
         return ListingStatics.updateMany(
             {},
             { $set: { [`views.${period}`]: 50 } },
