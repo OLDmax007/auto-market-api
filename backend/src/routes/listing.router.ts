@@ -57,6 +57,17 @@ router.patch(
     listingController.deactivateListing,
 );
 
+router.patch(
+    "/:listingId/close",
+    commonMiddleware.isValidId("listingId"),
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    roleMiddleware.checkPermission(
+        PlatformPermissionEnum.ME_LISTING_DEACTIVATE,
+    ),
+    listingController.closeMyListing,
+);
+
 router.delete(
     "/:listingId",
     commonMiddleware.isValidId("listingId"),
