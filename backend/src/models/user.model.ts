@@ -1,4 +1,5 @@
-import mongoose from "mongoose";
+import mongoose, { PaginateModel } from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 import { CurrencyEnum } from "../enums/currency.enum";
 import { UserType } from "../types/user.type";
@@ -37,4 +38,9 @@ const userSchema = new Schema(
     { timestamps: true, versionKey: false },
 );
 
-export const User = model<UserType>("users", userSchema);
+userSchema.plugin(mongoosePaginate);
+
+export const User = model<UserType, PaginateModel<UserType>>(
+    "users",
+    userSchema,
+);

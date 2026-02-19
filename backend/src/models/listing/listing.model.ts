@@ -1,4 +1,5 @@
-import { model, Schema } from "mongoose";
+import { model, PaginateModel, Schema } from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 import {
     CarMarkEnum,
@@ -9,7 +10,7 @@ import { CountryEnum } from "../../enums/country-enum";
 import { RegionEnum } from "../../enums/region-enum";
 import { ListingType } from "../../types/listing.type";
 
-export const ListingSchema = new Schema(
+export const listingSchema = new Schema(
     {
         userId: {
             type: Schema.Types.ObjectId,
@@ -63,4 +64,9 @@ export const ListingSchema = new Schema(
     { timestamps: true, versionKey: false },
 );
 
-export const Listing = model<ListingType>("listings", ListingSchema);
+listingSchema.plugin(mongoosePaginate);
+
+export const Listing = model<ListingType, PaginateModel<ListingType>>(
+    "listings",
+    listingSchema,
+);
