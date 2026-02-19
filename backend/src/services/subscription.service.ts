@@ -31,8 +31,7 @@ class SubscriptionService {
             balance,
         } = await userService.getById(id);
 
-        const { planType } =
-            await subscriptionRepository.getById(subscriptionId);
+        const { planType } = await this.getById(subscriptionId);
 
         if (planType === PlanTypeEnum.PREMIUM) {
             throw new ApiError(
