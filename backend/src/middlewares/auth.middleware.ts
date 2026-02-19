@@ -48,7 +48,6 @@ class AuthMiddleware {
                 }
 
                 res.locals.tokenPayload = payload;
-                res.locals.tokenInfo = token;
 
                 next();
             } catch (e: unknown) {

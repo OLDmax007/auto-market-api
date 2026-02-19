@@ -15,7 +15,7 @@ class RoleMiddleware {
                 if (!user) {
                     throw new ApiError(
                         HttpStatusEnum.UNAUTHORIZED,
-                        "User context not found",
+                        "Authentication required",
                     );
                 }
 

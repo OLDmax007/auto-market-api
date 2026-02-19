@@ -11,19 +11,17 @@ class UserMiddleware {
         try {
             const tokenPayload = res.locals.tokenPayload as TokenPayloadType;
             if (!tokenPayload) {
-                if (!res.locals.tokenPayload) {
-                    throw new ApiError(
-                        HttpStatusEnum.UNAUTHORIZED,
-                        "Token payload missing",
-                    );
-                }
+                throw new ApiError(
+                    HttpStatusEnum.UNAUTHORIZED,
+                    "Token payload missing",
+                );
             }
 
             const user = await userService.getById(tokenPayload.userId);
             if (!user.isActive) {
                 throw new ApiError(
                     HttpStatusEnum.FORBIDDEN,
-                    "User is inactive",
+                    "User account is suspended",
                 );
             }
 
@@ -40,23 +38,27 @@ class UserMiddleware {
         res: Response,
         next: NextFunction,
     ) {
-        const user = res.locals.user as UserType;
+        try {
+            const user = res.locals.user as UserType;
 
-        if (!user) {
-            return next(
-                new ApiError(
+            if (!user) {
+                throw new ApiError(
                     HttpStatusEnum.UNAUTHORIZED,
-                    "User not found in context",
-                ),
-            );
-        }
+                    "Authentication required",
+                );
+            }
 
-        if (!user.isVerified) {
-            return next(
-                new ApiError(HttpStatusEnum.FORBIDDEN, "Email not verified"),
-            );
+            if (!user.isVerified) {
+                throw new ApiError(
+                    HttpStatusEnum.FORBIDDEN,
+                    "Please verify your email to access this feature",
+                );
+            }
+
+            next();
+        } catch (e) {
+            next(e);
         }
-        next();
     }
 }
 
