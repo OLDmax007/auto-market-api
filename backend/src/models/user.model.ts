@@ -32,6 +32,7 @@ const userSchema = new Schema(
             ref: "Subscription",
             default: null,
         },
+        avatar: { type: String, required: true },
         isActive: { type: Boolean, default: true },
         isVerified: { type: Boolean, default: true },
     },
