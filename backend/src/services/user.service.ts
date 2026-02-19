@@ -3,8 +3,10 @@ import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
 import { ensureEntityExists } from "../helpers/ensure-entity.helper";
+import { getPaginationOptions } from "../helpers/pagination.helper";
 import { listingRepository } from "../repositories/listing.repository";
 import { userRepository } from "../repositories/user.repository";
+import { PaginateFilterType, QueryType } from "../types/pagination.type";
 import { CurrencyAmountType } from "../types/rate.type";
 import {
     UserCreateDtoType,
@@ -17,8 +19,23 @@ import { platformRoleService } from "./platform-role.service";
 import { pricingService } from "./pricing.service";
 
 class UserService {
-    public getAll(): Promise<UserType[]> {
-        return userRepository.getAll();
+    public async getAll(query: QueryType = {}): Promise<UserType[]> {
+        const filter: PaginateFilterType = {};
+        if (query.search) {
+            filter.$or = [
+                { firstName: { $regex: query.search, $options: "i" } },
+                { lastName: { $regex: query.search, $options: "i" } },
+                { email: { $regex: query.search, $options: "i" } },
+            ];
+        }
+
+        const options = getPaginationOptions(query);
+
+        const { docs } = await userRepository.getAllPaginated(filter, {
+            ...options,
+            select: "",
+        });
+        return docs;
     }
 
     public async getById(id: string): Promise<UserType> {
@@ -193,7 +210,10 @@ class UserService {
 
     public checkIsActive(isActive: boolean): void {
         if (!isActive) {
-            throw new ApiError(HttpStatusEnum.FORBIDDEN, "User is inactive");
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "User account is suspended",
+            );
         }
     }
 
