@@ -4,8 +4,12 @@ import { Token } from "../models/token.model";
 import { TokenPairType, TokenType } from "../types/token.type";
 
 class TokenRepository {
-    public getOneByParams(filter: Partial<TokenType>): Promise<TokenType> {
-        return Token.findOne(filter);
+    public getManyByUserId(userId: string): Promise<TokenType[]> {
+        return Token.find({ userId }).sort({ createdAt: 1 });
+    }
+
+    public getOneByParams(params: Partial<TokenType>): Promise<TokenType> {
+        return Token.findOne(params);
     }
 
     public create(dto: TokenPairType & { userId: string }): Promise<TokenType> {
