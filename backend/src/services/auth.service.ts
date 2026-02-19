@@ -60,15 +60,13 @@ class AuthService {
             subscriptionId,
         });
 
-        const { _id: userId, email } = user;
-
         const payload = buildTokenPayload(user);
 
         const tokens = tokenService.generateTokens(payload);
 
         await tokenRepository.create({
             ...tokens,
-            userId,
+            userId: user._id,
         });
 
         const token = tokenService.generateActionToken(
@@ -76,7 +74,7 @@ class AuthService {
             ActionTokenEnum.VERIFY,
         );
 
-        await emailService.sendEmail(email, emailConstants.WELCOME, {
+        await emailService.sendEmail(user.email, emailConstants.WELCOME, {
             catalogLink: buildLink("/cars/makes"),
             verifyLink: buildLink("/verify", token),
         });
@@ -122,25 +120,18 @@ class AuthService {
         return { user, tokens };
     }
 
-    public async refresh(
-        { userId, firstName, lastName, email }: TokenPayloadType,
-        refreshToken: string,
-    ): Promise<TokenType> {
-        const tokens = tokenService.generateTokens({
-            userId,
-            firstName,
-            lastName,
-            email,
-        });
+    public async refresh(payload: TokenPayloadType): Promise<TokenType> {
+        const tokens = tokenService.generateTokens(payload);
         return tokenRepository.create({
             ...tokens,
-            userId,
+            userId: payload.userId,
         });
     }
 
     public verify = async (userId: string): Promise<UserType> => {
         const user = await userService.getById(userId);
         userService.checkIsActive(user.isActive);
+        userService.checkIsVerified(user.isVerified);
         return userRepository.updateById(userId, {
             isActive: true,
             isVerified: true,
@@ -161,6 +152,7 @@ class AuthService {
         );
 
         userService.checkIsActive(user.isActive);
+        userService.checkIsVerified(user.isVerified);
 
         const payload = buildTokenPayload(user);
 
