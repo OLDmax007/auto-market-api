@@ -1,9 +1,17 @@
 import { User } from "../models/user.model";
+import {
+    PaginatedResponseType,
+    PaginateFilterType,
+    PaginateOptionsType,
+} from "../types/pagination.type";
 import { UserCreateDbType, UserType } from "../types/user.type";
 
 class UserRepository {
-    public getAll(): Promise<UserType[]> {
-        return User.find();
+    public getAllPaginated(
+        filter: PaginateFilterType,
+        options: PaginateOptionsType,
+    ): Promise<PaginatedResponseType<UserType>> {
+        return User.paginate(filter, options);
     }
 
     public getManyByPlatformId(platformRoleId: string): Promise<UserType[]> {
