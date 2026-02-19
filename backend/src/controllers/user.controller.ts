@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { subscriptionService } from "../services/subscription.service";
 import { userService } from "../services/user.service";
+import { QueryType } from "../types/pagination.type";
 import { PlatformRoleType } from "../types/permissions/platform-role.type";
 import { CurrencyAmountType } from "../types/rate.type";
 import { TokenPayloadType } from "../types/token.type";
@@ -15,7 +16,8 @@ import {
 class UserController {
     public async getAll(req: Request, res: Response, next: NextFunction) {
         try {
-            const data = await userService.getAll();
+            const query = req.query as QueryType;
+            const data = await userService.getAll(query);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
@@ -133,8 +135,8 @@ class UserController {
     public async becomeSeller(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await userService.becomeSeller(userId, role);
+            const { _id } = res.locals.rolePayload as PlatformRoleType;
+            const data = await userService.becomeSeller(userId, _id);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
