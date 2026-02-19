@@ -30,9 +30,8 @@ class AuthController {
     public async refresh(req: Request, res: Response, next: NextFunction) {
         try {
             const payload = res.locals.tokenPayload as TokenPayloadType;
-            const refreshToken = res.locals.tokenInfo as string;
 
-            const data = await authService.refresh(payload, refreshToken);
+            const data = await authService.refresh(payload);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
@@ -95,6 +94,31 @@ class AuthController {
             const { password } = req.body as { password: string };
             const data = await authService.resetPassword(userId, password);
             res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async logout(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const { refreshToken } = req.body;
+            await authService.logout(userId, refreshToken);
+            res.status(HttpStatusEnum.NO_CONTENT).json({});
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async logoutFromAllDevices(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            await authService.logoutFromAllDevices(userId);
+            res.status(HttpStatusEnum.NO_CONTENT).json({});
         } catch (e: unknown) {
             next(e);
         }
