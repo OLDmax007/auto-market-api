@@ -121,6 +121,21 @@ class ListingController {
         }
     }
 
+    public async closeMyListing(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const data = await listingService.closeListing(listingId, userId);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
     public async getPremiumListingStats(
         req: Request,
         res: Response,
