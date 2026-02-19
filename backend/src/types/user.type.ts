@@ -12,6 +12,7 @@ export type UserType = {
     password: string;
     email: string;
     balance: CurrencyAmountType;
+    avatar: string;
     isActive: boolean;
     isVerified: boolean;
 } & BaseType;
