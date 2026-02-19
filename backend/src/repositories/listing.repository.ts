@@ -1,9 +1,17 @@
 import { Listing } from "../models/listing/listing.model";
 import { ListingCreateDbType, ListingType } from "../types/listing.type";
+import {
+    PaginatedResponseType,
+    PaginateFilterType,
+    PaginateOptionsType,
+} from "../types/pagination.type";
 
 class ListingRepository {
-    public getAll(): Promise<ListingType[]> {
-        return Listing.find();
+    public getAllPaginated(
+        filter: PaginateFilterType,
+        options: PaginateOptionsType,
+    ): Promise<PaginatedResponseType<ListingType>> {
+        return Listing.paginate(filter, options);
     }
 
     public getById(id: string): Promise<ListingType> {
