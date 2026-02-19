@@ -74,10 +74,14 @@ class AuthService {
             ActionTokenEnum.VERIFY,
         );
 
-        await emailService.sendEmail(user.email, emailConstants.WELCOME, {
-            catalogLink: buildLink("/cars/makes"),
-            verifyLink: buildLink("/verify", token),
-        });
+        emailService
+            .sendEmail(user.email, emailConstants.WELCOME, {
+                catalogLink: buildLink("/cars/makes"),
+                verifyLink: buildLink("/verify", token),
+            })
+            .catch((err) => {
+                console.error("Failed to send welcome email:", err);
+            });
 
         return { user, tokens };
     }
@@ -161,13 +165,21 @@ class AuthService {
             config.tokenType,
         );
 
-        await emailService.sendEmail(
-            user.email,
-            emailConstants[config.emailType],
-            {
-                link: buildLink(config.path, token),
-            },
-        );
+        try {
+            await emailService.sendEmail(
+                user.email,
+                emailConstants[config.emailType],
+                {
+                    link: buildLink(config.path, token),
+                },
+            );
+        } catch (e: unknown) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "Email delivery failed. Please check your provider.",
+            );
+        }
+
         return user;
     };
 
@@ -184,6 +196,21 @@ class AuthService {
             password: hashedPassword,
         });
     };
+
+    public async logout(userId: string, refreshToken: string): Promise<void> {
+        if (!refreshToken) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "Refresh token is required",
+            );
+        }
+
+        await tokenRepository.deleteOneByParams({ userId, refreshToken });
+    }
+
+    public async logoutFromAllDevices(userId: string): Promise<void> {
+        await tokenRepository.deleteAllByUserId(userId);
+    }
 }
 
 export const authService = new AuthService();
