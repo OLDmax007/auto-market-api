@@ -4,6 +4,7 @@ import { HttpStatusEnum } from "../enums/http-status.enum";
 import { listingService } from "../services/listing.service";
 import { listingStaticService } from "../services/listing-static.service";
 import { ListingCreateDtoType } from "../types/listing.type";
+import { QueryType } from "../types/pagination.type";
 import { PlatformRoleType } from "../types/permissions/platform-role.type";
 import { TokenPayloadType } from "../types/token.type";
 import { UserType } from "../types/user.type";
@@ -11,7 +12,8 @@ import { UserType } from "../types/user.type";
 class ListingController {
     public async getAll(req: Request, res: Response, next: NextFunction) {
         try {
-            const data = await listingService.getAll();
+            const query = req.query as QueryType;
+            const data = await listingService.getAll(query);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
