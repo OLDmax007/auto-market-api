@@ -20,7 +20,14 @@ class PricingService {
         }
         const rates = await privatBankService.getRates();
         const rate = rates.find((rate) => rate.ccy === currency);
-        return Math.round(money * Number(rate.sale));
+
+        if (!rate?.sale) {
+            throw new Error(`Rate for ${currency} not found`);
+        }
+
+        const result = money * Number(rate.sale);
+
+        return Number(result.toFixed(2));
     }
     public async calculateListingPrices(
         money: number,
