@@ -204,10 +204,10 @@ class ListingService {
         const listing = await this.getById(id);
         this.checkAccess(listing.userId, userId, role);
 
-        if (!listing.isActive) {
+        if (listing.isActive) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
-                "Listing  is already activated.",
+                "Listing is already activated",
             );
         }
         return listingRepository.updateById(id, {
@@ -245,6 +245,31 @@ class ListingService {
         const listing = await this.getById(id);
         this.checkAccess(listing.userId, userId, role);
         return listingRepository.deleteById(id);
+    }
+
+    public async closeListing(
+        id: string,
+        initiatorId: string,
+    ): Promise<ListingType> {
+        const listing = await this.getById(id);
+
+        if (listing.userId !== initiatorId) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "You can only close your listing",
+            );
+        }
+
+        if (!listing.isActive) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "Listing  is already deactivated.",
+            );
+        }
+
+        return listingRepository.updateById(id, {
+            isActive: false,
+        });
     }
 
     private async checkListingForProfanity(
