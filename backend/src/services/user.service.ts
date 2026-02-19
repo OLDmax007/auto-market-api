@@ -156,6 +156,30 @@ class UserService {
         });
     }
 
+    public async closeAccount(
+        id: string,
+        initiatorId: string,
+        isActive: boolean,
+    ): Promise<UserType> {
+        if (id.toString() !== initiatorId.toString()) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "You can only manage your own account",
+            );
+        }
+
+        if (!isActive) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "User account is already deactivated",
+            );
+        }
+
+        return userRepository.updateById(id, {
+            isActive: false,
+        });
+    }
+
     public async becomeSeller(
         id: string,
         currentPlatformRoleId: string,
