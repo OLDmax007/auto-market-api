@@ -25,6 +25,15 @@ router.patch(
     roleMiddleware.checkPermission(PlatformPermissionEnum.ME_UPDATE),
     userController.updateMe,
 );
+
+router.patch(
+    "/close",
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    roleMiddleware.checkPermission(PlatformPermissionEnum.ME_DEACTIVATE),
+    userController.closeMe,
+);
+
 router.patch(
     "/become-seller",
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
