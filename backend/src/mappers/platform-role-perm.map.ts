@@ -8,6 +8,7 @@ export const platformRolePermissionsMap: Record<
     [PlatformRoleEnum.VISITOR]: [
         PlatformPermissionEnum.ME_GET,
         PlatformPermissionEnum.ME_BECOME_SELLER,
+        PlatformPermissionEnum.ME_DEACTIVATE,
     ],
     [PlatformRoleEnum.SELLER]: [
         PlatformPermissionEnum.ME_GET,
@@ -20,6 +21,7 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.LISTING_GET_STATS,
         PlatformPermissionEnum.ME_DEACTIVATE,
         PlatformPermissionEnum.ME_LISTING_DEACTIVATE,
+        PlatformPermissionEnum.LISTING_CLOSE,
     ],
     [PlatformRoleEnum.MANAGER]: [
         PlatformPermissionEnum.ME_GET,
@@ -31,14 +33,5 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.USER_ACTIVATE,
         PlatformPermissionEnum.USER_DEACTIVATE,
     ],
-    [PlatformRoleEnum.ADMIN]: [
-        PlatformPermissionEnum.ME_GET,
-        PlatformPermissionEnum.LISTING_EDIT,
-        PlatformPermissionEnum.LISTING_ACTIVATE,
-        PlatformPermissionEnum.LISTING_DEACTIVATE,
-        PlatformPermissionEnum.LISTING_GET_STATS,
-        PlatformPermissionEnum.USER_GET_ALL,
-        PlatformPermissionEnum.USER_ACTIVATE,
-        PlatformPermissionEnum.USER_DEACTIVATE,
-    ],
+    [PlatformRoleEnum.ADMIN]: [...Object.values(PlatformPermissionEnum)],
 };
