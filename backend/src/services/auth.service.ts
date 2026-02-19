@@ -1,9 +1,11 @@
+import { mainConfig } from "../configs/main.config";
 import { emailConstants } from "../constants/email-data";
 import { ActionTokenEnum } from "../enums/action-token.enum";
 import { CurrencyEnum } from "../enums/currency.enum";
 import { EmailEnum } from "../enums/email.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
+import { TokenTypeEnum } from "../enums/token-type.enum";
 import { ApiError } from "../errors/api.error";
 import { buildLink } from "../helpers/link-builder.helper";
 import { buildTokenPayload } from "../helpers/payload.helper";
@@ -94,7 +96,11 @@ class AuthService {
             "Email or password is incorrect",
         );
 
-        await tokenRepository.deleteAllByUserId(user._id);
+        const sessions = await tokenRepository.getManyByUserId(user._id);
+        if (sessions.length >= mainConfig.MAX_SESSIONS) {
+            const oldSession = sessions[0];
+            await tokenRepository.deleteOneByParams(oldSession);
+        }
 
         const isValidPassword = await passwordService.comparePassword(
             dto.password,
@@ -174,6 +180,7 @@ class AuthService {
                 },
             );
         } catch (e: unknown) {
+            console.error(e);
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
                 "Email delivery failed. Please check your provider.",
@@ -197,13 +204,33 @@ class AuthService {
         });
     };
 
-    public async logout(userId: string, refreshToken: string): Promise<void> {
-        if (!refreshToken) {
+    public async logout(
+        userId: string,
+        refreshTokenInput: string,
+    ): Promise<void> {
+        if (!refreshTokenInput) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
                 "Refresh token is required",
             );
         }
+
+        const payload = tokenService.verifyToken(
+            refreshTokenInput,
+            TokenTypeEnum.REFRESH,
+        );
+
+        if (String(payload.userId) !== String(userId)) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "Token does not belong to this user",
+            );
+        }
+
+        const { refreshToken } = await tokenRepository.getOneByParams({
+            userId,
+            refreshToken: refreshTokenInput,
+        });
 
         await tokenRepository.deleteOneByParams({ userId, refreshToken });
     }
