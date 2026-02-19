@@ -1,7 +1,9 @@
+import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
+import { getPaginationOptions } from "../helpers/pagination.helper";
 import { listingRepository } from "../repositories/listing.repository";
 import {
     ListingCreateDbType,
@@ -12,6 +14,7 @@ import {
     ListingUpdateManagerDtoType,
     ListingUpdateUserDtoType,
 } from "../types/listing.type";
+import { PaginateFilterType, QueryType } from "../types/pagination.type";
 import { carService } from "./car.service";
 import { listingStaticService } from "./listing-static.service";
 import { locationService } from "./location.service";
@@ -22,8 +25,46 @@ import { subscriptionService } from "./subscription.service";
 import { userService } from "./user.service";
 
 class ListingService {
-    public getAll(): Promise<ListingType[]> {
-        return listingRepository.getAll();
+    public async getAll(
+        query: QueryType & {
+            minPrice?: string;
+            maxPrice?: string;
+            currency?: string;
+        } = {},
+    ): Promise<ListingType[]> {
+        const filter: PaginateFilterType = {};
+
+        if (query.minPrice || query.maxPrice) {
+            filter.prices = {
+                $elemMatch: {
+                    currency: query.currency || CurrencyEnum.UAH,
+                    amount: {
+                        ...(query.minPrice && { $gte: Number(query.minPrice) }),
+                        ...(query.maxPrice && { $lte: Number(query.maxPrice) }),
+                    },
+                },
+            };
+        }
+        console.log(filter);
+
+        if (query.search) {
+            filter.$or = [
+                { title: { $regex: query.search, $options: "i" } },
+                { make: { $regex: query.search, $options: "i" } },
+                { model: { $regex: query.search, $options: "i" } },
+                { country: { $regex: query.search, $options: "i" } },
+                { city: { $regex: query.search, $options: "i" } },
+                { region: { $regex: query.search, $options: "i" } },
+            ];
+        }
+
+        const options = getPaginationOptions(query);
+
+        const listings = await listingRepository.getAllPaginated(filter, {
+            ...options,
+            select: "-_id -userId -organizationId -profanityCheckAttempts -isActive -createdAt -updatedAt",
+        });
+        return listings.docs;
     }
 
     public async getById(id: string): Promise<ListingType> {
