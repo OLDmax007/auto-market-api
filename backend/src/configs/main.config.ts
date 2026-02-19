@@ -10,6 +10,7 @@ type MainConfig = {
     PORT: string;
     MONGO_URI: string;
     DB_MAX_RETIRES: number;
+    MAX_SESSIONS: number;
     JWT_ACCESS_SECRET: string;
     JWT_REFRESH_SECRET: string;
     JWT_ACCESS_LIFETIME: any;
@@ -28,6 +29,7 @@ export const mainConfig: MainConfig = {
     PORT: process.env.PORT,
     MONGO_URI: process.env.MONGO_URI,
     DB_MAX_RETIRES: Number(process.env.DB_MAX_RETIRES),
+    MAX_SESSIONS: Number(process.env.MAX_SESSIONS),
     JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
     JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
     JWT_ACCESS_LIFETIME: process.env.JWT_ACCESS_LIFETIME,
