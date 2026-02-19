@@ -217,6 +217,15 @@ class UserService {
         }
     }
 
+    public checkIsVerified(isVerified: boolean): void {
+        if (isVerified) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "User is already verified",
+            );
+        }
+    }
+
     private checkNotSelfAction(
         currentId: string,
         initiatorId: string,
