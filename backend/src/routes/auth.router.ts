@@ -38,4 +38,16 @@ router.patch(
     authController.resetPassword,
 );
 
+router.delete(
+    "/logout",
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authController.logout,
+);
+
+router.delete(
+    "/logout-all",
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authController.logoutFromAllDevices,
+);
+
 export const authRouter = router;
