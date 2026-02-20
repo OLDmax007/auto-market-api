@@ -7,24 +7,32 @@ import { platformRoleService } from "./platform-role.service";
 import { userService } from "./user.service";
 
 class UserAccessService {
-    public isOwner(userid: string, initiatorId: string): void {
-        if (String(userid) !== String(initiatorId)) {
+    public checkAccountOwnership(
+        targetUserId: string,
+        initiatorId: string,
+    ): void {
+        if (String(targetUserId) !== String(initiatorId)) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
-                "You can only manage your own account",
+                "You are not the owner of this account",
             );
         }
     }
 
-    private checkNotSelfAction(
-        userId: string,
-        initiatorId: string,
-        action: string,
-    ): void {
-        if (userId === initiatorId) {
+    public checkIsVerified(isVerified: boolean): void {
+        if (!isVerified) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "Please verify your email first",
+            );
+        }
+    }
+
+    public checkIsNotVerified(isVerified: boolean): void {
+        if (isVerified) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
-                `You cannot ${action} your own account via this method`,
+                "Email is already verified",
             );
         }
     }
@@ -39,40 +47,17 @@ class UserAccessService {
         }
     }
 
-    public ensureIsNotActive(isActive: boolean): void {
-        if (!isActive) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "User account is suspended",
-            );
-        }
-    }
-
-    public ensureIsActive(isActive: boolean): void {
-        if (isActive) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "User account is already activated",
-            );
-        }
-    }
-
-    public checkIsVerified(isVerified: boolean): void {
-        if (isVerified) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "User is already verified",
-            );
-        }
-    }
-
     public async getTargetUserWithHierarchyCheck(
         userId: string,
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
-        action: string,
     ): Promise<UserType> {
-        this.checkNotSelfAction(userId, initiatorId, action);
+        if (String(userId) === String(initiatorId)) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "You cannot perform this action on yourself",
+            );
+        }
 
         const user = await userService.getById(userId);
 
@@ -83,7 +68,7 @@ class UserAccessService {
         if (role === PlatformRoleEnum.ADMIN) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
-                `Cannot ${action} an Administrator`,
+                `Cannot perform action on an Administrator`,
             );
         }
 
@@ -93,7 +78,7 @@ class UserAccessService {
         ) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
-                `Managers cannot ${action} other Managers`,
+                `Managers cannot perform actions on other Managers`,
             );
         }
 
