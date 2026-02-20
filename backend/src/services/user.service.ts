@@ -17,6 +17,7 @@ import {
 import { passwordService } from "./password.service";
 import { platformRoleService } from "./platform-role.service";
 import { pricingService } from "./pricing.service";
+import { userAccessService } from "./user-access.service";
 
 class UserService {
     public async getAll(query: QueryType = {}): Promise<UserType[]> {
@@ -55,7 +56,6 @@ class UserService {
         const { _id } = await platformRoleService.getPlatformRole(
             PlatformRoleEnum.VISITOR,
         );
-
         return userRepository.create({
             platformRoleId: _id,
             ...dto,
@@ -75,7 +75,7 @@ class UserService {
         initiatorRole: PlatformRoleEnum,
         dto: UserUpdateByAdminDtoType,
     ): Promise<UserType> {
-        const user = await this.getTargetUserWithHierarchyCheck(
+        const user = await userAccessService.getTargetUserWithHierarchyCheck(
             id,
             initiatorId,
             initiatorRole,
@@ -93,7 +93,7 @@ class UserService {
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
     ): Promise<UserType> {
-        const user = await this.getTargetUserWithHierarchyCheck(
+        const user = await userAccessService.getTargetUserWithHierarchyCheck(
             id,
             initiatorId,
             initiatorRole,
@@ -110,19 +110,15 @@ class UserService {
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
     ): Promise<UserType> {
-        const user = await this.getTargetUserWithHierarchyCheck(
+        const user = await userAccessService.getTargetUserWithHierarchyCheck(
             id,
             initiatorId,
             initiatorRole,
             "activate",
         );
 
-        if (user.isActive) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "User account is already activated.",
-            );
-        }
+        userAccessService.ensureIsActive(user.isActive);
+
         await listingRepository.activateCleanByUserId(user._id);
 
         return userRepository.updateById(id, {
@@ -135,19 +131,13 @@ class UserService {
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
     ): Promise<UserType> {
-        const user = await this.getTargetUserWithHierarchyCheck(
+        const user = await userAccessService.getTargetUserWithHierarchyCheck(
             id,
             initiatorId,
             initiatorRole,
             "deactivate",
         );
-
-        if (!user.isActive) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "User account is already deactivated.",
-            );
-        }
+        userAccessService.ensureIsNotActive(user.isActive);
 
         await listingRepository.deactivateByUserId(user._id);
 
@@ -161,20 +151,9 @@ class UserService {
         initiatorId: string,
         isActive: boolean,
     ): Promise<UserType> {
-        if (id.toString() !== initiatorId.toString()) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "You can only manage your own account",
-            );
-        }
-
-        if (!isActive) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "User account is already deactivated",
-            );
-        }
-
+        userAccessService.isOwner(id, initiatorId);
+        userAccessService.ensureIsNotActive(isActive);
+        await listingRepository.deactivateByUserId(id);
         return userRepository.updateById(id, {
             isActive: false,
         });
@@ -210,8 +189,12 @@ class UserService {
             currency,
         );
 
+        const newTotalAmount = Number(
+            (currentBalance.amount + convertedMoney).toFixed(2),
+        );
+
         const updatedBalance = {
-            amount: currentBalance.amount + convertedMoney,
+            amount: newTotalAmount,
             currency: CurrencyEnum.UAH,
         };
 
@@ -219,82 +202,10 @@ class UserService {
             balance: updatedBalance,
         });
 
-        return { balance: updatedBalance, credited: { amount, currency } };
-    }
-
-    public async checkEmailUniqueness(email: string): Promise<void> {
-        const user = await userRepository.getByEmail(email);
-        if (user) {
-            throw new ApiError(
-                HttpStatusEnum.CONFLICT,
-                "User already is exists",
-            );
-        }
-    }
-
-    public checkIsActive(isActive: boolean): void {
-        if (!isActive) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "User account is suspended",
-            );
-        }
-    }
-
-    public checkIsVerified(isVerified: boolean): void {
-        if (isVerified) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "User is already verified",
-            );
-        }
-    }
-
-    private checkNotSelfAction(
-        currentId: string,
-        initiatorId: string,
-        action: string,
-    ): void {
-        if (currentId === initiatorId) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                `Access denied: You cannot ${action} your own account via this method`,
-            );
-        }
-    }
-
-    private async getTargetUserWithHierarchyCheck(
-        id: string,
-        initiatorId: string,
-        initiatorRole: PlatformRoleEnum,
-        action: string,
-    ): Promise<UserType> {
-        this.checkNotSelfAction(id, initiatorId, action);
-
-        const user = await this.getById(id);
-
-        const { role } = await platformRoleService.getPlatformRoleById(
-            user.platformRoleId,
-        );
-
-        if (role === PlatformRoleEnum.ADMIN) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                `Access denied: Cannot ${action} an Administrator`,
-            );
-        }
-
-        if (
-            initiatorRole === PlatformRoleEnum.MANAGER &&
-            role === PlatformRoleEnum.MANAGER
-        ) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                `Access denied: Managers cannot ${action} other Managers`,
-            );
-        }
-
-        return user;
+        return {
+            balance: updatedBalance,
+            credited: { amount: Number(amount.toFixed(2)), currency },
+        };
     }
 }
 
