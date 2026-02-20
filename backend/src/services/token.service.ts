@@ -37,11 +37,11 @@ class TokenService {
         let expiresIn: any;
 
         switch (tokenType) {
-            case ActionTokenEnum.VERIFY:
+            case ActionTokenEnum.VERIFY_USER:
                 secret = JWT_VERIFY_SECRET;
                 expiresIn = JWT_VERIFY_LIFETIME;
                 break;
-            case ActionTokenEnum.RECOVER:
+            case ActionTokenEnum.RECOVER_PASSWORD:
                 secret = JWT_RECOVERY_SECRET;
                 expiresIn = JWT_RECOVERY_LIFETIME;
                 break;
@@ -64,10 +64,10 @@ class TokenService {
                 case TokenTypeEnum.REFRESH:
                     secret = JWT_REFRESH_SECRET;
                     break;
-                case ActionTokenEnum.VERIFY:
+                case ActionTokenEnum.VERIFY_USER:
                     secret = JWT_VERIFY_SECRET;
                     break;
-                case ActionTokenEnum.RECOVER:
+                case ActionTokenEnum.RECOVER_PASSWORD:
                     secret = JWT_RECOVERY_SECRET;
                     break;
                 default:
