@@ -5,8 +5,8 @@ import { CurrencyEnum } from "../enums/currency.enum";
 import { EmailEnum } from "../enums/email.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
-import { TokenTypeEnum } from "../enums/token-type.enum";
 import { ApiError } from "../errors/api.error";
+import { ensureIsActive } from "../helpers/ensure.helper";
 import { buildLink } from "../helpers/link-builder.helper";
 import { buildTokenPayload } from "../helpers/payload.helper";
 import { tokenRepository } from "../repositories/token.repository";
@@ -26,12 +26,13 @@ import { passwordService } from "./password.service";
 import { subscriptionService } from "./subscription.service";
 import { tokenService } from "./token.service";
 import { userService } from "./user.service";
+import { userAccessService } from "./user-access.service";
 
 class AuthService {
     public async signUp(
         dto: UserCreateDtoType,
     ): Promise<{ user: UserType; tokens: TokenPairType }> {
-        await userService.checkEmailUniqueness(dto.email);
+        await userAccessService.checkEmailUniqueness(dto.email);
         const password = await passwordService.hashPassword(dto.password);
 
         const createdUser = await userService.create({
@@ -73,7 +74,7 @@ class AuthService {
 
         const token = tokenService.generateActionToken(
             payload,
-            ActionTokenEnum.VERIFY,
+            ActionTokenEnum.VERIFY_USER,
         );
 
         emailService
@@ -96,6 +97,8 @@ class AuthService {
             "Email or password is incorrect",
         );
 
+        ensureIsActive(user.isActive, "Your account is deactivated");
+
         const sessions = await tokenRepository.getManyByUserId(user._id);
         if (sessions.length >= mainConfig.MAX_SESSIONS) {
             const oldSession = sessions[0];
@@ -110,13 +113,9 @@ class AuthService {
         if (!isValidPassword) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
-                "Email or password is invalid",
+                "Email or password is incorrect",
             );
         }
-
-        const { _id: userId, isActive } = user;
-
-        userService.checkIsActive(isActive);
 
         const payload = buildTokenPayload(user);
 
@@ -124,14 +123,22 @@ class AuthService {
 
         await tokenRepository.create({
             ...tokens,
-            userId,
+            userId: user._id,
         });
 
         return { user, tokens };
     }
 
-    public async refresh(payload: TokenPayloadType): Promise<TokenType> {
-        const tokens = tokenService.generateTokens(payload);
+    public async refresh(
+        payload: TokenPayloadType,
+        refreshTokenInput: string,
+    ): Promise<TokenType> {
+        await tokenRepository.deleteOneByParams({
+            userId: payload.userId,
+            refreshToken: refreshTokenInput,
+        });
+        const cleanPayload = buildTokenPayload(payload);
+        const tokens = tokenService.generateTokens(cleanPayload);
         return tokenRepository.create({
             ...tokens,
             userId: payload.userId,
@@ -140,8 +147,8 @@ class AuthService {
 
     public verify = async (userId: string): Promise<UserType> => {
         const user = await userService.getById(userId);
-        userService.checkIsActive(user.isActive);
-        userService.checkIsVerified(user.isVerified);
+        ensureIsActive(user.isActive, "Your account is deactivated");
+        userAccessService.checkIsNotVerified(user.isVerified);
         return userRepository.updateById(userId, {
             isActive: true,
             isVerified: true,
@@ -158,11 +165,14 @@ class AuthService {
     ): Promise<UserType> => {
         const user = await userService.getByEmail(
             inputEmail,
-            "Email is incorrect",
+            "If an account with this email exists, a message has been sent to your email",
         );
 
-        userService.checkIsActive(user.isActive);
-        userService.checkIsVerified(user.isVerified);
+        if (config.tokenType === ActionTokenEnum.VERIFY_USER) {
+            userAccessService.checkIsNotVerified(user.isVerified);
+        }
+
+        ensureIsActive(user.isActive, "Cannot send email to inactive account");
 
         const payload = buildTokenPayload(user);
 
@@ -179,8 +189,8 @@ class AuthService {
                     link: buildLink(config.path, token),
                 },
             );
-        } catch (e: unknown) {
-            console.error(e);
+        } catch (e) {
+            console.error(`Email error to ${user.email}:`, e);
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
                 "Email delivery failed. Please check your provider.",
@@ -195,7 +205,7 @@ class AuthService {
         password: string,
     ): Promise<UserType> => {
         const user = await userService.getById(userId);
-        userService.checkIsActive(user.isActive);
+        ensureIsActive(user.isActive, "Your account is deactivated");
 
         const hashedPassword = await passwordService.hashPassword(password);
 
@@ -208,25 +218,6 @@ class AuthService {
         userId: string,
         refreshTokenInput: string,
     ): Promise<void> {
-        if (!refreshTokenInput) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "Refresh token is required",
-            );
-        }
-
-        const payload = tokenService.verifyToken(
-            refreshTokenInput,
-            TokenTypeEnum.REFRESH,
-        );
-
-        if (String(payload.userId) !== String(userId)) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "Token does not belong to this user",
-            );
-        }
-
         const { refreshToken } = await tokenRepository.getOneByParams({
             userId,
             refreshToken: refreshTokenInput,
