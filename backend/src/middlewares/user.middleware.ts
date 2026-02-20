@@ -2,7 +2,9 @@ import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { ApiError } from "../errors/api.error";
+import { ensureIsActive } from "../helpers/ensure.helper";
 import { userService } from "../services/user.service";
+import { userAccessService } from "../services/user-access.service";
 import { TokenPayloadType } from "../types/token.type";
 import { UserType } from "../types/user.type";
 
@@ -18,13 +20,7 @@ class UserMiddleware {
             }
 
             const user = await userService.getById(tokenPayload.userId);
-            if (!user.isActive) {
-                throw new ApiError(
-                    HttpStatusEnum.FORBIDDEN,
-                    "User account is suspended",
-                );
-            }
-
+            ensureIsActive(user.isActive, "Your account is deactivated");
             res.locals.user = user;
 
             next();
@@ -48,12 +44,7 @@ class UserMiddleware {
                 );
             }
 
-            if (!user.isVerified) {
-                throw new ApiError(
-                    HttpStatusEnum.FORBIDDEN,
-                    "Please verify your email to access this feature",
-                );
-            }
+            userAccessService.checkIsVerified(user.isVerified);
 
             next();
         } catch (e) {
