@@ -1,4 +1,4 @@
 export enum ActionTokenEnum {
-    VERIFY = "verify",
-    RECOVER = "recover",
+    VERIFY_USER = "VERIFY_USER",
+    RECOVER_PASSWORD = "RECOVER_PASSWORD",
 }
