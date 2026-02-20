@@ -1,28 +1,28 @@
+import { emailConstants } from "../constants/email-data";
 import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
-import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
+import { ensureIsActive, ensureIsNotActive } from "../helpers/ensure.helper";
 import { getPaginationOptions } from "../helpers/pagination.helper";
 import { listingRepository } from "../repositories/listing.repository";
 import {
     ListingCreateDbType,
     ListingCreateDtoType,
-    ListingModerationResultType,
     ListingType,
     ListingUpdateAdminDtoType,
     ListingUpdateManagerDtoType,
     ListingUpdateUserDtoType,
 } from "../types/listing.type";
 import { PaginateFilterType, QueryType } from "../types/pagination.type";
+import { TokenPayloadType } from "../types/token.type";
 import { carService } from "./car.service";
+import { emailService } from "./email.service";
+import { listingAccessService } from "./listing-access.service";
 import { listingStaticService } from "./listing-static.service";
 import { locationService } from "./location.service";
-import { moderationService } from "./moderation/moderation.service";
 import { pricingService } from "./pricing.service";
 import { profanityService } from "./profanity.service";
-import { subscriptionService } from "./subscription.service";
-import { userService } from "./user.service";
 
 class ListingService {
     public async getAll(
@@ -45,7 +45,6 @@ class ListingService {
                 },
             };
         }
-        console.log(filter);
 
         if (query.search) {
             filter.$or = [
@@ -105,11 +104,11 @@ class ListingService {
         if (isProfanity) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
-                "Profanity detected. Please clean up your title or description.",
+                "Profanity detected. Please clean up your title or description",
             );
         }
 
-        await this.checkUserLimit(userId);
+        await listingAccessService.checkUserLimit(userId);
         await locationService.validateCityInRegion(newDto.region, newDto.city);
         await carService.validateCarModel(newDto.make, newDto.model);
 
@@ -155,7 +154,7 @@ class ListingService {
             | ListingUpdateAdminDtoType,
     >(id: string, userId: string, role: PlatformRoleEnum, dto: T) {
         const listing = await this.getById(id);
-        this.checkAccess(listing.userId, userId, role);
+        listingAccessService.checkAccess(id, userId, role);
 
         if (dto.region || dto.city) {
             await locationService.validateCityInRegion(
@@ -178,11 +177,8 @@ class ListingService {
             );
         }
 
-        const { updateProfanity, error } = await this.handleProfanity(
-            listing,
-            role,
-            dto,
-        );
+        const { updateProfanity, error } =
+            await listingAccessService.handleProfanity(listing, role, dto);
 
         const updatedListing = await listingRepository.updateById(id, {
             ...updateDto,
@@ -198,18 +194,21 @@ class ListingService {
 
     public async activateListing(
         id: string,
-        userId: string,
         role: PlatformRoleEnum,
+        { firstName, lastName, email, userId }: TokenPayloadType,
     ): Promise<ListingType> {
         const listing = await this.getById(id);
-        this.checkAccess(listing.userId, userId, role);
+        listingAccessService.checkAccess(id, userId, role);
 
-        if (listing.isActive) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "Listing is already activated",
-            );
-        }
+        ensureIsNotActive(listing.isActive, "Listing is already activated");
+
+        emailService
+            .sendEmail(email, emailConstants.LISTING_STATUS, {
+                title: listing.title,
+                userName: `${firstName} ${lastName}`,
+            })
+            .catch((err) => console.log(err));
+
         return listingRepository.updateById(id, {
             isActive: true,
             profanityCheckAttempts: 0,
@@ -218,19 +217,20 @@ class ListingService {
 
     public async deactivateListing(
         id: string,
-        userId: string,
         role: PlatformRoleEnum,
+        { firstName, lastName, email, userId }: TokenPayloadType,
     ): Promise<ListingType> {
         const listing = await this.getById(id);
+        listingAccessService.checkAccess(id, userId, role);
+        ensureIsActive(listing.isActive, "Listing is already deactivated");
 
-        this.checkAccess(listing.userId, userId, role);
+        emailService
+            .sendEmail(email, emailConstants.LISTING_STATUS, {
+                title: listing.title,
+                userName: `${firstName} ${lastName}`,
+            })
+            .catch((err) => console.log(err));
 
-        if (!listing.isActive) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "Listing  is already deactivated.",
-            );
-        }
         return listingRepository.updateById(id, {
             isActive: false,
             profanityCheckAttempts: 0,
@@ -242,8 +242,8 @@ class ListingService {
         userId: string,
         role: PlatformRoleEnum,
     ): Promise<ListingType> {
-        const listing = await this.getById(id);
-        this.checkAccess(listing.userId, userId, role);
+        await this.getById(id);
+        listingAccessService.checkAccess(id, userId, role);
         return listingRepository.deleteById(id);
     }
 
@@ -252,161 +252,11 @@ class ListingService {
         initiatorId: string,
     ): Promise<ListingType> {
         const listing = await this.getById(id);
-
-        if (listing.userId !== initiatorId) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "You can only close your listing",
-            );
-        }
-
-        if (!listing.isActive) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "Listing  is already deactivated.",
-            );
-        }
-
+        listingAccessService.checkListingOwnership(listing.userId, initiatorId);
+        ensureIsActive(listing.isActive, "Listing is already deactivated");
         return listingRepository.updateById(id, {
             isActive: false,
         });
-    }
-
-    private async checkListingForProfanity(
-        title: string,
-        description: string,
-        currentAttempts: number,
-    ): Promise<ListingModerationResultType> {
-        const maxAttempts = 3;
-        const isProfanity = profanityService.hasAnyProfanity(
-            title,
-            description,
-        );
-
-        let profanityCheckAttempts = currentAttempts;
-        let isActive = true;
-
-        if (isProfanity) {
-            if (currentAttempts >= 0) {
-                profanityCheckAttempts += 1;
-            }
-            isActive = false;
-            if (profanityCheckAttempts >= maxAttempts) {
-                isActive = false;
-            }
-        } else {
-            profanityCheckAttempts = 0;
-        }
-
-        return {
-            isProfanity,
-            isActive,
-            profanityCheckAttempts,
-            maxAttempts,
-        };
-    }
-
-    private async checkUserLimit(userId: string): Promise<void> {
-        const user = await userService.getById(userId);
-        const currentListingsCount =
-            await listingRepository.countByUserId(userId);
-
-        const { planType, isActive } = await subscriptionService.getById(
-            user.subscriptionId,
-        );
-        const limit =
-            planType === PlanTypeEnum.PREMIUM && isActive ? Infinity : 1;
-
-        if (currentListingsCount >= limit) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "Limit reached. Upgrade your account!",
-            );
-        }
-    }
-
-    private async handleProfanity(
-        listing: ListingType,
-        role: PlatformRoleEnum,
-        {
-            title,
-            description,
-            isActive,
-        }: { title?: string; description?: string; isActive?: boolean },
-    ): Promise<{
-        updateProfanity: Partial<ListingCreateDbType>;
-        error: ApiError | null;
-    }> {
-        const updateProfanity: Partial<ListingCreateDbType> = {};
-        if (title || description) {
-            const mod = await this.checkListingForProfanity(
-                title ?? listing.title,
-                description ?? listing.description,
-                listing.profanityCheckAttempts,
-            );
-
-            updateProfanity.isActive = mod.isActive;
-            updateProfanity.profanityCheckAttempts = mod.profanityCheckAttempts;
-
-            console.log(mod);
-            if (role === PlatformRoleEnum.SELLER && mod.isProfanity) {
-                if (mod.profanityCheckAttempts >= mod.maxAttempts) {
-                    await moderationService.sendListWithInactiveListingToModeration(
-                        {
-                            title: listing.title,
-                            _id: listing._id,
-                            userId: listing.userId,
-                        },
-                        mod,
-                    );
-                    return {
-                        updateProfanity,
-                        error: new ApiError(
-                            HttpStatusEnum.FORBIDDEN,
-                            "Profanity attempts exceeded. Sent to moderation.",
-                        ),
-                    };
-                } else {
-                    console.log(updateProfanity);
-                    return {
-                        updateProfanity,
-                        error: new ApiError(
-                            HttpStatusEnum.BAD_REQUEST,
-                            `Profanity detected. Attempts left: ${mod.maxAttempts - mod.profanityCheckAttempts} of ${mod.maxAttempts}`,
-                        ),
-                    };
-                }
-            }
-        }
-
-        if (
-            (role === PlatformRoleEnum.MANAGER ||
-                role === PlatformRoleEnum.ADMIN) &&
-            isActive
-        ) {
-            updateProfanity.profanityCheckAttempts = 0;
-        }
-
-        return { updateProfanity, error: null };
-    }
-
-    private checkAccess(
-        userIdByListing: string,
-        userId: string,
-        role: PlatformRoleEnum,
-    ): void {
-        const isOwner = String(userIdByListing) === String(userId);
-        const isStaff = [
-            PlatformRoleEnum.ADMIN,
-            PlatformRoleEnum.MANAGER,
-        ].includes(role);
-
-        if (!isOwner && !isStaff) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "Access denied: You do not have permission to perform this action",
-            );
-        }
     }
 }
 
