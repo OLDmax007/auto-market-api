@@ -11,40 +11,20 @@ export const ensureEntityExists = <T>(
     return entity;
 };
 
-export const ensureOwnership = (
-    entityId: string | unknown,
-    initiatorId: string | unknown,
-    message = "Access denied: You do not have permission to perform this action",
-): void => {
-    if (String(entityId) !== String(initiatorId)) {
-        throw new ApiError(HttpStatusEnum.FORBIDDEN, message);
-    }
-};
-
-export const ensureNotSelfAction = (
-    targetId: string | unknown,
-    initiatorId: string | unknown,
-    message = "You cannot perform this action on your own account",
-): void => {
-    if (String(targetId) === String(initiatorId)) {
-        throw new ApiError(HttpStatusEnum.BAD_REQUEST, message);
-    }
-};
-
-export const ensureIsNotActive = (
+export const ensureIsActive = (
     isActive: boolean,
-    message = "User account is suspended",
+    message = "Your account is deactivated",
 ): void => {
     if (!isActive) {
         throw new ApiError(HttpStatusEnum.FORBIDDEN, message);
     }
 };
 
-export const ensureIsActive = (
+export const ensureIsNotActive = (
     isActive: boolean,
-    message = "User account is already activated",
+    message = "User is already active",
 ): void => {
     if (isActive) {
-        throw new ApiError(HttpStatusEnum.FORBIDDEN, message);
+        throw new ApiError(HttpStatusEnum.BAD_REQUEST, message);
     }
 };
