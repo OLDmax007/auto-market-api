@@ -241,10 +241,10 @@ class ListingService {
         id: string,
         userId: string,
         role: PlatformRoleEnum,
-    ): Promise<ListingType> {
+    ): Promise<void> {
         await this.getById(id);
         listingAccessService.checkAccess(id, userId, role);
-        return listingRepository.deleteById(id);
+        await listingRepository.deleteById(id);
     }
 
     public async closeListing(

@@ -70,12 +70,8 @@ class ListingController {
             const { listingId } = req.params as { listingId: string };
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await listingService.deleteById(
-                listingId,
-                userId,
-                role,
-            );
-            res.status(HttpStatusEnum.OK).json(data);
+            await listingService.deleteById(listingId, userId, role);
+            res.sendStatus(HttpStatusEnum.NO_CONTENT);
         } catch (e: unknown) {
             next(e);
         }
@@ -88,12 +84,12 @@ class ListingController {
     ) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const tokenPayload = res.locals.tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await listingService.deactivateListing(
                 listingId,
-                userId,
                 role,
+                tokenPayload,
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
@@ -108,12 +104,12 @@ class ListingController {
     ) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const tokenPayload = res.locals.tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await listingService.activateListing(
                 listingId,
-                userId,
                 role,
+                tokenPayload,
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
