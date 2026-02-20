@@ -47,6 +47,7 @@ class AuthMiddleware {
                     );
                 }
 
+                res.locals.token = token;
                 res.locals.tokenPayload = payload;
 
                 next();
