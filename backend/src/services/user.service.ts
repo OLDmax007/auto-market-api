@@ -95,7 +95,7 @@ class UserService {
         id: string,
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
-    ): Promise<UserType> {
+    ): Promise<void> {
         const user = await userAccessService.getTargetUserWithHierarchyCheck(
             id,
             initiatorId,
@@ -103,8 +103,7 @@ class UserService {
         );
 
         await listingRepository.deleteAllByUserId(user._id);
-
-        return userRepository.deleteById(user._id);
+        await userRepository.deleteById(user._id);
     }
 
     public async activateUser(

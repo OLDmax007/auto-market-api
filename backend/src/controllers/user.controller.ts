@@ -121,12 +121,8 @@ class UserController {
             const { userId: userIdByPayload } = res.locals
                 .tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await userService.deleteById(
-                userIdByParams,
-                userIdByPayload,
-                role,
-            );
-            res.status(HttpStatusEnum.OK).json(data);
+            await userService.deleteById(userIdByParams, userIdByPayload, role);
+            res.sendStatus(HttpStatusEnum.NO_CONTENT);
         } catch (e: unknown) {
             next(e);
         }
