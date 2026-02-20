@@ -2,7 +2,11 @@ import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
-import { ensureEntityExists } from "../helpers/ensure-entity.helper";
+import {
+    ensureEntityExists,
+    ensureIsActive,
+    ensureIsNotActive,
+} from "../helpers/ensure.helper";
 import { getPaginationOptions } from "../helpers/pagination.helper";
 import { listingRepository } from "../repositories/listing.repository";
 import { userRepository } from "../repositories/user.repository";
@@ -79,7 +83,6 @@ class UserService {
             id,
             initiatorId,
             initiatorRole,
-            "update",
         );
 
         if (dto.password) {
@@ -97,7 +100,6 @@ class UserService {
             id,
             initiatorId,
             initiatorRole,
-            "delete",
         );
 
         await listingRepository.deleteAllByUserId(user._id);
@@ -114,11 +116,9 @@ class UserService {
             id,
             initiatorId,
             initiatorRole,
-            "activate",
         );
 
-        userAccessService.ensureIsActive(user.isActive);
-
+        ensureIsNotActive(user.isActive, "User is already active");
         await listingRepository.activateCleanByUserId(user._id);
 
         return userRepository.updateById(id, {
@@ -135,9 +135,8 @@ class UserService {
             id,
             initiatorId,
             initiatorRole,
-            "deactivate",
         );
-        userAccessService.ensureIsNotActive(user.isActive);
+        ensureIsActive(user.isActive, "User is already deactivated");
 
         await listingRepository.deactivateByUserId(user._id);
 
@@ -151,8 +150,8 @@ class UserService {
         initiatorId: string,
         isActive: boolean,
     ): Promise<UserType> {
-        userAccessService.isOwner(id, initiatorId);
-        userAccessService.ensureIsNotActive(isActive);
+        userAccessService.checkAccountOwnership(id, initiatorId);
+        ensureIsActive(isActive, "User is already deactivated");
         await listingRepository.deactivateByUserId(id);
         return userRepository.updateById(id, {
             isActive: false,
