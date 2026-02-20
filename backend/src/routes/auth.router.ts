@@ -20,7 +20,7 @@ router.post(
 
 router.patch(
     "/verify",
-    authMiddleware.checkActionToken(ActionTokenEnum.VERIFY),
+    authMiddleware.checkActionToken(ActionTokenEnum.VERIFY_USER),
     authController.verify,
 );
 
@@ -34,19 +34,19 @@ router.post("/recovery-password", authController.requestRecoverPassword);
 
 router.patch(
     "/reset-password",
-    authMiddleware.checkActionToken(ActionTokenEnum.RECOVER),
+    authMiddleware.checkActionToken(ActionTokenEnum.RECOVER_PASSWORD),
     authController.resetPassword,
 );
 
 router.delete(
     "/logout",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenTypeEnum.REFRESH),
     authController.logout,
 );
 
 router.delete(
     "/logout-all",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenTypeEnum.REFRESH),
     authController.logoutFromAllDevices,
 );
 
