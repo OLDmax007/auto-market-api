@@ -1,6 +1,7 @@
 import mongoose, { PaginateModel } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
+import { imagesLinks } from "../constants/images-links";
 import { CurrencyEnum } from "../enums/currency.enum";
 import { UserType } from "../types/user.type";
 
@@ -32,7 +33,7 @@ const userSchema = new Schema(
             ref: "Subscription",
             default: null,
         },
-        avatar: { type: String, required: true },
+        avatar: { type: String, default: imagesLinks.default_user_avatar },
         isActive: { type: Boolean, default: true },
         isVerified: { type: Boolean, default: true },
     },
