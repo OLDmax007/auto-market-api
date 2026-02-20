@@ -30,8 +30,8 @@ class AuthController {
     public async refresh(req: Request, res: Response, next: NextFunction) {
         try {
             const payload = res.locals.tokenPayload as TokenPayloadType;
-
-            const data = await authService.refresh(payload);
+            const refreshToken = res.locals.token as string;
+            const data = await authService.refresh(payload, refreshToken);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
@@ -57,7 +57,7 @@ class AuthController {
             const { email } = req.body as { email: string };
             const data = await authService.sendAuthActionEmail(email, {
                 emailType: EmailEnum.VERIFY_USER,
-                tokenType: ActionTokenEnum.VERIFY,
+                tokenType: ActionTokenEnum.VERIFY_USER,
                 path: "/verify",
             });
             res.status(HttpStatusEnum.OK).json(data);
@@ -75,7 +75,7 @@ class AuthController {
             const { email } = req.body as { email: string };
             const data = await authService.sendAuthActionEmail(email, {
                 emailType: EmailEnum.RECOVER_PASSWORD,
-                tokenType: ActionTokenEnum.RECOVER,
+                tokenType: ActionTokenEnum.RECOVER_PASSWORD,
                 path: "/reset-password",
             });
             res.status(HttpStatusEnum.OK).json(data);
@@ -102,9 +102,9 @@ class AuthController {
     public async logout(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const { refreshToken } = req.body;
+            const refreshToken = res.locals.token as string;
             await authService.logout(userId, refreshToken);
-            res.status(HttpStatusEnum.NO_CONTENT).json({});
+            res.sendStatus(HttpStatusEnum.NO_CONTENT);
         } catch (e: unknown) {
             next(e);
         }
@@ -118,7 +118,7 @@ class AuthController {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             await authService.logoutFromAllDevices(userId);
-            res.status(HttpStatusEnum.NO_CONTENT).json({});
+            res.sendStatus(HttpStatusEnum.NO_CONTENT);
         } catch (e: unknown) {
             next(e);
         }
