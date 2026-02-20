@@ -11,19 +11,13 @@ export const ensureEntityExists = <T>(
     return entity;
 };
 
-export const ensureIsActive = (
-    isActive: boolean,
-    message = "Your account is deactivated",
-): void => {
+export const ensureIsActive = (isActive: boolean, message: string): void => {
     if (!isActive) {
         throw new ApiError(HttpStatusEnum.FORBIDDEN, message);
     }
 };
 
-export const ensureIsNotActive = (
-    isActive: boolean,
-    message = "User is already active",
-): void => {
+export const ensureIsNotActive = (isActive: boolean, message: string): void => {
     if (isActive) {
         throw new ApiError(HttpStatusEnum.BAD_REQUEST, message);
     }
