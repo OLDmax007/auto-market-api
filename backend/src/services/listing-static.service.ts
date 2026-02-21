@@ -14,8 +14,8 @@ import { subscriptionService } from "./subscription.service";
 
 class ListingStaticsService {
     async getPremiumStatsByListingId(
-        subscriptionId: string,
         userId: string,
+        subscriptionId: string,
         listingId: string,
     ): Promise<{
         views: ListingStaticsType["views"];
@@ -33,7 +33,7 @@ class ListingStaticsService {
             userId: userIdByListing,
         } = await listingService.getById(listingId);
 
-        if (userIdByListing !== userId) {
+        if (String(userIdByListing) !== String(userId)) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
                 "You can only view statistics for your own listings.",
