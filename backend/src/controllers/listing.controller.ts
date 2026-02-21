@@ -3,7 +3,10 @@ import { NextFunction, Request, Response } from "express";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { listingService } from "../services/listing.service";
 import { listingStaticService } from "../services/listing-static.service";
-import { ListingCreateDtoType } from "../types/listing.type";
+import {
+    ListingCreateDtoType,
+    ListingUpdateDtoType,
+} from "../types/listing.type";
 import { QueryType } from "../types/pagination.type";
 import { PlatformRoleType } from "../types/permissions/platform-role.type";
 import { TokenPayloadType } from "../types/token.type";
@@ -23,10 +26,10 @@ class ListingController {
     public async getById(req: Request, res: Response, next: NextFunction) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const payload = res.locals.tokenPayload as TokenPayloadType;
             const data = await listingService.getFullInfoWithIncrement(
                 listingId,
-                userId,
+                payload,
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
@@ -53,11 +56,12 @@ class ListingController {
             const { listingId } = req.params as { listingId: string };
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
+            const dto = req.body as ListingUpdateDtoType;
             const data = await listingService.updateByRole(
                 listingId,
                 userId,
                 role,
-                req.body,
+                dto,
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e) {
@@ -84,12 +88,12 @@ class ListingController {
     ) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const tokenPayload = res.locals.tokenPayload as TokenPayloadType;
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await listingService.deactivateListing(
                 listingId,
                 role,
-                tokenPayload,
+                userId,
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
@@ -104,12 +108,12 @@ class ListingController {
     ) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const tokenPayload = res.locals.tokenPayload as TokenPayloadType;
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await listingService.activateListing(
                 listingId,
                 role,
-                tokenPayload,
+                userId,
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
