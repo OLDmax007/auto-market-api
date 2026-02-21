@@ -46,27 +46,10 @@ export type ListingCreateDbType = Omit<
     "_id" | "createdAt" | "updatedAt"
 >;
 
-export type ListingUpdateUserDtoType = Partial<
-    Omit<ListingCreateDtoType, "enteredPrice">
-> & {
-    enteredPrice?: CurrencyAmountType;
-};
-
-export type ListingUpdateManagerDtoType = ListingUpdateUserDtoType & {
-    isActive?: boolean;
-};
-export type ListingUpdateAdminDtoType = Partial<
-    Omit<
-        ListingType,
-        "_id" | "createdAt" | "updatedAt" | "userId" | "organizationId"
-    >
-> & {
-    enteredPrice?: CurrencyAmountType;
-};
+export type ListingUpdateDtoType = Partial<ListingCreateDtoType>;
 
 export type ListingModerationResultType = {
     isProfanity: boolean;
-    isActive: boolean;
     profanityCheckAttempts: number;
     maxAttempts: number;
 };
