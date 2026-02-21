@@ -22,27 +22,21 @@ class ListingAccessService {
         }
     }
 
-    private async checkListingForProfanity(
-        title: string,
-        description: string,
+    private checkListingForProfanity(
+        { title, description }: { title: string; description: string },
         currentAttempts: number,
-    ): Promise<ListingModerationResultType> {
-        const maxAttempts = 3;
+        maxAttempts: number,
+    ): ListingModerationResultType {
         const isProfanity = profanityService.hasAnyProfanity(
             title,
             description,
         );
 
         let profanityCheckAttempts = currentAttempts;
-        let isActive = true;
 
         if (isProfanity) {
-            if (currentAttempts >= 0) {
+            if (currentAttempts < maxAttempts) {
                 profanityCheckAttempts += 1;
-            }
-            isActive = false;
-            if (profanityCheckAttempts >= maxAttempts) {
-                isActive = false;
             }
         } else {
             profanityCheckAttempts = 0;
@@ -50,7 +44,6 @@ class ListingAccessService {
 
         return {
             isProfanity,
-            isActive,
             profanityCheckAttempts,
             maxAttempts,
         };
@@ -58,56 +51,65 @@ class ListingAccessService {
 
     public async handleProfanity(
         listing: ListingType,
-        role: PlatformRoleEnum,
-        {
-            title,
-            description,
-            isActive,
-        }: { title?: string; description?: string; isActive?: boolean },
+        dto: { title?: string; description?: string },
     ): Promise<{
         updateProfanity: Partial<ListingCreateDbType>;
         error: ApiError | null;
     }> {
-        const updateProfanity: Partial<ListingCreateDbType> = {};
-        if (title || description) {
-            const mod = await this.checkListingForProfanity(
-                title ?? listing.title,
-                description ?? listing.description,
-                listing.profanityCheckAttempts,
-            );
+        const maxAttempts = 3;
 
-            updateProfanity.isActive = mod.isActive;
-            updateProfanity.profanityCheckAttempts = mod.profanityCheckAttempts;
-
-            if (role === PlatformRoleEnum.SELLER && mod.isProfanity) {
-                if (mod.profanityCheckAttempts >= mod.maxAttempts) {
-                    return {
-                        updateProfanity,
-                        error: new ApiError(
-                            HttpStatusEnum.FORBIDDEN,
-                            "Profanity attempts exceeded. Sent to moderation.",
-                        ),
-                    };
-                } else {
-                    return {
-                        updateProfanity,
-                        error: new ApiError(
-                            HttpStatusEnum.BAD_REQUEST,
-                            `Profanity detected. Attempts left: ${mod.maxAttempts - mod.profanityCheckAttempts} of ${mod.maxAttempts}`,
-                        ),
-                    };
-                }
+        if (!listing.isActive) {
+            if (listing.profanityCheckAttempts >= maxAttempts) {
+                return {
+                    updateProfanity: {},
+                    error: new ApiError(
+                        HttpStatusEnum.FORBIDDEN,
+                        "Listing deactivated due to profanity limit.",
+                    ),
+                };
+            }
+            if (listing.profanityCheckAttempts === 0) {
+                return {
+                    updateProfanity: {},
+                    error: new ApiError(
+                        HttpStatusEnum.NOT_FOUND,
+                        "Listing is deactivated",
+                    ),
+                };
             }
         }
 
-        if (
-            (role === PlatformRoleEnum.MANAGER ||
-                role === PlatformRoleEnum.ADMIN) &&
-            isActive
-        ) {
-            updateProfanity.profanityCheckAttempts = 0;
-        }
+        const updateProfanity: Partial<ListingCreateDbType> = {};
 
+        if (dto.title || dto.description) {
+            const mod = this.checkListingForProfanity(
+                {
+                    title: dto.title ?? listing.title,
+                    description: dto.description ?? listing.description,
+                },
+                listing.profanityCheckAttempts,
+                maxAttempts,
+            );
+
+            if (mod.isProfanity) {
+                updateProfanity.isActive = false;
+                updateProfanity.profanityCheckAttempts =
+                    mod.profanityCheckAttempts;
+                return {
+                    updateProfanity,
+                    error: new ApiError(
+                        HttpStatusEnum.BAD_REQUEST,
+                        `Profanity! Attempts left: ${maxAttempts - mod.profanityCheckAttempts} / ${maxAttempts}`,
+                    ),
+                };
+            } else {
+                updateProfanity.profanityCheckAttempts =
+                    mod.profanityCheckAttempts;
+                if (listing.profanityCheckAttempts > 0) {
+                    updateProfanity.isActive = true;
+                }
+            }
+        }
         return { updateProfanity, error: null };
     }
 
@@ -144,7 +146,7 @@ class ListingAccessService {
         if (!isOwner && !isStaff) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
-                "Access denied: You do not have permission to perform this action",
+                " You do not have permission to perform this action",
             );
         }
     }
