@@ -1,4 +1,3 @@
-import { emailConstants } from "../constants/email-data";
 import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
@@ -10,14 +9,11 @@ import {
     ListingCreateDbType,
     ListingCreateDtoType,
     ListingType,
-    ListingUpdateAdminDtoType,
-    ListingUpdateManagerDtoType,
-    ListingUpdateUserDtoType,
+    ListingUpdateDtoType,
 } from "../types/listing.type";
 import { PaginateFilterType, QueryType } from "../types/pagination.type";
 import { TokenPayloadType } from "../types/token.type";
 import { carService } from "./car.service";
-import { emailService } from "./email.service";
 import { listingAccessService } from "./listing-access.service";
 import { listingStaticService } from "./listing-static.service";
 import { locationService } from "./location.service";
@@ -68,6 +64,7 @@ class ListingService {
 
     public async getById(id: string): Promise<ListingType> {
         const listing = await listingRepository.getById(id);
+
         if (!listing) {
             throw new ApiError(HttpStatusEnum.NOT_FOUND, "Listing not found");
         }
@@ -76,16 +73,16 @@ class ListingService {
 
     public async getFullInfoWithIncrement(
         id: string,
-        userId?: string,
+        payload?: TokenPayloadType,
     ): Promise<ListingType> {
         const listing = await this.getById(id);
 
-        const isOwner = userId
-            ? String(listing.userId) === String(userId)
-            : false;
-
-        if (!isOwner) {
-            await listingStaticService.incrementViewsByListingId(listing._id);
+        if (payload) {
+            if (String(listing.userId) !== String(payload.userId)) {
+                await listingStaticService.incrementViewsByListingId(
+                    listing._id,
+                );
+            }
         }
 
         return listing;
@@ -147,14 +144,34 @@ class ListingService {
         return listing;
     }
 
-    public async updateByRole<
-        T extends
-            | ListingUpdateUserDtoType
-            | ListingUpdateManagerDtoType
-            | ListingUpdateAdminDtoType,
-    >(id: string, userId: string, role: PlatformRoleEnum, dto: T) {
+    public async updateByRole(
+        id: string,
+        userId: string,
+        role: PlatformRoleEnum,
+        dto: ListingUpdateDtoType,
+    ) {
         const listing = await this.getById(id);
-        listingAccessService.checkAccess(id, userId, role);
+        listingAccessService.checkAccess(listing.userId, userId, role);
+
+        let updateProfanity: Partial<ListingCreateDbType> = {};
+
+        if (role === PlatformRoleEnum.SELLER) {
+            const res = await listingAccessService.handleProfanity(
+                listing,
+                dto,
+            );
+
+            if (res.error) {
+                throw res.error;
+            }
+
+            updateProfanity = res.updateProfanity;
+        } else {
+            updateProfanity = {
+                isActive: true,
+                profanityCheckAttempts: 0,
+            };
+        }
 
         if (dto.region || dto.city) {
             await locationService.validateCityInRegion(
@@ -177,17 +194,10 @@ class ListingService {
             );
         }
 
-        const { updateProfanity, error } =
-            await listingAccessService.handleProfanity(listing, role, dto);
-
         const updatedListing = await listingRepository.updateById(id, {
             ...updateDto,
             ...updateProfanity,
         });
-
-        if (error) {
-            throw error;
-        }
 
         return updatedListing;
     }
@@ -195,19 +205,12 @@ class ListingService {
     public async activateListing(
         id: string,
         role: PlatformRoleEnum,
-        { firstName, lastName, email, userId }: TokenPayloadType,
+        userId: string,
     ): Promise<ListingType> {
         const listing = await this.getById(id);
         listingAccessService.checkAccess(id, userId, role);
 
         ensureIsNotActive(listing.isActive, "Listing is already activated");
-
-        emailService
-            .sendEmail(email, emailConstants.LISTING_STATUS, {
-                title: listing.title,
-                userName: `${firstName} ${lastName}`,
-            })
-            .catch((err) => console.log(err));
 
         return listingRepository.updateById(id, {
             isActive: true,
@@ -218,22 +221,15 @@ class ListingService {
     public async deactivateListing(
         id: string,
         role: PlatformRoleEnum,
-        { firstName, lastName, email, userId }: TokenPayloadType,
+        userId: string,
     ): Promise<ListingType> {
         const listing = await this.getById(id);
         listingAccessService.checkAccess(id, userId, role);
         ensureIsActive(listing.isActive, "Listing is already deactivated");
 
-        emailService
-            .sendEmail(email, emailConstants.LISTING_STATUS, {
-                title: listing.title,
-                userName: `${firstName} ${lastName}`,
-            })
-            .catch((err) => console.log(err));
-
         return listingRepository.updateById(id, {
             isActive: false,
-            profanityCheckAttempts: 0,
+            profanityCheckAttempts: 3,
         });
     }
 
@@ -242,8 +238,8 @@ class ListingService {
         userId: string,
         role: PlatformRoleEnum,
     ): Promise<void> {
-        await this.getById(id);
-        listingAccessService.checkAccess(id, userId, role);
+        const listing = await this.getById(id);
+        listingAccessService.checkAccess(listing.userId, userId, role);
         await listingRepository.deleteById(id);
     }
 
