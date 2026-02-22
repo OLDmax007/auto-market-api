@@ -12,13 +12,7 @@ import { listingRepository } from "../repositories/listing.repository";
 import { userRepository } from "../repositories/user.repository";
 import { PaginateFilterType, QueryType } from "../types/pagination.type";
 import { CurrencyAmountType } from "../types/rate.type";
-import {
-    UserCreateDtoType,
-    UserType,
-    UserUpdateByAdminDtoType,
-    UserUpdateDtoType,
-} from "../types/user.type";
-import { passwordService } from "./password.service";
+import { UserCreateDtoType, UserType } from "../types/user.type";
 import { platformRoleService } from "./platform-role.service";
 import { pricingService } from "./pricing.service";
 import { userAccessService } from "./user-access.service";
@@ -66,28 +60,28 @@ class UserService {
         });
     }
 
-    public async updateMe(
-        id: string,
-        dto: UserUpdateDtoType,
-    ): Promise<UserType> {
-        return userRepository.updateById(id, dto);
-    }
-
-    public async updateByAdmin(
+    public async updateByRole(
         id: string,
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
-        dto: UserUpdateByAdminDtoType,
+        dto: Partial<UserType>,
     ): Promise<UserType> {
-        const user = await userAccessService.getTargetUserWithHierarchyCheck(
-            id,
-            initiatorId,
-            initiatorRole,
-        );
+        const user = await userService.getById(id);
+        if (userAccessService.isSelfAction(user._id, initiatorId)) {
+            userAccessService.checkAccountOwnership(user._id, initiatorId);
+        } else {
+            const { role } = await platformRoleService.getPlatformRoleById(
+                user.platformRoleId,
+            );
 
-        if (dto.password) {
-            dto.password = await passwordService.hashPassword(dto.password);
+            userAccessService.checkAccessRights(
+                user._id,
+                initiatorId,
+                initiatorRole,
+            );
+            userAccessService.checkIsStaff(role, initiatorRole);
         }
+
         return userRepository.updateById(user._id, dto);
     }
 
@@ -96,11 +90,14 @@ class UserService {
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
     ): Promise<void> {
-        const user = await userAccessService.getTargetUserWithHierarchyCheck(
-            id,
-            initiatorId,
-            initiatorRole,
+        const user = await userService.getById(id);
+
+        const { role } = await platformRoleService.getPlatformRoleById(
+            user.platformRoleId,
         );
+
+        userAccessService.checkIsStaff(role, initiatorRole);
+        userAccessService.checkSelfAction(id, initiatorId);
 
         await listingRepository.deleteAllByUserId(user._id);
         await userRepository.deleteById(user._id);
@@ -111,13 +108,15 @@ class UserService {
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
     ): Promise<UserType> {
-        const user = await userAccessService.getTargetUserWithHierarchyCheck(
-            id,
-            initiatorId,
-            initiatorRole,
+        const user = await userService.getById(id);
+        ensureIsNotActive(user.isActive, "User is already active");
+
+        const { role } = await platformRoleService.getPlatformRoleById(
+            user.platformRoleId,
         );
 
-        ensureIsNotActive(user.isActive, "User is already active");
+        userAccessService.checkIsStaff(role, initiatorRole);
+        userAccessService.checkSelfAction(id, initiatorId);
         await listingRepository.activateCleanByUserId(user._id);
 
         return userRepository.updateById(id, {
@@ -130,12 +129,15 @@ class UserService {
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
     ): Promise<UserType> {
-        const user = await userAccessService.getTargetUserWithHierarchyCheck(
-            id,
-            initiatorId,
-            initiatorRole,
-        );
+        const user = await userService.getById(id);
+        console.log(user.isActive);
         ensureIsActive(user.isActive, "User is already deactivated");
+        const { role } = await platformRoleService.getPlatformRoleById(
+            user.platformRoleId,
+        );
+
+        userAccessService.checkIsStaff(role, initiatorRole);
+        userAccessService.checkSelfAction(id, initiatorId);
 
         await listingRepository.deactivateByUserId(user._id);
 
