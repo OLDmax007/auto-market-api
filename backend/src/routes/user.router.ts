@@ -31,7 +31,7 @@ router.patch(
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.USER_EDIT_BY_ADMIN),
-    userController.updateByAdmin,
+    userController.updateByRole,
 );
 
 router.patch(
