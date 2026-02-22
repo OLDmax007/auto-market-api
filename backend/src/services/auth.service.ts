@@ -82,9 +82,7 @@ class AuthService {
                 catalogLink: buildLink("/cars/makes"),
                 verifyLink: buildLink("/verify", token),
             })
-            .catch((err) => {
-                console.error("Failed to send welcome email:", err);
-            });
+            .catch();
 
         return { user, tokens };
     }
@@ -181,21 +179,13 @@ class AuthService {
             config.tokenType,
         );
 
-        try {
-            await emailService.sendEmail(
-                user.email,
-                emailConstants[config.emailType],
-                {
-                    link: buildLink(config.path, token),
-                },
-            );
-        } catch (e) {
-            console.error(`Email error to ${user.email}:`, e);
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "Email delivery failed. Please check your provider.",
-            );
-        }
+        await emailService.sendEmail(
+            user.email,
+            emailConstants[config.emailType],
+            {
+                link: buildLink(config.path, token),
+            },
+        );
 
         return user;
     };
