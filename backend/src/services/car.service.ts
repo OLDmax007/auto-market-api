@@ -11,7 +11,7 @@ class CarService {
         if (!cars) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
-                `Car make "${make}" not found`,
+                `Car make '${make}' not found`,
             );
         }
         return { make, models: cars.models };
