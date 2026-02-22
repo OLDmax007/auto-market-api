@@ -47,11 +47,20 @@ class EmailService {
         emailData: IEmailData,
         context: Record<string, any>,
     ): Promise<void> => {
-        await this.transporter.sendMail({
-            to,
-            subject: emailData.subject,
-            html: await this._renderTemplate(emailData.template, context),
-        });
+        try {
+            await this.transporter.sendMail({
+                to,
+                subject: emailData.subject,
+                html: await this._renderTemplate(emailData.template, context),
+            });
+        } catch (error: any) {
+            if (error.code === "EENVELOPE") {
+                console.error(
+                    `Email error: Invalid recipient address - "${to}"`,
+                );
+            }
+            console.error(`Email error: ${error.message}`);
+        }
     };
 }
 export const emailService = new EmailService();
