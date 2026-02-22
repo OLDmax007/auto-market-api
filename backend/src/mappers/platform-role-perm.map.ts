@@ -9,6 +9,7 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.ME_GET,
         PlatformPermissionEnum.ME_BECOME_SELLER,
         PlatformPermissionEnum.ME_DEACTIVATE,
+        PlatformPermissionEnum.ME_UPDATE,
     ],
     [PlatformRoleEnum.SELLER]: [
         PlatformPermissionEnum.ME_GET,
@@ -25,6 +26,7 @@ export const platformRolePermissionsMap: Record<
     ],
     [PlatformRoleEnum.MANAGER]: [
         PlatformPermissionEnum.ME_GET,
+        PlatformPermissionEnum.ME_UPDATE,
         PlatformPermissionEnum.LISTING_EDIT,
         PlatformPermissionEnum.LISTING_ACTIVATE,
         PlatformPermissionEnum.LISTING_DEACTIVATE,
@@ -33,5 +35,7 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.USER_ACTIVATE,
         PlatformPermissionEnum.USER_DEACTIVATE,
     ],
-    [PlatformRoleEnum.ADMIN]: [...Object.values(PlatformPermissionEnum)],
+    [PlatformRoleEnum.ADMIN]: Object.values(PlatformPermissionEnum).filter(
+        (permission) => permission !== PlatformPermissionEnum.ME_DEACTIVATE,
+    ),
 };
