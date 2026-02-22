@@ -46,26 +46,28 @@ class UserController {
     public async updateMe(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const { role } = res.locals.rolePayload as PlatformRoleType;
             const dto = req.body as UserUpdateDtoType;
-            const data = await userService.updateMe(userId, dto);
+            const data = await userService.updateByRole(
+                userId,
+                userId,
+                role,
+                dto,
+            );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
         }
     }
 
-    public async updateByAdmin(
-        req: Request,
-        res: Response,
-        next: NextFunction,
-    ) {
+    public async updateByRole(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId: userIdByParams } = req.params as { userId: string };
             const { userId: userIdByPayload } = res.locals
                 .tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
             const dto = req.body as UserUpdateByAdminDtoType;
-            const data = await userService.updateByAdmin(
+            const data = await userService.updateByRole(
                 userIdByParams,
                 userIdByPayload,
                 role,
