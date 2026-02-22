@@ -14,14 +14,6 @@ export const emailConstants: IEmailConstants<typeof EmailEnum> = {
         subject: "Welcome",
         template: "welcome",
     },
-    [EmailEnum.LISTING_CHECK]: {
-        subject: "New Listing for Review",
-        template: "listing-check",
-    },
-    [EmailEnum.LISTING_CREATED]: {
-        subject: "New Listing Created",
-        template: "listing-created",
-    },
     [EmailEnum.VERIFY_USER]: {
         subject: "Please verify your email address",
         template: "user-verification",
