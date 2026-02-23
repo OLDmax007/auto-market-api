@@ -51,20 +51,29 @@ class ListingAccessService {
 
     public async handleProfanity(
         listing: ListingType,
+        role: PlatformRoleEnum,
         dto: { title?: string; description?: string },
     ): Promise<{
         updateProfanity: Partial<ListingCreateDbType>;
         error: ApiError | null;
     }> {
+        const isStaff =
+            role === PlatformRoleEnum.ADMIN ||
+            role === PlatformRoleEnum.MANAGER;
+
+        if (isStaff) {
+            profanityService.checkProfanity(dto.title, dto.description);
+        }
+
         const maxAttempts = 3;
 
-        if (!listing.isActive) {
+        if (!listing.isActive && !isStaff) {
             if (listing.profanityCheckAttempts >= maxAttempts) {
                 return {
                     updateProfanity: {},
                     error: new ApiError(
                         HttpStatusEnum.FORBIDDEN,
-                        "Listing deactivated due to profanity limit.",
+                        "Listing deactivated due to profanity limit",
                     ),
                 };
             }
@@ -95,11 +104,14 @@ class ListingAccessService {
                 updateProfanity.isActive = false;
                 updateProfanity.profanityCheckAttempts =
                     mod.profanityCheckAttempts;
+                const attemptsLeft = maxAttempts - mod.profanityCheckAttempts;
                 return {
                     updateProfanity,
                     error: new ApiError(
                         HttpStatusEnum.BAD_REQUEST,
-                        `Profanity! Attempts left: ${maxAttempts - mod.profanityCheckAttempts} / ${maxAttempts}`,
+                        attemptsLeft > 0
+                            ? `Profanity! Attempts left: ${attemptsLeft} / ${maxAttempts}`
+                            : "Profanity! No attempts left. Listing deactivated",
                     ),
                 };
             } else {
