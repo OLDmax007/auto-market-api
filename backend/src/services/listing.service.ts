@@ -106,18 +106,7 @@ class ListingService {
         organizationId: string,
         { enteredPrice: { amount, currency }, ...newDto }: ListingCreateDtoType,
     ): Promise<ListingType> {
-        const isProfanity = profanityService.hasAnyProfanity(
-            newDto.title,
-            newDto.description,
-        );
-
-        if (isProfanity) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "Profanity detected. Please clean up your title or description",
-            );
-        }
-
+        profanityService.checkProfanity(newDto.title, newDto.description);
         await listingAccessService.checkUserLimit(userId);
         await locationService.validateCityInRegion(newDto.region, newDto.city);
         await carService.validateCarModel(newDto.make, newDto.model);
