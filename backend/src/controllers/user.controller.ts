@@ -85,10 +85,11 @@ class UserController {
             const { userId: userIdByPayload } = res.locals
                 .tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await userService.activateUser(
+            const data = await userService.setStatusByRole(
                 userIdByParams,
                 userIdByPayload,
                 role,
+                true,
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
@@ -106,10 +107,11 @@ class UserController {
             const { userId: userIdByPayload } = res.locals
                 .tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await userService.deactivateUser(
+            const data = await userService.setStatusByRole(
                 userIdByParams,
                 userIdByPayload,
                 role,
+                false,
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
