@@ -41,8 +41,6 @@ class SubscriptionService {
         }
         const price = { amount: 500, currency: CurrencyEnum.UAH };
 
-        const today = new Date();
-
         if (balance.amount < price.amount) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
@@ -57,7 +55,7 @@ class SubscriptionService {
                 amount: price.amount,
                 currency: CurrencyEnum.UAH,
             },
-            paidAt: today,
+            paidAt: new Date(),
             status: PaymentStatusEnum.SUCCESS,
         });
 
@@ -68,16 +66,13 @@ class SubscriptionService {
             },
         });
 
-        const activeTo = new Date(today);
-        activeTo.setDate(activeTo.getDate() + 30);
-
         return subscriptionRepository.updateById(subscriptionId, {
             price: {
                 amount: price.amount,
                 currency: CurrencyEnum.UAH,
             },
-            activeFrom: today,
-            activeTo,
+            activeFrom: new Date(),
+            activeTo: null,
             planType: PlanTypeEnum.PREMIUM,
             isActive: true,
         });
@@ -87,6 +82,11 @@ class SubscriptionService {
         dto: SubscriptionCreateType,
     ): Promise<SubscriptionType> {
         return subscriptionRepository.create(dto);
+    }
+
+    public async deleteById(id: string): Promise<SubscriptionType> {
+        const sub = await this.getById(id);
+        return subscriptionRepository.deleteById(sub._id);
     }
 }
 
