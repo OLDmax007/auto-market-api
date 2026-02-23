@@ -5,7 +5,7 @@ import { ApiError } from "../errors/api.error";
 import {
     ensureEntityExists,
     ensureIsActive,
-    ensureIsNotActive,
+    ensureIsStatusSame,
 } from "../helpers/ensure.helper";
 import { getPaginationOptions } from "../helpers/pagination.helper";
 import { listingRepository } from "../repositories/listing.repository";
@@ -15,6 +15,7 @@ import { CurrencyAmountType } from "../types/rate.type";
 import { UserCreateDtoType, UserType } from "../types/user.type";
 import { platformRoleService } from "./platform-role.service";
 import { pricingService } from "./pricing.service";
+import { subscriptionService } from "./subscription.service";
 import { userAccessService } from "./user-access.service";
 
 class UserService {
@@ -99,50 +100,35 @@ class UserService {
         userAccessService.checkIsStaff(role, initiatorRole);
         userAccessService.checkSelfAction(id, initiatorId);
 
+        await subscriptionService.deleteById(user.subscriptionId);
         await listingRepository.deleteAllByUserId(user._id);
         await userRepository.deleteById(user._id);
     }
 
-    public async activateUser(
+    public async setStatusByRole(
         id: string,
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
-    ): Promise<UserType> {
+        isActive: boolean,
+    ) {
         const user = await userService.getById(id);
-        ensureIsNotActive(user.isActive, "User is already active");
-
+        ensureIsStatusSame(
+            user.isActive,
+            isActive,
+            `User is already ${user.isActive ? "activated" : "deactivated"} `,
+        );
         const { role } = await platformRoleService.getPlatformRoleById(
             user.platformRoleId,
         );
-
-        userAccessService.checkIsStaff(role, initiatorRole);
-        userAccessService.checkSelfAction(id, initiatorId);
-        await listingRepository.activateCleanByUserId(user._id);
-
-        return userRepository.updateById(id, {
-            isActive: true,
-        });
-    }
-
-    public async deactivateUser(
-        id: string,
-        initiatorId: string,
-        initiatorRole: PlatformRoleEnum,
-    ): Promise<UserType> {
-        const user = await userService.getById(id);
-        console.log(user.isActive);
-        ensureIsActive(user.isActive, "User is already deactivated");
-        const { role } = await platformRoleService.getPlatformRoleById(
-            user.platformRoleId,
-        );
-
         userAccessService.checkIsStaff(role, initiatorRole);
         userAccessService.checkSelfAction(id, initiatorId);
 
-        await listingRepository.deactivateByUserId(user._id);
+        isActive
+            ? await listingRepository.activateCleanByUserId(user._id)
+            : await listingRepository.deactivateByUserId(user._id);
 
         return userRepository.updateById(id, {
-            isActive: false,
+            isActive,
         });
     }
 
