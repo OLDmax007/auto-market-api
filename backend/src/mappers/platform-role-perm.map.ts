@@ -31,6 +31,7 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.LISTING_ACTIVATE,
         PlatformPermissionEnum.LISTING_DEACTIVATE,
         PlatformPermissionEnum.LISTING_GET_STATS,
+        PlatformPermissionEnum.LISTING_GET_ALL_BY_MODERATION,
         PlatformPermissionEnum.USER_GET_ALL,
         PlatformPermissionEnum.USER_ACTIVATE,
         PlatformPermissionEnum.USER_DEACTIVATE,
