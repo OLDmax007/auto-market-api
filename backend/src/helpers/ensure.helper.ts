@@ -17,8 +17,12 @@ export const ensureIsActive = (isActive: boolean, message: string): void => {
     }
 };
 
-export const ensureIsNotActive = (isActive: boolean, message: string): void => {
-    if (isActive) {
+export const ensureIsStatusSame = (
+    currentStatus: boolean,
+    newStatus: boolean,
+    message: string,
+): void => {
+    if (currentStatus === newStatus) {
         throw new ApiError(HttpStatusEnum.BAD_REQUEST, message);
     }
 };
