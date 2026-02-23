@@ -19,6 +19,10 @@ class SubscriptionRepository {
     ): Promise<SubscriptionType> {
         return Subscription.findByIdAndUpdate(id, dto, { new: true });
     }
+
+    public deleteById(id: string): Promise<SubscriptionType> {
+        return Subscription.findByIdAndDelete(id);
+    }
 }
 
 export const subscriptionRepository = new SubscriptionRepository();
