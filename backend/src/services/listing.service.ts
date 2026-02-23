@@ -2,7 +2,7 @@ import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
-import { ensureIsActive, ensureIsNotActive } from "../helpers/ensure.helper";
+import { ensureIsActive, ensureIsStatusSame } from "../helpers/ensure.helper";
 import { getPaginationOptions } from "../helpers/pagination.helper";
 import { listingRepository } from "../repositories/listing.repository";
 import {
@@ -153,25 +153,8 @@ class ListingService {
         const listing = await this.getById(id);
         listingAccessService.checkAccess(listing.userId, userId, role);
 
-        let updateProfanity: Partial<ListingCreateDbType> = {};
-
-        if (role === PlatformRoleEnum.SELLER) {
-            const res = await listingAccessService.handleProfanity(
-                listing,
-                dto,
-            );
-
-            if (res.error) {
-                throw res.error;
-            }
-
-            updateProfanity = res.updateProfanity;
-        } else {
-            updateProfanity = {
-                isActive: true,
-                profanityCheckAttempts: 0,
-            };
-        }
+        const { updateProfanity, error } =
+            await listingAccessService.handleProfanity(listing, role, dto);
 
         if (dto.region || dto.city) {
             await locationService.validateCityInRegion(
@@ -199,38 +182,32 @@ class ListingService {
             ...updateProfanity,
         });
 
+        if (error) {
+            throw error;
+        }
+
         return updatedListing;
     }
 
-    public async activateListing(
+    public async setStatusByRole(
         id: string,
-        role: PlatformRoleEnum,
         userId: string,
+        role: PlatformRoleEnum,
+        listingModeration: {
+            isActive: boolean;
+            profanityCheckAttempts: number;
+        },
     ): Promise<ListingType> {
         const listing = await this.getById(id);
-        listingAccessService.checkAccess(id, userId, role);
+        listingAccessService.checkAccess(listing._id, userId, role);
 
-        ensureIsNotActive(listing.isActive, "Listing is already activated");
+        ensureIsStatusSame(
+            listing.isActive,
+            listingModeration.isActive,
+            `Listing is already ${listing.isActive ? "activated" : "deactivated"} `,
+        );
 
-        return listingRepository.updateById(id, {
-            isActive: true,
-            profanityCheckAttempts: 0,
-        });
-    }
-
-    public async deactivateListing(
-        id: string,
-        role: PlatformRoleEnum,
-        userId: string,
-    ): Promise<ListingType> {
-        const listing = await this.getById(id);
-        listingAccessService.checkAccess(id, userId, role);
-        ensureIsActive(listing.isActive, "Listing is already deactivated");
-
-        return listingRepository.updateById(id, {
-            isActive: false,
-            profanityCheckAttempts: 3,
-        });
+        return listingRepository.updateById(id, listingModeration);
     }
 
     public async deleteById(
