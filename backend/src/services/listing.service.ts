@@ -27,16 +27,29 @@ class ListingService {
             maxPrice?: string;
             currency?: string;
         } = {},
+        moderationQuery: { isProfanity?: string; isActive?: string } = {},
     ): Promise<ListingType[]> {
         const filter: PaginateFilterType = {};
+
+        if (moderationQuery.isActive !== undefined) {
+            filter.isActive = moderationQuery.isActive === "true";
+        }
+
+        if (moderationQuery.isProfanity !== undefined) {
+            filter.isActive = moderationQuery.isProfanity === "true";
+        }
 
         if (query.minPrice || query.maxPrice) {
             filter.prices = {
                 $elemMatch: {
                     currency: query.currency || CurrencyEnum.UAH,
                     amount: {
-                        ...(query.minPrice && { $gte: Number(query.minPrice) }),
-                        ...(query.maxPrice && { $lte: Number(query.maxPrice) }),
+                        ...(query.minPrice && {
+                            $gte: Number(query.minPrice),
+                        }),
+                        ...(query.maxPrice && {
+                            $lte: Number(query.maxPrice),
+                        }),
                     },
                 },
             };
@@ -55,10 +68,10 @@ class ListingService {
 
         const options = getPaginationOptions(query);
 
-        const listings = await listingRepository.getAllPaginated(filter, {
-            ...options,
-            select: "-_id -userId -organizationId -profanityCheckAttempts -isActive -createdAt -updatedAt",
-        });
+        const listings = await listingRepository.getAllPaginated(
+            filter,
+            options,
+        );
         return listings.docs;
     }
 
