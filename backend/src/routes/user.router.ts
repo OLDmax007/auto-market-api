@@ -9,7 +9,6 @@ import { roleMiddleware } from "../middlewares/role.middleware";
 import { userMiddleware } from "../middlewares/user.middleware";
 
 const router = Router();
-// maybe only admin
 router.get(
     "/",
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
@@ -32,6 +31,15 @@ router.patch(
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.USER_EDIT_BY_ADMIN),
     userController.updateByRole,
+);
+
+router.patch(
+    "/:userId/role",
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(PlatformPermissionEnum.USER_SET_ROLE),
+    userController.setPlatformRole,
 );
 
 router.patch(
