@@ -97,8 +97,8 @@ class UserService {
             user.platformRoleId,
         );
 
-        userAccessService.checkIsStaff(role, initiatorRole);
         userAccessService.checkSelfAction(id, initiatorId);
+        userAccessService.checkIsStaff(role, initiatorRole);
 
         await subscriptionService.deleteById(user.subscriptionId);
         await listingRepository.deleteAllByUserId(user._id);
@@ -120,8 +120,8 @@ class UserService {
         const { role } = await platformRoleService.getPlatformRoleById(
             user.platformRoleId,
         );
-        userAccessService.checkIsStaff(role, initiatorRole);
         userAccessService.checkSelfAction(id, initiatorId);
+        userAccessService.checkIsStaff(role, initiatorRole);
 
         isActive
             ? await listingRepository.activateCleanByUserId(user._id)
@@ -130,6 +130,24 @@ class UserService {
         return userRepository.updateById(id, {
             isActive,
         });
+    }
+
+    public async setPlatformRole(
+        id: string,
+        initiatorId: string,
+        initiatorRole: PlatformRoleEnum,
+        dto: { newRole: PlatformRoleEnum },
+    ): Promise<UserType> {
+        const user = await this.getById(id);
+
+        const { role } = await platformRoleService.getPlatformRoleById(
+            user.platformRoleId,
+        );
+
+        userAccessService.checkSelfAction(user._id, initiatorId);
+        userAccessService.checkIsStaff(role, initiatorRole);
+        const { _id } = await platformRoleService.getPlatformRole(dto.newRole);
+        return userRepository.updateById(user._id, { platformRoleId: _id });
     }
 
     public async closeAccount(
@@ -153,7 +171,9 @@ class UserService {
             PlatformRoleEnum.SELLER,
         );
 
-        if (String(currentPlatformRoleId) === String(sellerRoleId)) {
+        if (
+            userAccessService.isSelfAction(currentPlatformRoleId, sellerRoleId)
+        ) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
                 "User is already seller",
