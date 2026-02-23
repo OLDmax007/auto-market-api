@@ -13,7 +13,25 @@ import { TokenPayloadType } from "../types/token.type";
 import { UserType } from "../types/user.type";
 
 class ListingController {
-    public async getAll(req: Request, res: Response, next: NextFunction) {
+    public async getAllByModeration(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const query = req.query as QueryType;
+            const moderationQuery = req.query as {
+                isProfanity?: string;
+                isActive?: string;
+            };
+            const data = await listingService.getAll(query, moderationQuery);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async getAllPublic(req: Request, res: Response, next: NextFunction) {
         try {
             const query = req.query as QueryType;
             const data = await listingService.getAll(query);
@@ -90,10 +108,11 @@ class ListingController {
             const { listingId } = req.params as { listingId: string };
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await listingService.deactivateListing(
+            const data = await listingService.setStatusByRole(
                 listingId,
-                role,
                 userId,
+                role,
+                { isActive: false, profanityCheckAttempts: 0 },
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
@@ -110,10 +129,11 @@ class ListingController {
             const { listingId } = req.params as { listingId: string };
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await listingService.activateListing(
+            const data = await listingService.setStatusByRole(
                 listingId,
-                role,
                 userId,
+                role,
+                { isActive: true, profanityCheckAttempts: 0 },
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
