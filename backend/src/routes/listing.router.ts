@@ -10,7 +10,17 @@ import { userMiddleware } from "../middlewares/user.middleware";
 
 const router = Router();
 
-router.get("/", listingController.getAll);
+router.get("/", listingController.getAllPublic);
+router.get(
+    "/moderation",
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(
+        PlatformPermissionEnum.LISTING_GET_ALL_BY_MODERATION,
+    ),
+    listingController.getAllByModeration,
+);
 router.get(
     "/:listingId",
     commonMiddleware.isValidId("listingId"),
