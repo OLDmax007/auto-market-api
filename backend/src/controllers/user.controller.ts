@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
+import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { subscriptionService } from "../services/subscription.service";
 import { userService } from "../services/user.service";
 import { QueryType } from "../types/pagination.type";
@@ -127,6 +128,29 @@ class UserController {
             const { role } = res.locals.rolePayload as PlatformRoleType;
             await userService.deleteById(userIdByParams, userIdByPayload, role);
             res.sendStatus(HttpStatusEnum.NO_CONTENT);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async setPlatformRole(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { userId: userIdByParams } = req.params as { userId: string };
+            const { userId: userIdByPayload } = res.locals
+                .tokenPayload as TokenPayloadType;
+            const { role } = res.locals.rolePayload as PlatformRoleType;
+            const body = req.body as { newRole: PlatformRoleEnum };
+            const data = await userService.setPlatformRole(
+                userIdByParams,
+                userIdByPayload,
+                role,
+                body,
+            );
+            res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
         }
