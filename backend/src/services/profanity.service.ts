@@ -30,7 +30,7 @@ class ProfanityService {
         });
     }
 
-    public checkProfanity(...texts: string[]): boolean {
+    public checkProfanity(...texts: string[]): void {
         const isProfanity = this.hasAnyProfanity(...texts);
 
         if (isProfanity) {
@@ -39,8 +39,6 @@ class ProfanityService {
                 "Profanity detected. Please clean up your title or description",
             );
         }
-
-        return isProfanity;
     }
 }
 
