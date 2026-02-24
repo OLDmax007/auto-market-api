@@ -10,7 +10,7 @@ import {
 import { getPaginationOptions } from "../helpers/pagination.helper";
 import { listingRepository } from "../repositories/listing.repository";
 import { userRepository } from "../repositories/user.repository";
-import { PaginateFilterType, QueryType } from "../types/pagination.type";
+import { PaginateFilterType, UserQueryType } from "../types/pagination.type";
 import { CurrencyAmountType } from "../types/rate.type";
 import { UserCreateDtoType, UserType } from "../types/user.type";
 import { platformRoleService } from "./platform-role.service";
@@ -19,8 +19,17 @@ import { subscriptionService } from "./subscription.service";
 import { userAccessService } from "./user-access.service";
 
 class UserService {
-    public async getAll(query: QueryType = {}): Promise<UserType[]> {
+    public async getAll(query: UserQueryType = {}): Promise<UserType[]> {
         const filter: PaginateFilterType = {};
+
+        if (query.userId) {
+            filter.userId = String(query.userId);
+        }
+
+        if (query.isActive !== undefined) {
+            filter.isActive = query.isActive === "true";
+        }
+
         if (query.search) {
             filter.$or = [
                 { firstName: { $regex: query.search, $options: "i" } },
