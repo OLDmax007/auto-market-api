@@ -7,7 +7,7 @@ import {
     ListingCreateDtoType,
     ListingUpdateDtoType,
 } from "../types/listing.type";
-import { QueryType } from "../types/pagination.type";
+import { ListingQueryType } from "../types/pagination.type";
 import { PlatformRoleType } from "../types/permissions/platform-role.type";
 import { TokenPayloadType } from "../types/token.type";
 import { UserType } from "../types/user.type";
@@ -19,12 +19,8 @@ class ListingController {
         next: NextFunction,
     ) {
         try {
-            const query = req.query as QueryType;
-            const moderationQuery = req.query as {
-                isProfanity?: string;
-                isActive?: string;
-            };
-            const data = await listingService.getAll(query, moderationQuery);
+            const query = req.query as ListingQueryType;
+            const data = await listingService.getAll(query);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
@@ -33,10 +29,30 @@ class ListingController {
 
     public async getAllPublic(req: Request, res: Response, next: NextFunction) {
         try {
-            const query = req.query as QueryType;
-            const data = await listingService.getAll(query);
+            const query = req.query as ListingQueryType;
+
+            const data = await listingService.getAll({
+                ...query,
+                isActive: true,
+                isProfanity: false,
+            });
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async getAllPrivate(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const query = req.query as ListingQueryType;
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const data = await listingService.getAll({ ...query, userId });
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e) {
             next(e);
         }
     }
@@ -112,7 +128,7 @@ class ListingController {
                 listingId,
                 userId,
                 role,
-                { isActive: false, profanityCheckAttempts: 0 },
+                { isActive: false },
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
@@ -133,7 +149,7 @@ class ListingController {
                 listingId,
                 userId,
                 role,
-                { isActive: true, profanityCheckAttempts: 0 },
+                { isActive: true },
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
