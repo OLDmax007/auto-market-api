@@ -6,6 +6,20 @@ export type QueryType = {
     orderBy?: "asc" | "desc";
 };
 
+export type ListingQueryType = {
+    minPrice?: string;
+    maxPrice?: string;
+    currency?: string;
+    userId?: string;
+    isProfanity?: string | boolean;
+    isActive?: string | boolean;
+} & QueryType;
+
+export type UserQueryType = {
+    userId?: string;
+    isActive?: string;
+} & QueryType;
+
 export type PaginatedResponseType<T> = {
     docs: T[];
     totalDocs: number;
