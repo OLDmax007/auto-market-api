@@ -11,7 +11,7 @@ import {
     ListingType,
     ListingUpdateDtoType,
 } from "../types/listing.type";
-import { PaginateFilterType, QueryType } from "../types/pagination.type";
+import { ListingQueryType, PaginateFilterType } from "../types/pagination.type";
 import { TokenPayloadType } from "../types/token.type";
 import { carService } from "./car.service";
 import { listingAccessService } from "./listing-access.service";
@@ -21,24 +21,18 @@ import { pricingService } from "./pricing.service";
 import { profanityService } from "./profanity.service";
 
 class ListingService {
-    public async getAll(
-        query: QueryType & {
-            minPrice?: string;
-            maxPrice?: string;
-            currency?: string;
-        } = {},
-        moderationQuery: { isProfanity?: string; isActive?: string } = {},
-    ): Promise<ListingType[]> {
+    public async getAll(query: ListingQueryType = {}): Promise<ListingType[]> {
         const filter: PaginateFilterType = {};
-
-        if (moderationQuery.isActive !== undefined) {
-            filter.isActive = moderationQuery.isActive === "true";
+        if (query.userId) {
+            filter.userId = String(query.userId);
+        }
+        if (query.isActive !== undefined) {
+            filter.isActive = String(query.isActive) === "true";
         }
 
-        if (moderationQuery.isProfanity !== undefined) {
-            filter.isActive = moderationQuery.isProfanity === "true";
+        if (query.isProfanity !== undefined) {
+            filter.isProfanity = String(query.isProfanity) === "true";
         }
-
         if (query.minPrice || query.maxPrice) {
             filter.prices = {
                 $elemMatch: {
@@ -106,7 +100,17 @@ class ListingService {
         organizationId: string,
         { enteredPrice: { amount, currency }, ...newDto }: ListingCreateDtoType,
     ): Promise<ListingType> {
-        profanityService.checkProfanity(newDto.title, newDto.description);
+        const isDirty = profanityService.hasAnyProfanity(
+            newDto.title,
+            newDto.description,
+        );
+
+        if (isDirty) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "Profanity detected. Please clean up your title or description",
+            );
+        }
         await listingAccessService.checkUserLimit(userId);
         await locationService.validateCityInRegion(newDto.region, newDto.city);
         await carService.validateCarModel(newDto.make, newDto.model);
@@ -128,6 +132,7 @@ class ListingService {
             organizationId,
             prices,
             publishedAt: new Date(),
+            isProfanity: false,
             isActive: true,
             profanityCheckAttempts: 0,
             ...newDto,
@@ -197,17 +202,23 @@ class ListingService {
         role: PlatformRoleEnum,
         listingModeration: {
             isActive: boolean;
-            profanityCheckAttempts: number;
         },
     ): Promise<ListingType> {
         const listing = await this.getById(id);
-        listingAccessService.checkAccess(listing._id, userId, role);
+        listingAccessService.checkAccess(listing.userId, userId, role);
 
         ensureIsStatusSame(
             listing.isActive,
             listingModeration.isActive,
             `Listing is already ${listing.isActive ? "activated" : "deactivated"} `,
         );
+
+        if (listingModeration.isActive && listing.isProfanity) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "Profanity detected. Please clean up title or description",
+            );
+        }
 
         return listingRepository.updateById(id, listingModeration);
     }
