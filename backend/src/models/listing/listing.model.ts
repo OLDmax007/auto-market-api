@@ -62,8 +62,9 @@ export const listingSchema = new Schema(
             default: imagesLinks.default_listing_image,
         },
         profanityCheckAttempts: { type: Number, default: 0 },
+        isProfanity: { type: Boolean, default: false },
         isActive: { type: Boolean, default: false },
-        publishedAt: { type: Date, default: null },
+        publishedAt: { type: Date, default: Date.now() },
     },
     { timestamps: true, versionKey: false },
 );

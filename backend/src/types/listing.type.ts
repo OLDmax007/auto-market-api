@@ -21,6 +21,7 @@ export type ListingType = {
     region: RegionEnum;
     city: string;
     main_photo_url: string;
+    isProfanity: boolean;
     isActive: boolean;
     profanityCheckAttempts: number;
     publishedAt: Date | null;
@@ -37,6 +38,7 @@ export type ListingCreateDtoType = Omit<
     | "prices"
     | "isActive"
     | "profanityCheckAttempts"
+    | "isProfanity"
 > & {
     enteredPrice: CurrencyAmountType;
 };
@@ -47,9 +49,3 @@ export type ListingCreateDbType = Omit<
 >;
 
 export type ListingUpdateDtoType = Partial<ListingCreateDtoType>;
-
-export type ListingModerationResultType = {
-    isProfanity: boolean;
-    profanityCheckAttempts: number;
-    maxAttempts: number;
-};
