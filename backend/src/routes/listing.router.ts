@@ -12,6 +12,13 @@ const router = Router();
 
 router.get("/", listingController.getAllPublic);
 router.get(
+    "/my",
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    listingController.getAllPrivate,
+);
+router.get(
     "/moderation",
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
