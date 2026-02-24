@@ -54,7 +54,7 @@ class AuthService {
                 amount: 0,
                 currency: CurrencyEnum.UAH,
             },
-            activeFrom: null,
+            activeFrom: new Date(),
             activeTo: null,
             isActive: true,
         });
