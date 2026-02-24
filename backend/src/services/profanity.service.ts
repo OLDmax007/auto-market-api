@@ -3,8 +3,6 @@ import profanity from "leo-profanity";
 import { EnProfanityList } from "../constants/en-profanity-list";
 import { RuProfanityList } from "../constants/ru-profanity-list";
 import { UaProfanityList } from "../constants/ua-profanity-list";
-import { HttpStatusEnum } from "../enums/http-status.enum";
-import { ApiError } from "../errors/api.error";
 
 class ProfanityService {
     constructor() {
@@ -28,17 +26,6 @@ class ProfanityService {
 
             return words.some((word) => this.hasProfanity(word));
         });
-    }
-
-    public checkProfanity(...texts: string[]): void {
-        const isProfanity = this.hasAnyProfanity(...texts);
-
-        if (isProfanity) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "Profanity detected. Please clean up your title or description",
-            );
-        }
     }
 }
 
