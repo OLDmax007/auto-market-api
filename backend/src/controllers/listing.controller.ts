@@ -13,20 +13,6 @@ import { TokenPayloadType } from "../types/token.type";
 import { UserType } from "../types/user.type";
 
 class ListingController {
-    public async getAllByModeration(
-        req: Request,
-        res: Response,
-        next: NextFunction,
-    ) {
-        try {
-            const query = req.query as ListingQueryType;
-            const data = await listingService.getAll(query);
-            res.status(HttpStatusEnum.OK).json(data);
-        } catch (e: unknown) {
-            next(e);
-        }
-    }
-
     public async getAllPublic(req: Request, res: Response, next: NextFunction) {
         try {
             const query = req.query as ListingQueryType;
@@ -42,11 +28,25 @@ class ListingController {
         }
     }
 
-    public async getAllPrivate(
+    public async getPublicById(
         req: Request,
         res: Response,
         next: NextFunction,
     ) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const payload = res.locals.tokenPayload as TokenPayloadType;
+            const data = await listingService.getFullInfoWithIncrement(
+                listingId,
+                payload,
+            );
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async getAllMy(req: Request, res: Response, next: NextFunction) {
         try {
             const query = req.query as ListingQueryType;
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
@@ -57,14 +57,39 @@ class ListingController {
         }
     }
 
-    public async getById(req: Request, res: Response, next: NextFunction) {
+    public async getMyById(req: Request, res: Response, next: NextFunction) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const payload = res.locals.tokenPayload as TokenPayloadType;
-            const data = await listingService.getFullInfoWithIncrement(
-                listingId,
-                payload,
-            );
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const data = await listingService.getMyById(listingId, userId);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async getAllByModeration(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const query = req.query as ListingQueryType;
+            const data = await listingService.getAll(query);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async getByIdForModeration(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const data = await listingService.getById(listingId);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
