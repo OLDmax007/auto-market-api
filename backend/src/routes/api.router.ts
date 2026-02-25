@@ -4,6 +4,7 @@ import { authRouter } from "./auth.router";
 import { carRouter } from "./car.router";
 import { listingRouter } from "./listing.router";
 import { meRouter } from "./me.router";
+import { subscriptionRouter } from "./subscription.router";
 import { userRouter } from "./user.router";
 
 const router = Router();
@@ -13,5 +14,6 @@ router.use("/auth", authRouter);
 router.use("/me", meRouter);
 router.use("/listings", listingRouter);
 router.use("/cars", carRouter);
+router.use("/admin/subscriptions", subscriptionRouter);
 
 export const apiRouter = router;
