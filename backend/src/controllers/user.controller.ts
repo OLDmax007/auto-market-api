@@ -177,8 +177,14 @@ class UserController {
     public async closeMe(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const { isActive, _id } = res.locals.user as UserType;
-            const data = await userService.closeAccount(_id, userId, isActive);
+            const { isActive, _id, subscriptionId } = res.locals
+                .user as UserType;
+            const data = await userService.closeAccount(
+                _id,
+                userId,
+                subscriptionId,
+                isActive,
+            );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
@@ -202,7 +208,7 @@ class UserController {
         next: NextFunction,
     ) {
         try {
-            const { userId } = req.res.locals.tokenPayload as TokenPayloadType;
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await subscriptionService.upgradeToPremium(userId);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
