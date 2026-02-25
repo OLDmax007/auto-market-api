@@ -9,6 +9,7 @@ import {
 } from "../helpers/ensure.helper";
 import { getPaginationOptions } from "../helpers/pagination.helper";
 import { listingRepository } from "../repositories/listing.repository";
+import { subscriptionRepository } from "../repositories/subscription.repository";
 import { userRepository } from "../repositories/user.repository";
 import { PaginateFilterType, UserQueryType } from "../types/pagination.type";
 import { CurrencyAmountType } from "../types/rate.type";
@@ -143,8 +144,20 @@ class UserService {
         userAccessService.checkIsStaff(role, initiatorRole);
 
         isActive
-            ? await listingRepository.activateCleanByUserId(user._id)
-            : await listingRepository.deactivateByUserId(user._id);
+            ? await Promise.all([
+                  subscriptionRepository.updateById(user.subscriptionId, {
+                      isActive: true,
+                  }),
+
+                  listingRepository.activateCleanByUserId(user._id),
+              ])
+            : await Promise.all([
+                  subscriptionRepository.updateById(user.subscriptionId, {
+                      isActive: false,
+                  }),
+
+                  listingRepository.deactivateByUserId(user._id),
+              ]);
 
         return userRepository.updateById(id, {
             isActive,
@@ -172,11 +185,15 @@ class UserService {
     public async closeAccount(
         id: string,
         initiatorId: string,
+        subscriptionId: string,
         isActive: boolean,
     ): Promise<UserType> {
         userAccessService.checkAccountOwnership(id, initiatorId);
         ensureIsActive(isActive, "User is already deactivated");
         await listingRepository.deactivateByUserId(id);
+        await subscriptionRepository.updateById(subscriptionId, {
+            isActive: false,
+        });
         return userRepository.updateById(id, {
             isActive: false,
         });
@@ -190,9 +207,7 @@ class UserService {
             PlatformRoleEnum.SELLER,
         );
 
-        if (
-            userAccessService.isSelfAction(currentPlatformRoleId, sellerRoleId)
-        ) {
+        if (String(currentPlatformRoleId) === String(sellerRoleId)) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
                 "User is already seller",
