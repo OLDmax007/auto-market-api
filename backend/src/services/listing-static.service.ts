@@ -2,6 +2,7 @@ import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PeriodEnum } from "../enums/period.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { ApiError } from "../errors/api.error";
+import { ensureIsActive } from "../helpers/ensure.helper";
 import { listingStaticRepository } from "../repositories/listing-static.repository";
 import {
     ListingAveragePriceByLocationType,
@@ -40,12 +41,10 @@ class ListingStaticsService {
             );
         }
 
-        if (!isActive) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "Your subscription is inactive",
-            );
-        }
+        ensureIsActive(
+            isActive,
+            "Your subscription is deactivated. Please renew!",
+        );
 
         if (planType === PlanTypeEnum.BASIC) {
             throw new ApiError(
