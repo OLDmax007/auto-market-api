@@ -16,8 +16,20 @@ router.get(
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
-    listingController.getAllPrivate,
+    listingController.getAllMy,
 );
+router.get(
+    "/my/:listingId",
+    commonMiddleware.isValidId("listingId"),
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(
+        PlatformPermissionEnum.LISTING_GET_BY_MODERATION,
+    ),
+    listingController.getMyById,
+);
+
 router.get(
     "/moderation",
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
@@ -28,11 +40,34 @@ router.get(
     ),
     listingController.getAllByModeration,
 );
+
+router.get(
+    "/moderation/:listingId",
+    commonMiddleware.isValidId("listingId"),
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(
+        PlatformPermissionEnum.LISTING_GET_BY_MODERATION,
+    ),
+    listingController.getByIdForModeration,
+);
+
+router.get(
+    "/:listingId/statistics",
+    commonMiddleware.isValidId("listingId"),
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_GET_STATS),
+    listingController.getPremiumListingStats,
+);
+
 router.get(
     "/:listingId",
     commonMiddleware.isValidId("listingId"),
     authMiddleware.checkToken(TokenTypeEnum.ACCESS, true),
-    listingController.getById,
+    listingController.getPublicById,
 );
 
 router.post(
@@ -55,7 +90,7 @@ router.patch(
 );
 
 router.patch(
-    "/:listingId/activate",
+    "/moderation/:listingId/activate",
     commonMiddleware.isValidId("listingId"),
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
@@ -65,7 +100,7 @@ router.patch(
 );
 
 router.patch(
-    "/:listingId/deactivate",
+    "/moderation/:listingId/deactivate",
     commonMiddleware.isValidId("listingId"),
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
@@ -73,7 +108,6 @@ router.patch(
     roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_DEACTIVATE),
     listingController.deactivateListing,
 );
-
 router.patch(
     "/:listingId/close",
     commonMiddleware.isValidId("listingId"),
@@ -86,23 +120,13 @@ router.patch(
 );
 
 router.delete(
-    "/:listingId",
+    "/moderation/:listingId",
     commonMiddleware.isValidId("listingId"),
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_DELETE),
     listingController.deleteById,
-);
-
-router.get(
-    "/:listingId/statistics",
-    commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
-    userMiddleware.isActiveUser,
-    userMiddleware.isVerifiedUser,
-    roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_GET_STATS),
-    listingController.getPremiumListingStats,
 );
 
 export const listingRouter = router;

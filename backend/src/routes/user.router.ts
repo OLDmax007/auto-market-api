@@ -19,22 +19,20 @@ router.get(
 );
 
 router.get(
-    "/:userId",
+    "/moderation/:userId",
     commonMiddleware.isValidId("userId"),
-    userController.getById,
-);
-
-router.patch(
-    "/:userId/admin",
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
-    roleMiddleware.checkPermission(PlatformPermissionEnum.USER_EDIT_BY_ADMIN),
-    userController.updateByRole,
+    roleMiddleware.checkPermission(
+        PlatformPermissionEnum.USER_GET_BY_MODERATION,
+    ),
+    userController.getByIdForModeration,
 );
 
 router.patch(
-    "/:userId/role",
+    "/moderation/:userId/role",
+    commonMiddleware.isValidId("userId"),
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
@@ -43,7 +41,8 @@ router.patch(
 );
 
 router.patch(
-    "/:userId/activate",
+    "/moderation/:userId/activate",
+    commonMiddleware.isValidId("userId"),
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
@@ -52,7 +51,8 @@ router.patch(
 );
 
 router.patch(
-    "/:userId/deactivate",
+    "/moderation/:userId/deactivate",
+    commonMiddleware.isValidId("userId"),
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
@@ -60,13 +60,32 @@ router.patch(
     userController.deactivateUser,
 );
 
+router.patch(
+    "/moderation/:userId",
+    commonMiddleware.isValidId("userId"),
+    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(
+        PlatformPermissionEnum.USER_EDIT_BY_MODERATION,
+    ),
+    userController.updateByRole,
+);
+
 router.delete(
-    "/:userId",
+    "/moderation/:userId",
+    commonMiddleware.isValidId("userId"),
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.USER_DELETE),
     userController.deleteById,
+);
+
+router.get(
+    "/:userId",
+    commonMiddleware.isValidId("userId"),
+    userController.getPublicById,
 );
 
 export const userRouter = router;
