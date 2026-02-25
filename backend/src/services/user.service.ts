@@ -52,6 +52,16 @@ class UserService {
         return ensureEntityExists<UserType>(user, "User not found");
     }
 
+    public async getPublicById(id: string): Promise<UserType> {
+        const user = await this.getById(id);
+
+        if (!user.isActive) {
+            throw new ApiError(HttpStatusEnum.NOT_FOUND, "User not found");
+        }
+
+        return user;
+    }
+
     public async getByEmail(
         email: string,
         errorMessage = "User not found",
