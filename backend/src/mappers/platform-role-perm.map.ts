@@ -23,6 +23,7 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.ME_DEACTIVATE,
         PlatformPermissionEnum.ME_LISTING_DEACTIVATE,
         PlatformPermissionEnum.LISTING_CLOSE,
+        PlatformPermissionEnum.LISTING_GET_MY_BY_ID,
     ],
     [PlatformRoleEnum.MANAGER]: [
         PlatformPermissionEnum.ME_GET,
@@ -32,6 +33,7 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.LISTING_DEACTIVATE,
         PlatformPermissionEnum.LISTING_GET_STATS,
         PlatformPermissionEnum.LISTING_GET_ALL_BY_MODERATION,
+        PlatformPermissionEnum.LISTING_GET_BY_MODERATION,
         PlatformPermissionEnum.USER_GET_ALL,
         PlatformPermissionEnum.USER_ACTIVATE,
         PlatformPermissionEnum.USER_DEACTIVATE,
