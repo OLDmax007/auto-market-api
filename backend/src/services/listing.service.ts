@@ -19,6 +19,7 @@ import { listingStaticService } from "./listing-static.service";
 import { locationService } from "./location.service";
 import { pricingService } from "./pricing.service";
 import { profanityService } from "./profanity.service";
+import { userAccessService } from "./user-access.service";
 
 class ListingService {
     public async getAll(query: ListingQueryType = {}): Promise<ListingType[]> {
@@ -69,6 +70,18 @@ class ListingService {
         return listings.docs;
     }
 
+    public async getMyById(id: string, userId: string): Promise<ListingType> {
+        const listing = await this.getById(id);
+
+        userAccessService.checkAccountOwnership(
+            listing.userId,
+            userId,
+            "listing",
+        );
+
+        return listing;
+    }
+
     public async getById(id: string): Promise<ListingType> {
         const listing = await listingRepository.getById(id);
 
@@ -83,6 +96,10 @@ class ListingService {
         payload?: TokenPayloadType,
     ): Promise<ListingType> {
         const listing = await this.getById(id);
+
+        if (!listing.isActive || listing.isProfanity) {
+            throw new ApiError(HttpStatusEnum.NOT_FOUND, "Listing not found");
+        }
 
         if (payload) {
             if (String(listing.userId) !== String(payload.userId)) {
@@ -115,10 +132,10 @@ class ListingService {
         await locationService.validateCityInRegion(newDto.region, newDto.city);
         await carService.validateCarModel(newDto.make, newDto.model);
 
-        const prices = await pricingService.calculateListingPrices(
+        const prices = await pricingService.getCalculatedPrices({
             amount,
             currency,
-        );
+        });
 
         if (!prices.length) {
             throw new ApiError(
