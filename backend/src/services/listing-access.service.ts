@@ -2,6 +2,7 @@ import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
+import { ensureIsActive } from "../helpers/ensure.helper";
 import { listingRepository } from "../repositories/listing.repository";
 import { ListingCreateDbType, ListingType } from "../types/listing.type";
 import { profanityService } from "./profanity.service";
@@ -63,16 +64,6 @@ class ListingAccessService {
             }
         }
 
-        if (!isStaff && !listing.isActive && !listing.isProfanity) {
-            return {
-                updateProfanity: {},
-                error: new ApiError(
-                    HttpStatusEnum.FORBIDDEN,
-                    "Listing is deactivated",
-                ),
-            };
-        }
-
         const updateProfanity: Partial<ListingCreateDbType> = {};
 
         if (isDirty) {
@@ -110,13 +101,19 @@ class ListingAccessService {
         const { planType, isActive } = await subscriptionService.getById(
             user.subscriptionId,
         );
+
+        ensureIsActive(
+            isActive,
+            "Your subscription is deactivated. Please renew!",
+        );
+
         const limit =
             planType === PlanTypeEnum.PREMIUM && isActive ? Infinity : 1;
 
         if (currentListingsCount >= limit) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
-                "Limit reached. Upgrade your account!",
+                "Limit reached. Upgrade to Premium!",
             );
         }
     }
