@@ -25,10 +25,28 @@ class UserController {
         }
     }
 
-    public async getById(req: Request, res: Response, next: NextFunction) {
+    public async getByIdForModeration(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
         try {
             const { userId } = req.params as { userId: string };
             const data = await userService.getById(userId);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async getPublicById(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { userId } = req.params as { userId: string };
+            const data = await userService.getPublicById(userId);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
