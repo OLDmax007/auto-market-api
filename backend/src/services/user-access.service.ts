@@ -54,11 +54,12 @@ class UserAccessService {
     public checkAccountOwnership(
         targetUserId: string,
         initiatorId: string,
+        entityName: string = "account",
     ): void {
         if (!this.isSelfAction(targetUserId, initiatorId)) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
-                "You are not the owner of this account",
+                `You are not the owner of this ${entityName}`,
             );
         }
     }
