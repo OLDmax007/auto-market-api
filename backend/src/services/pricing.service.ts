@@ -1,7 +1,9 @@
 import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { ApiError } from "../errors/api.error";
+import { listingRepository } from "../repositories/listing.repository";
 import { rateRepository } from "../repositories/rate.repository";
+import { ListingType } from "../types/listing.type";
 import { CurrencyAmountType } from "../types/rate.type";
 import { privatBankService } from "./privatbank.service";
 
@@ -29,6 +31,7 @@ class PricingService {
 
         return Number(result.toFixed(2));
     }
+
     public async calculateListingPrices(
         money: number,
         currency: CurrencyEnum,
@@ -55,10 +58,12 @@ class PricingService {
                 prices.push({
                     currency: CurrencyEnum.USD,
                     amount: Math.round(money / USD.sale),
+                    rate: USD.sale,
                 });
                 prices.push({
                     currency: CurrencyEnum.EUR,
                     amount: Math.round(money / EUR.sale),
+                    rate: EUR.sale,
                 });
                 break;
             case CurrencyEnum.USD:
@@ -71,10 +76,12 @@ class PricingService {
                     mainCurrency: true,
                     currency: CurrencyEnum.USD,
                     amount: Math.round(money),
+                    rate: USD.sale,
                 });
                 prices.push({
                     currency: CurrencyEnum.EUR,
                     amount: Math.round(uahFromUsd / EUR.sale),
+                    rate: EUR.sale,
                 });
                 break;
             case CurrencyEnum.EUR:
@@ -86,11 +93,13 @@ class PricingService {
                 prices.push({
                     currency: CurrencyEnum.USD,
                     amount: Math.round(uahFromEur / USD.sale),
+                    rate: USD.sale,
                 });
                 prices.push({
                     mainCurrency: true,
                     currency: CurrencyEnum.EUR,
                     amount: Math.round(money),
+                    rate: EUR.sale,
                 });
                 break;
             default:
@@ -111,6 +120,16 @@ class PricingService {
             enteredPrice.currency,
         );
     }
-}
 
+    public async refreshAllListingsPrices(listing: ListingType): Promise<void> {
+        const originalPrice = listing.prices.find((p) => p.mainCurrency);
+        const resultPrices = await this.getCalculatedPrices({
+            ...originalPrice,
+        });
+
+        await listingRepository.updateById(listing._id, {
+            prices: resultPrices,
+        });
+    }
+}
 export const pricingService = new PricingService();
