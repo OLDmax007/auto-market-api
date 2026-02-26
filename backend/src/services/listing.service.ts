@@ -117,17 +117,6 @@ class ListingService {
         organizationId: string,
         { enteredPrice: { amount, currency }, ...newDto }: ListingCreateDtoType,
     ): Promise<ListingType> {
-        const isDirty = profanityService.hasAnyProfanity(
-            newDto.title,
-            newDto.description,
-        );
-
-        if (isDirty) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "Profanity detected. Please clean up your title or description",
-            );
-        }
         await listingAccessService.checkUserLimit(userId);
         await locationService.validateCityInRegion(newDto.region, newDto.city);
         await carService.validateCarModel(newDto.make, newDto.model);
@@ -143,14 +132,18 @@ class ListingService {
                 "Pricing calculation failed",
             );
         }
+        const isDirty = profanityService.hasAnyProfanity(
+            newDto.title,
+            newDto.description,
+        );
 
         const listing = await listingRepository.create({
             userId,
             organizationId,
             prices,
             publishedAt: new Date(),
-            isProfanity: false,
-            isActive: true,
+            isProfanity: isDirty,
+            isActive: !isDirty,
             profanityCheckAttempts: 0,
             ...newDto,
         });
@@ -164,6 +157,13 @@ class ListingService {
                 week: 0,
             },
         });
+
+        if (isDirty) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "Listing created but deactivated due to profanity. Please go to your cabinet to edit it",
+            );
+        }
 
         return listing;
     }
