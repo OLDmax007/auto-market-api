@@ -22,4 +22,9 @@ export const emailConstants: IEmailConstants<typeof EmailEnum> = {
         subject: "Confirm Password Reset",
         template: "recovery-password",
     },
+
+    [EmailEnum.LISTING_MODERATION]: {
+        subject: "MODERATION REQUIRED: Profanity detected",
+        template: "listing-moderation",
+    },
 };
