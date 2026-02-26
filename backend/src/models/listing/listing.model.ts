@@ -46,6 +46,7 @@ export const listingSchema = new Schema(
             {
                 _id: false,
                 mainCurrency: { type: Boolean },
+                rate: { type: Number },
                 amount: { type: Number, required: true },
                 currency: { type: String, required: true },
             },
