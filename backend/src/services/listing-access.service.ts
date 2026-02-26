@@ -1,10 +1,14 @@
+import { mainConfig } from "../configs/main.config";
+import { emailConstants } from "../constants/email-data";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
 import { ensureIsActive } from "../helpers/ensure.helper";
+import { buildLink } from "../helpers/link-builder.helper";
 import { listingRepository } from "../repositories/listing.repository";
 import { ListingCreateDbType, ListingType } from "../types/listing.type";
+import { emailService } from "./email.service";
 import { profanityService } from "./profanity.service";
 import { subscriptionService } from "./subscription.service";
 import { userService } from "./user.service";
@@ -71,6 +75,18 @@ class ListingAccessService {
             updateProfanity.isProfanity = true;
             updateProfanity.isActive = false;
             updateProfanity.profanityCheckAttempts = newAttempts;
+
+            if (newAttempts === this.maxAttempts) {
+                await emailService.sendEmail(
+                    mainConfig.EMAIL_SUPPORT,
+                    emailConstants.LISTING_MODERATION,
+                    {
+                        listingId: listing._id,
+                        link: buildLink(`/listings/moderation/${listing._id}`),
+                    },
+                );
+            }
+
             const attemptsLeft = this.maxAttempts - newAttempts;
             return {
                 updateProfanity,
