@@ -15,6 +15,7 @@ type MainConfig = {
     JWT_REFRESH_SECRET: string;
     JWT_ACCESS_LIFETIME: any;
     JWT_REFRESH_LIFETIME: any;
+    EMAIL_SUPPORT: string;
     EMAIL_USER: string;
     EMAIL_PASSWORD: string;
     JWT_VERIFY_SECRET: string;
@@ -34,6 +35,7 @@ export const mainConfig: MainConfig = {
     JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
     JWT_ACCESS_LIFETIME: process.env.JWT_ACCESS_LIFETIME,
     JWT_REFRESH_LIFETIME: process.env.JWT_REFRESH_LIFETIME,
+    EMAIL_SUPPORT: process.env.EMAIL_SUPPORT,
     EMAIL_USER: process.env.EMAIL_USER,
     EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
     JWT_VERIFY_SECRET: process.env.JWT_VERIFY_SECRET,
