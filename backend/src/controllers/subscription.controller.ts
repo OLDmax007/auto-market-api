@@ -68,6 +68,20 @@ class SubscriptionController {
             next(e);
         }
     }
+
+    public async upgradeToPremium(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const data = await subscriptionService.upgradeToPremium(userId);
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
 }
 
 export const subscriptionController = new SubscriptionController();

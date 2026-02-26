@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
-import { subscriptionService } from "../services/subscription.service";
 import { userService } from "../services/user.service";
 import { QueryType } from "../types/pagination.type";
 import { PlatformRoleType } from "../types/permissions/platform-role.type";
@@ -98,7 +97,7 @@ class UserController {
         }
     }
 
-    public async activateUser(req: Request, res: Response, next: NextFunction) {
+    public async activate(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId: userIdByParams } = req.params as { userId: string };
             const { userId: userIdByPayload } = res.locals
@@ -116,11 +115,7 @@ class UserController {
         }
     }
 
-    public async deactivateUser(
-        req: Request,
-        res: Response,
-        next: NextFunction,
-    ) {
+    public async deactivate(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId: userIdByParams } = req.params as { userId: string };
             const { userId: userIdByPayload } = res.locals
@@ -138,14 +133,18 @@ class UserController {
         }
     }
 
-    public async deleteById(req: Request, res: Response, next: NextFunction) {
+    public async closeMe(req: Request, res: Response, next: NextFunction) {
         try {
-            const { userId: userIdByParams } = req.params as { userId: string };
-            const { userId: userIdByPayload } = res.locals
-                .tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
-            await userService.deleteById(userIdByParams, userIdByPayload, role);
-            res.sendStatus(HttpStatusEnum.NO_CONTENT);
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const { isActive, _id, subscriptionId } = res.locals
+                .user as UserType;
+            const data = await userService.closeAccount(
+                _id,
+                userId,
+                subscriptionId,
+                isActive,
+            );
+            res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
         }
@@ -174,42 +173,11 @@ class UserController {
         }
     }
 
-    public async closeMe(req: Request, res: Response, next: NextFunction) {
-        try {
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const { isActive, _id, subscriptionId } = res.locals
-                .user as UserType;
-            const data = await userService.closeAccount(
-                _id,
-                userId,
-                subscriptionId,
-                isActive,
-            );
-            res.status(HttpStatusEnum.OK).json(data);
-        } catch (e: unknown) {
-            next(e);
-        }
-    }
-
     public async becomeSeller(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const { _id } = res.locals.rolePayload as PlatformRoleType;
             const data = await userService.becomeSeller(userId, _id);
-            res.status(HttpStatusEnum.OK).json(data);
-        } catch (e: unknown) {
-            next(e);
-        }
-    }
-
-    public async upgradeToPremium(
-        req: Request,
-        res: Response,
-        next: NextFunction,
-    ) {
-        try {
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const data = await subscriptionService.upgradeToPremium(userId);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
             next(e);
@@ -223,6 +191,19 @@ class UserController {
             const dto = req.body as CurrencyAmountType;
             const data = await userService.topUpBalance(userId, balance, dto);
             res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async deleteById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId: userIdByParams } = req.params as { userId: string };
+            const { userId: userIdByPayload } = res.locals
+                .tokenPayload as TokenPayloadType;
+            const { role } = res.locals.rolePayload as PlatformRoleType;
+            await userService.deleteById(userIdByParams, userIdByPayload, role);
+            res.sendStatus(HttpStatusEnum.NO_CONTENT);
         } catch (e: unknown) {
             next(e);
         }
