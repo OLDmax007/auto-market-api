@@ -1,13 +1,13 @@
+import { exchangeRatesAndPricesCron } from "./exchange-rates-and-prices.cron";
 import { removeOldTokensCron } from "./remove-old-tokens.cron";
 import {
     resetDayViewsCron,
     resetMonthViewsCron,
     resetWeekViewsCron,
 } from "./reset-views.cron";
-import { updateRatesCron } from "./update-rates.cron";
 
 export const cronRunner = () => {
-    updateRatesCron.start();
+    exchangeRatesAndPricesCron.start();
     resetDayViewsCron.start();
     resetWeekViewsCron.start();
     resetMonthViewsCron.start();
