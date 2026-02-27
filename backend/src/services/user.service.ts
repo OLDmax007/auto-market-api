@@ -1,4 +1,8 @@
+import { UploadedFile } from "express-fileupload";
+
+import { defaultImagesEndpoints } from "../constants/default-images-endpoints";
 import { CurrencyEnum } from "../enums/currency.enum";
+import { FileItemEnum } from "../enums/file-item.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
@@ -16,6 +20,7 @@ import { CurrencyAmountType } from "../types/rate.type";
 import { UserCreateDtoType, UserType } from "../types/user.type";
 import { platformRoleService } from "./platform-role.service";
 import { pricingService } from "./pricing.service";
+import { s3Service } from "./s3.service";
 import { subscriptionService } from "./subscription.service";
 import { userAccessService } from "./user-access.service";
 
@@ -149,14 +154,14 @@ class UserService {
                       isActive: true,
                   }),
 
-                  listingRepository.activateCleanByUserId(user._id),
+                  listingRepository.activateManyByUserId(user._id),
               ])
             : await Promise.all([
                   subscriptionRepository.updateById(user.subscriptionId, {
                       isActive: false,
                   }),
 
-                  listingRepository.deactivateByUserId(user._id),
+                  listingRepository.deactivateManyByUserId(user._id),
               ]);
 
         return userRepository.updateById(id, {
@@ -190,7 +195,7 @@ class UserService {
     ): Promise<UserType> {
         userAccessService.checkAccountOwnership(id, initiatorId);
         ensureIsActive(isActive, "User is already deactivated");
-        await listingRepository.deactivateByUserId(id);
+        await listingRepository.deactivateManyByUserId(id);
         await subscriptionRepository.updateById(subscriptionId, {
             isActive: false,
         });
@@ -246,6 +251,34 @@ class UserService {
             balance: updatedBalance,
             credited: { amount: Number(amount.toFixed(2)), currency },
         };
+    }
+
+    public async uploadAvatar(
+        userId: string,
+        file: UploadedFile,
+    ): Promise<UserType> {
+        await this.deleteAvatar(userId);
+
+        const avatar = await s3Service.uploadFile(
+            file,
+            FileItemEnum.USERS,
+            userId,
+        );
+
+        return userRepository.updateById(userId, {
+            avatar,
+        });
+    }
+
+    public async deleteAvatar(userId: string): Promise<UserType> {
+        const user = await this.getById(userId);
+        if (user.avatar === defaultImagesEndpoints.user) {
+            return user;
+        }
+        await s3Service.deleteFile(user.avatar);
+        return userRepository.updateById(userId, {
+            avatar: defaultImagesEndpoints.user,
+        });
     }
 }
 
