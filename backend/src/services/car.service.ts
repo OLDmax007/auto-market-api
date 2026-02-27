@@ -1,8 +1,11 @@
+import { mainConfig } from "../configs/main.config";
+import { emailConstants } from "../constants/email-data";
 import { CarMarkEnum } from "../enums/car.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { ApiError } from "../errors/api.error";
 import { carRepository } from "../repositories/car.repository";
-import { CarMapType } from "../types/car.type";
+import { CarMapType, CarMissingReportType } from "../types/car.type";
+import { emailService } from "./email.service";
 
 class CarService {
     public async getModelsByMake(make: CarMarkEnum): Promise<CarMapType> {
@@ -30,13 +33,29 @@ class CarService {
         make: CarMarkEnum,
         model: string,
     ): Promise<void> {
-        const { models } = await carService.getModelsByMake(make);
+        const { models } = await this.getModelsByMake(make);
         if (!models.includes(model)) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
                 `Model '${model}' does not exist for make '${make}'`,
             );
         }
+    }
+
+    public async sendMissingCarData(dto: CarMissingReportType): Promise<void> {
+        if (!dto.make && !dto.model) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "Provide at least make or model",
+            );
+        }
+
+        emailService
+            .sendEmail(mainConfig.EMAIL_SUPPORT, emailConstants.CAR_MISSING, {
+                make: dto.make ?? "N/A",
+                model: dto.model ?? "N/A",
+            })
+            .catch();
     }
 }
 
