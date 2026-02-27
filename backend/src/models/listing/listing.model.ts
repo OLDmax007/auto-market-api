@@ -1,7 +1,7 @@
 import { model, PaginateModel, Schema } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-import { imagesLinks } from "../../constants/images-links";
+import { defaultImagesEndpoints } from "../../constants/default-images-endpoints";
 import {
     CarMarkEnum,
     EngineEnum,
@@ -58,9 +58,9 @@ export const listingSchema = new Schema(
         },
         region: { type: String, enum: RegionEnum, required: true },
         city: { type: String, required: true },
-        main_photo_url: {
+        poster: {
             type: String,
-            default: imagesLinks.default_listing_image,
+            default: defaultImagesEndpoints.listing,
         },
         profanityCheckAttempts: { type: Number, default: 0 },
         isProfanity: { type: Boolean, default: false },

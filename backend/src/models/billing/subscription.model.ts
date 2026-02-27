@@ -18,7 +18,7 @@ const subscriptionSchema = new Schema(
         planType: {
             type: String,
             enum: PlanTypeEnum,
-            required: true,
+            default: PlanTypeEnum.BASIC,
         },
 
         price: {
