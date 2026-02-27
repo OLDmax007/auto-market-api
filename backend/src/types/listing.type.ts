@@ -20,32 +20,38 @@ export type ListingType = {
     country: CountryEnum.UKRAINE;
     region: RegionEnum;
     city: string;
-    main_photo_url: string;
+    poster: string;
     isProfanity: boolean;
     isActive: boolean;
     profanityCheckAttempts: number;
     publishedAt: Date | null;
 } & BaseType;
 
-export type ListingCreateDtoType = Omit<
+export type ListingCreateDtoType = Pick<
     ListingType,
-    | "_id"
-    | "userId"
-    | "organizationId"
-    | "createdAt"
-    | "updatedAt"
-    | "publishedAt"
-    | "prices"
-    | "isActive"
-    | "profanityCheckAttempts"
-    | "isProfanity"
+    | "title"
+    | "description"
+    | "make"
+    | "model"
+    | "year"
+    | "mileage_km"
+    | "engineType"
+    | "transmission"
+    | "region"
+    | "city"
 > & {
     enteredPrice: CurrencyAmountType;
 };
 
-export type ListingCreateDbType = Omit<
-    ListingType,
-    "_id" | "createdAt" | "updatedAt"
->;
-
 export type ListingUpdateDtoType = Partial<ListingCreateDtoType>;
+
+export type ListingCreateDbType = Omit<ListingCreateDtoType, "enteredPrice"> &
+    Pick<
+        ListingType,
+        | "userId"
+        | "organizationId"
+        | "isActive"
+        | "isProfanity"
+        | "publishedAt"
+        | "prices"
+    >;

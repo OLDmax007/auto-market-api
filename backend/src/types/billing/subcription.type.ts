@@ -12,7 +12,4 @@ export type SubscriptionType = {
     isActive: boolean;
 } & BaseType;
 
-export type SubscriptionCreateType = Omit<
-    SubscriptionType,
-    "createdAt" | "updatedAt" | "_id"
->;
+export type SubscriptionCreateType = Pick<SubscriptionType, "userId">;
