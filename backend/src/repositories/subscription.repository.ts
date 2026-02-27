@@ -1,4 +1,5 @@
 import { Subscription } from "../models/billing/subscription.model";
+import { UpdateEntityType } from "../types/base.type";
 import {
     SubscriptionCreateType,
     SubscriptionType,
@@ -15,8 +16,9 @@ class SubscriptionRepository {
 
     public updateById(
         id: string,
-        dto: Partial<Omit<SubscriptionCreateType, "userId">>,
+        dto: UpdateEntityType<SubscriptionType>,
     ): Promise<SubscriptionType> {
+        console.log(dto);
         return Subscription.findByIdAndUpdate(id, dto, { new: true });
     }
 

@@ -1,4 +1,5 @@
 import { Listing } from "../models/listing/listing.model";
+import { UpdateEntityType } from "../types/base.type";
 import { ListingCreateDbType, ListingType } from "../types/listing.type";
 import {
     PaginatedResponseType,
@@ -24,7 +25,7 @@ class ListingRepository {
 
     public updateById(
         id: string,
-        dto: Partial<ListingCreateDbType>,
+        dto: UpdateEntityType<ListingType>,
     ): Promise<ListingType> {
         return Listing.findByIdAndUpdate(id, dto, { new: true });
     }
@@ -36,11 +37,11 @@ class ListingRepository {
         return Listing.deleteMany({ userId });
     }
 
-    public async deactivateByUserId(userId: string) {
+    public async deactivateManyByUserId(userId: string) {
         return Listing.updateMany({ userId }, { $set: { isActive: false } });
     }
 
-    public async activateCleanByUserId(userId: string) {
+    public async activateManyByUserId(userId: string) {
         return Listing.updateMany(
             { userId, isProfanity: false },
             { $set: { isActive: true } },

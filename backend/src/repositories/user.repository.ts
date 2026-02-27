@@ -1,4 +1,5 @@
 import { User } from "../models/user.model";
+import { UpdateEntityType } from "../types/base.type";
 import {
     PaginatedResponseType,
     PaginateFilterType,
@@ -26,7 +27,10 @@ class UserRepository {
         return User.create(dto);
     }
 
-    public updateById(id: string, dto: Partial<UserType>): Promise<UserType> {
+    public updateById(
+        id: string,
+        dto: UpdateEntityType<UserType>,
+    ): Promise<UserType> {
         return User.findByIdAndUpdate(id, dto, { new: true });
     }
 
