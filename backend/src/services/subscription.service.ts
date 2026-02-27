@@ -71,14 +71,9 @@ class SubscriptionService {
         });
 
         return subscriptionRepository.updateById(subscriptionId, {
-            price: {
-                amount: price.amount,
-                currency: CurrencyEnum.UAH,
-            },
+            price,
             activeFrom: new Date(),
-            activeTo: null,
             planType: PlanTypeEnum.PREMIUM,
-            isActive: true,
         });
     }
 
@@ -127,7 +122,6 @@ class SubscriptionService {
             activeFrom: new Date(),
             activeTo: null,
             planType: dto.newPlan,
-            isActive: true,
         });
     }
 

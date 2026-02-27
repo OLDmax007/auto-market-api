@@ -1,10 +1,8 @@
 import { mainConfig } from "../configs/main.config";
 import { emailConstants } from "../constants/email-data";
 import { ActionTokenEnum } from "../enums/action-token.enum";
-import { CurrencyEnum } from "../enums/currency.enum";
 import { EmailEnum } from "../enums/email.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
-import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { ApiError } from "../errors/api.error";
 import { ensureIsActive } from "../helpers/ensure.helper";
 import { buildLink } from "../helpers/link-builder.helper";
@@ -49,14 +47,6 @@ class AuthService {
 
         const { _id: subscriptionId } = await subscriptionService.create({
             userId: createdUser._id,
-            planType: PlanTypeEnum.BASIC,
-            price: {
-                amount: 0,
-                currency: CurrencyEnum.UAH,
-            },
-            activeFrom: new Date(),
-            activeTo: null,
-            isActive: true,
         });
 
         const user = await userRepository.updateById(createdUser._id, {
