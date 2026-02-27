@@ -1,6 +1,7 @@
 import "./models/index";
 
 import express, { NextFunction, Request, Response } from "express";
+import fileUpload from "express-fileupload";
 
 import { mainConfig } from "./configs/main.config";
 import { cronRunner } from "./crons";
@@ -11,6 +12,7 @@ import { dataBaseService } from "./services/database.service";
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(fileUpload());
 
 app.use("/", apiRouter);
 
