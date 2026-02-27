@@ -4,3 +4,8 @@ export type CarMapType = {
     make: CarMarkEnum;
     models: string[];
 };
+
+export type CarMissingReportType = {
+    make?: string;
+    model?: string;
+};
