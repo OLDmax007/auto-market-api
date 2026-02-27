@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { UploadedFile } from "express-fileupload";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
@@ -204,6 +205,27 @@ class UserController {
             const { role } = res.locals.rolePayload as PlatformRoleType;
             await userService.deleteById(userIdByParams, userIdByPayload, role);
             res.sendStatus(HttpStatusEnum.NO_CONTENT);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async uploadAvatar(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const avatar = req.files.avatar as UploadedFile;
+            const data = await userService.uploadAvatar(userId, avatar);
+            res.status(HttpStatusEnum.CREATED).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async deleteAvatar(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const data = await userService.deleteAvatar(userId);
+            res.status(HttpStatusEnum.CREATED).json(data);
         } catch (e: unknown) {
             next(e);
         }
