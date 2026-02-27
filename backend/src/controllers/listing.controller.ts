@@ -128,44 +128,7 @@ class ListingController {
         }
     }
 
-    public async deleteById(req: Request, res: Response, next: NextFunction) {
-        try {
-            const { listingId } = req.params as { listingId: string };
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
-            await listingService.deleteById(listingId, userId, role);
-            res.sendStatus(HttpStatusEnum.NO_CONTENT);
-        } catch (e: unknown) {
-            next(e);
-        }
-    }
-
-    public async deactivateListing(
-        req: Request,
-        res: Response,
-        next: NextFunction,
-    ) {
-        try {
-            const { listingId } = req.params as { listingId: string };
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await listingService.setStatusByRole(
-                listingId,
-                userId,
-                role,
-                { isActive: false },
-            );
-            res.status(HttpStatusEnum.OK).json(data);
-        } catch (e: unknown) {
-            next(e);
-        }
-    }
-
-    public async activateListing(
-        req: Request,
-        res: Response,
-        next: NextFunction,
-    ) {
+    public async activate(req: Request, res: Response, next: NextFunction) {
         try {
             const { listingId } = req.params as { listingId: string };
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
@@ -175,6 +138,23 @@ class ListingController {
                 userId,
                 role,
                 { isActive: true },
+            );
+            res.status(HttpStatusEnum.OK).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async deactivate(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const { role } = res.locals.rolePayload as PlatformRoleType;
+            const data = await listingService.setStatusByRole(
+                listingId,
+                userId,
+                role,
+                { isActive: false },
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
@@ -213,6 +193,18 @@ class ListingController {
             res.status(HttpStatusEnum.OK).json(data);
         } catch (err) {
             next(err);
+        }
+    }
+
+    public async deleteById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const { role } = res.locals.rolePayload as PlatformRoleType;
+            await listingService.deleteById(listingId, userId, role);
+            res.sendStatus(HttpStatusEnum.NO_CONTENT);
+        } catch (e: unknown) {
+            next(e);
         }
     }
 }
