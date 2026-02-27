@@ -47,7 +47,7 @@ router.patch(
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.USER_ACTIVATE),
-    userController.activateUser,
+    userController.activate,
 );
 
 router.patch(
@@ -57,7 +57,7 @@ router.patch(
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.USER_DEACTIVATE),
-    userController.deactivateUser,
+    userController.deactivate,
 );
 
 router.patch(
