@@ -1,5 +1,6 @@
 import path from "node:path";
 
+import { ObjectCannedACL } from "@aws-sdk/client-s3";
 import { config } from "dotenv";
 
 config({ path: path.resolve(__dirname, "../../../.env") });
@@ -22,6 +23,12 @@ type MainConfig = {
     JWT_VERIFY_LIFETIME: string;
     JWT_RECOVERY_SECRET: string;
     JWT_RECOVERY_LIFETIME: string;
+    AWS_S3_BUCKET_NAME: string;
+    AWS_S3_ACCESS_KEY: string;
+    AWS_S3_SECRET_KEY: string;
+    AWS_S3_REGION: string;
+    AWS_S3_ACL: ObjectCannedACL;
+    AWS_S3_BUCKET_URL: string;
 };
 
 export const mainConfig: MainConfig = {
@@ -42,4 +49,10 @@ export const mainConfig: MainConfig = {
     JWT_VERIFY_LIFETIME: process.env.JWT_VERIFY_LIFETIME,
     JWT_RECOVERY_SECRET: process.env.JWT_RECOVERY_SECRET,
     JWT_RECOVERY_LIFETIME: process.env.JWT_RECOVERY_LIFETIME,
+    AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
+    AWS_S3_ACCESS_KEY: process.env.AWS_S3_ACCESS_KEY,
+    AWS_S3_SECRET_KEY: process.env.AWS_S3_SECRET_KEY,
+    AWS_S3_REGION: process.env.AWS_S3_REGION,
+    AWS_S3_ACL: process.env.AWS_S3_ACL as ObjectCannedACL,
+    AWS_S3_BUCKET_URL: process.env.AWS_S3_BUCKET_URL,
 };
