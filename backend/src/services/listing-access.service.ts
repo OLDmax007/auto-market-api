@@ -7,6 +7,7 @@ import { ApiError } from "../errors/api.error";
 import { ensureIsActive } from "../helpers/ensure.helper";
 import { buildLink } from "../helpers/link-builder.helper";
 import { listingRepository } from "../repositories/listing.repository";
+import { UpdateEntityType } from "../types/base.type";
 import { ListingCreateDbType, ListingType } from "../types/listing.type";
 import { emailService } from "./email.service";
 import { profanityService } from "./profanity.service";
@@ -68,7 +69,7 @@ class ListingAccessService {
             }
         }
 
-        const updateProfanity: Partial<ListingCreateDbType> = {};
+        const updateProfanity: UpdateEntityType<ListingType> = {};
 
         if (isDirty) {
             const newAttempts = listing.profanityCheckAttempts + 1;
@@ -77,14 +78,18 @@ class ListingAccessService {
             updateProfanity.profanityCheckAttempts = newAttempts;
 
             if (newAttempts === this.maxAttempts) {
-                await emailService.sendEmail(
-                    mainConfig.EMAIL_SUPPORT,
-                    emailConstants.LISTING_MODERATION,
-                    {
-                        listingId: listing._id,
-                        link: buildLink(`/listings/moderation/${listing._id}`),
-                    },
-                );
+                emailService
+                    .sendEmail(
+                        mainConfig.EMAIL_SUPPORT,
+                        emailConstants.LISTING_MODERATION,
+                        {
+                            listingId: listing._id,
+                            link: buildLink(
+                                `/listings/moderation/${listing._id}`,
+                            ),
+                        },
+                    )
+                    .catch();
             }
 
             const attemptsLeft = this.maxAttempts - newAttempts;
