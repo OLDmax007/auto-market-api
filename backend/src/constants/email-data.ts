@@ -27,4 +27,8 @@ export const emailConstants: IEmailConstants<typeof EmailEnum> = {
         subject: "MODERATION REQUIRED: Profanity detected",
         template: "listing-moderation",
     },
+    [EmailEnum.CAR_MISSING]: {
+        subject: "Missing car make or model requested",
+        template: "car-missing",
+    },
 };
