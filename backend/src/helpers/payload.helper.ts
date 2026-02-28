@@ -1,11 +1,16 @@
 import { TokenPayloadBuildType } from "../types/token.type";
-import { UserType } from "../types/user.type";
 
 export const buildTokenPayload = (
-    userData: Partial<UserType>,
+    userData: Partial<{
+        _id: string;
+        userId: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+    }>,
 ): TokenPayloadBuildType => {
     return {
-        userId: userData._id,
+        userId: userData._id || userData.userId,
         email: userData.email,
         firstName: userData.firstName,
         lastName: userData.lastName,
