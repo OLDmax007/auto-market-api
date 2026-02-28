@@ -1,4 +1,8 @@
+import { UploadedFile } from "express-fileupload";
+
+import { defaultImagesEndpoints } from "../constants/default-images-endpoints";
 import { CurrencyEnum } from "../enums/currency.enum";
+import { FileItemEnum } from "../enums/file-item.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { ApiError } from "../errors/api.error";
@@ -19,6 +23,7 @@ import { listingStaticService } from "./listing-static.service";
 import { locationService } from "./location.service";
 import { pricingService } from "./pricing.service";
 import { profanityService } from "./profanity.service";
+import { s3Service } from "./s3.service";
 import { userAccessService } from "./user-access.service";
 
 class ListingService {
@@ -141,13 +146,11 @@ class ListingService {
             userId,
             organizationId,
             prices,
-            publishedAt: new Date(),
-            isProfanity: isDirty,
+            publishedAt: !isDirty ? new Date() : null,
             isActive: !isDirty,
-            profanityCheckAttempts: 0,
+            isProfanity: isDirty,
             ...newDto,
         });
-
         await listingStaticService.createViews({
             listingId: listing._id,
             views: {
@@ -259,6 +262,53 @@ class ListingService {
         ensureIsActive(listing.isActive, "Listing is already deactivated");
         return listingRepository.updateById(id, {
             isActive: false,
+        });
+    }
+
+    public async uploadPoster(
+        listingId: string,
+        userId: string,
+        file: UploadedFile,
+    ): Promise<ListingType> {
+        const listing = await this.getById(listingId);
+
+        userAccessService.checkAccountOwnership(listing.userId, userId);
+
+        if (
+            listing.poster &&
+            listing.poster !== defaultImagesEndpoints.listing
+        ) {
+            await s3Service.deleteFile(listing.poster);
+        }
+
+        const poster = await s3Service.uploadFile(
+            file,
+            FileItemEnum.LISTINGS,
+            listingId,
+        );
+
+        return listingRepository.updateById(listingId, { poster });
+    }
+
+    public async deletePoster(
+        listingId: string,
+        userId: string,
+    ): Promise<ListingType> {
+        const listing = await this.getById(listingId);
+
+        userAccessService.checkAccountOwnership(listing.userId, userId);
+
+        if (
+            !listing.poster ||
+            listing.poster === defaultImagesEndpoints.listing
+        ) {
+            return listing;
+        }
+
+        await s3Service.deleteFile(listing.poster);
+
+        return listingRepository.updateById(listingId, {
+            poster: defaultImagesEndpoints.listing,
         });
     }
 }
