@@ -24,6 +24,10 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.ME_LISTING_DEACTIVATE,
         PlatformPermissionEnum.LISTING_CLOSE,
         PlatformPermissionEnum.LISTING_GET_MY_BY_ID,
+        PlatformPermissionEnum.ME_UPLOAD_AVATAR,
+        PlatformPermissionEnum.ME_DELETE_AVATAR,
+        PlatformPermissionEnum.LISTING_UPLOAD_POSTER,
+        PlatformPermissionEnum.LISTING_DELETE_POSTER,
     ],
     [PlatformRoleEnum.MANAGER]: [
         PlatformPermissionEnum.ME_GET,
@@ -37,6 +41,8 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.USER_GET_ALL,
         PlatformPermissionEnum.USER_ACTIVATE,
         PlatformPermissionEnum.USER_DEACTIVATE,
+        PlatformPermissionEnum.ME_UPLOAD_AVATAR,
+        PlatformPermissionEnum.ME_DELETE_AVATAR,
     ],
     [PlatformRoleEnum.ADMIN]: Object.values(PlatformPermissionEnum).filter(
         (permission) => permission !== PlatformPermissionEnum.ME_DEACTIVATE,
