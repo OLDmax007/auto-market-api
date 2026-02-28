@@ -67,14 +67,15 @@ router.post(
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(PlatformPermissionEnum.ME_UPLOAD_AVATAR),
     userController.uploadAvatar,
 );
 router.delete(
     "/avatar",
-    fileMiddleware.isValidFile("avatar"),
     authMiddleware.checkToken(TokenTypeEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(PlatformPermissionEnum.ME_DELETE_AVATAR),
     userController.deleteAvatar,
 );
 
