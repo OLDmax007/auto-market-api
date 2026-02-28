@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { UploadedFile } from "express-fileupload";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { listingService } from "../services/listing.service";
@@ -203,6 +204,33 @@ class ListingController {
             const { role } = res.locals.rolePayload as PlatformRoleType;
             await listingService.deleteById(listingId, userId, role);
             res.sendStatus(HttpStatusEnum.NO_CONTENT);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async uploadPoster(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const poster = req.files.poster as UploadedFile;
+            const data = await listingService.uploadPoster(
+                listingId,
+                userId,
+                poster,
+            );
+            res.status(HttpStatusEnum.CREATED).json(data);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async deletePoster(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const data = await listingService.deletePoster(listingId, userId);
+            res.status(HttpStatusEnum.CREATED).json(data);
         } catch (e: unknown) {
             next(e);
         }
