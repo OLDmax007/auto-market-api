@@ -38,19 +38,6 @@ class UserAccessService {
         }
     }
 
-    public checkAccessRights(
-        targetUserId: string,
-        initiatorId: string,
-        initiatorRole: PlatformRoleEnum,
-    ): void {
-        if (
-            initiatorRole === PlatformRoleEnum.VISITOR ||
-            initiatorRole === PlatformRoleEnum.SELLER
-        ) {
-            this.checkAccountOwnership(targetUserId, initiatorId);
-        }
-    }
-
     public checkAccountOwnership(
         targetUserId: string,
         initiatorId: string,
