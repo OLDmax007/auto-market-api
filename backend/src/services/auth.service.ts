@@ -121,10 +121,16 @@ class AuthService {
         payload: TokenPayloadType,
         refreshTokenInput: string,
     ): Promise<TokenType> {
-        await tokenRepository.deleteOneByParams({
+        const result = await tokenRepository.deleteOneByParams({
             userId: payload.userId,
             refreshToken: refreshTokenInput,
         });
+        if (!result || result.deletedCount === 0) {
+            throw new ApiError(
+                HttpStatusEnum.UNAUTHORIZED,
+                "Invalid session. Please login again.",
+            );
+        }
         const cleanPayload = buildTokenPayload(payload);
         const tokens = tokenService.generateTokens(cleanPayload);
         return tokenRepository.create({
