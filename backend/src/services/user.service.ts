@@ -96,16 +96,25 @@ class UserService {
         if (userAccessService.isSelfAction(user._id, initiatorId)) {
             userAccessService.checkAccountOwnership(user._id, initiatorId);
         } else {
-            const { role } = await platformRoleService.getPlatformRoleById(
-                user.platformRoleId,
-            );
+            if (!userAccessService.isSelfAction(user._id, initiatorId)) {
+                const { role } = await platformRoleService.getPlatformRoleById(
+                    user.platformRoleId,
+                );
 
-            userAccessService.checkAccessRights(
-                user._id,
-                initiatorId,
-                initiatorRole,
-            );
-            userAccessService.checkIsStaff(role, initiatorRole);
+                userAccessService.checkIsStaff(role, initiatorRole);
+                const isStaff = [
+                    PlatformRoleEnum.ADMIN,
+                    PlatformRoleEnum.MANAGER,
+                ].includes(initiatorRole);
+                if (!isStaff) {
+                    userAccessService.checkAccountOwnership(
+                        user._id,
+                        initiatorId,
+                    );
+                }
+            }
+
+            return userRepository.updateById(user._id, dto);
         }
 
         return userRepository.updateById(user._id, dto);
@@ -257,24 +266,27 @@ class UserService {
         userId: string,
         file: UploadedFile,
     ): Promise<UserType> {
-        await this.deleteAvatar(userId);
+        const user = await this.getById(userId);
+
+        if (user.avatar && user.avatar !== defaultImagesEndpoints.user) {
+            await s3Service.deleteFile(user.avatar);
+        }
 
         const avatar = await s3Service.uploadFile(
             file,
             FileItemEnum.USERS,
             userId,
         );
-
-        return userRepository.updateById(userId, {
-            avatar,
-        });
+        return userRepository.updateById(userId, { avatar });
     }
 
     public async deleteAvatar(userId: string): Promise<UserType> {
         const user = await this.getById(userId);
-        if (user.avatar === defaultImagesEndpoints.user) {
+
+        if (!user.avatar || user.avatar === defaultImagesEndpoints.user) {
             return user;
         }
+
         await s3Service.deleteFile(user.avatar);
         return userRepository.updateById(userId, {
             avatar: defaultImagesEndpoints.user,
