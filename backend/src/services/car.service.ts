@@ -1,5 +1,5 @@
 import { mainConfig } from "../configs/main.config";
-import { emailConstants } from "../constants/email-data";
+import { EMAIL_DATA } from "../constants/email-data.constants";
 import { CarMarkEnum } from "../enums/car.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { ApiError } from "../errors/api.error";
@@ -51,7 +51,7 @@ class CarService {
         }
 
         emailService
-            .sendEmail(mainConfig.EMAIL_SUPPORT, emailConstants.CAR_MISSING, {
+            .sendEmail(mainConfig.EMAIL_SUPPORT, EMAIL_DATA.CAR_MISSING, {
                 make: dto.make ?? "N/A",
                 model: dto.model ?? "N/A",
             })

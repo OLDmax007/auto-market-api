@@ -1,5 +1,5 @@
 import { HttpStatusEnum } from "../enums/http-status.enum";
-import { RegionEnum } from "../enums/region-enum";
+import { RegionEnum } from "../enums/region.enum";
 import { ApiError } from "../errors/api.error";
 import { locationRepository } from "../repositories/location.repository";
 import { LocationMapType } from "../types/location.type";

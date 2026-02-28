@@ -1,17 +1,17 @@
 import profanity from "leo-profanity";
 
-import { EnProfanityList } from "../constants/en-profanity-list";
-import { RuProfanityList } from "../constants/ru-profanity-list";
-import { UaProfanityList } from "../constants/ua-profanity-list";
+import { EN_PROFANITY_LIST } from "../constants/en-profanity-list.constants";
+import { RU_PROFANITY_LIST } from "../constants/ru-profanity-list.constants";
+import { UA_PROFANITY_LIST } from "../constants/ua-profanity-list.constants";
 
 class ProfanityService {
     constructor() {
         profanity.loadDictionary("ru");
         profanity.loadDictionary("en");
         profanity.add([
-            ...RuProfanityList,
-            ...UaProfanityList,
-            ...EnProfanityList,
+            ...RU_PROFANITY_LIST,
+            ...UA_PROFANITY_LIST,
+            ...EN_PROFANITY_LIST,
         ]);
     }
 

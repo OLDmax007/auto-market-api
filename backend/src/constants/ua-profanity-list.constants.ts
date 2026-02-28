@@ -1,4 +1,4 @@
-export const UaProfanityList = [
+export const UA_PROFANITY_LIST = [
     "курва",
     "курво",
     "дідько",

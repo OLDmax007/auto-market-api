@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { mainConfig } from "../configs/main.config";
 import { ActionTokenEnum } from "../enums/action-token.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
-import { TokenTypeEnum } from "../enums/token-type.enum";
+import { TokenEnum } from "../enums/token.enum";
 import { ApiError } from "../errors/api.error";
 import { tokenRepository } from "../repositories/token.repository";
 import { TokenPairType, TokenPayloadType } from "../types/token.type";
@@ -53,15 +53,15 @@ class TokenService {
 
     public verifyToken(
         token: string,
-        tokenType: TokenTypeEnum | ActionTokenEnum,
+        tokenType: TokenEnum | ActionTokenEnum,
     ): TokenPayloadType {
         try {
             let secret: string;
             switch (tokenType) {
-                case TokenTypeEnum.ACCESS:
+                case TokenEnum.ACCESS:
                     secret = JWT_ACCESS_SECRET;
                     break;
-                case TokenTypeEnum.REFRESH:
+                case TokenEnum.REFRESH:
                     secret = JWT_REFRESH_SECRET;
                     break;
                 case ActionTokenEnum.VERIFY_USER:
@@ -91,7 +91,7 @@ class TokenService {
 
     public async isTokenValid(
         token: string,
-        type: TokenTypeEnum,
+        type: TokenEnum,
     ): Promise<boolean> {
         const tokenRecord = await tokenRepository.getOneByParams({
             [type]: token,

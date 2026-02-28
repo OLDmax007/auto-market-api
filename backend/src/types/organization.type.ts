@@ -1,4 +1,4 @@
-import { PlanTypeEnum } from "../enums/plan-type.enum";
+import { SubscriptionPlanEnum } from "../enums/subscription-plan.enum";
 import { BaseType } from "./base.type";
 
 export type OrganizationType = {
@@ -6,7 +6,7 @@ export type OrganizationType = {
     name: string;
     description?: string | null;
     ownerId: string;
-    planType: PlanTypeEnum;
+    planType: SubscriptionPlanEnum;
     address: {
         country: string;
         city: string;

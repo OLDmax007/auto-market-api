@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../enums/http-status.enum";
-import { PlanTypeEnum } from "../enums/plan-type.enum";
+import { SubscriptionPlanEnum } from "../enums/subscription-plan.enum";
 import { subscriptionService } from "../services/subscription.service";
 import { PlatformRoleType } from "../types/permissions/platform-role.type";
 import { TokenPayloadType } from "../types/token.type";
@@ -17,7 +17,7 @@ class SubscriptionController {
             const { userId: initiatorId } = res.locals
                 .tokenPayload as TokenPayloadType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
-            const dto = req.body as { newPlan: PlanTypeEnum };
+            const dto = req.body as { newPlan: SubscriptionPlanEnum };
 
             const data = await subscriptionService.setSubscriptionPlanByUserId(
                 userId,

@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import { authController } from "../controllers/auth.controller";
 import { ActionTokenEnum } from "../enums/action-token.enum";
-import { TokenTypeEnum } from "../enums/token-type.enum";
+import { TokenEnum } from "../enums/token.enum";
 import { authMiddleware } from "../middlewares/auth.middleware";
 
 const router = Router();
@@ -12,7 +12,7 @@ router.post("/sign-in", authController.signIn);
 
 router.post(
     "/refresh",
-    authMiddleware.checkToken(TokenTypeEnum.REFRESH),
+    authMiddleware.checkToken(TokenEnum.REFRESH),
     authController.refresh,
 );
 
@@ -24,7 +24,7 @@ router.patch(
 
 router.post(
     "/verify/resend",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     authController.requestEmailVerification,
 );
 
@@ -38,13 +38,13 @@ router.patch(
 
 router.delete(
     "/logout",
-    authMiddleware.checkToken(TokenTypeEnum.REFRESH),
+    authMiddleware.checkToken(TokenEnum.REFRESH),
     authController.logout,
 );
 
 router.delete(
     "/logout-all",
-    authMiddleware.checkToken(TokenTypeEnum.REFRESH),
+    authMiddleware.checkToken(TokenEnum.REFRESH),
     authController.logoutFromAllDevices,
 );
 

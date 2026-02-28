@@ -2,12 +2,12 @@ import { NextFunction, Request, Response } from "express";
 
 import { ActionTokenEnum } from "../enums/action-token.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
-import { TokenTypeEnum } from "../enums/token-type.enum";
+import { TokenEnum } from "../enums/token.enum";
 import { ApiError } from "../errors/api.error";
 import { tokenService } from "../services/token.service";
 
 class AuthMiddleware {
-    public checkToken(tokenType: TokenTypeEnum, isOptional: boolean = false) {
+    public checkToken(tokenType: TokenEnum, isOptional: boolean = false) {
         return async (req: Request, res: Response, next: NextFunction) => {
             try {
                 const authHeader = req.headers.authorization;

@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import { userController } from "../controllers/user.controller";
 import { PlatformPermissionEnum } from "../enums/platform-permission.enum";
-import { TokenTypeEnum } from "../enums/token-type.enum";
+import { TokenEnum } from "../enums/token.enum";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { commonMiddleware } from "../middlewares/common.middleware";
 import { roleMiddleware } from "../middlewares/role.middleware";
@@ -11,7 +11,7 @@ import { userMiddleware } from "../middlewares/user.middleware";
 const router = Router();
 router.get(
     "/",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.USER_GET_ALL),
@@ -21,7 +21,7 @@ router.get(
 router.get(
     "/moderation/:userId",
     commonMiddleware.isValidId("userId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(
@@ -33,7 +33,7 @@ router.get(
 router.patch(
     "/moderation/:userId/role",
     commonMiddleware.isValidId("userId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.USER_SET_ROLE),
@@ -43,7 +43,7 @@ router.patch(
 router.patch(
     "/moderation/:userId/activate",
     commonMiddleware.isValidId("userId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.USER_ACTIVATE),
@@ -53,7 +53,7 @@ router.patch(
 router.patch(
     "/moderation/:userId/deactivate",
     commonMiddleware.isValidId("userId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.USER_DEACTIVATE),
@@ -63,7 +63,7 @@ router.patch(
 router.patch(
     "/moderation/:userId",
     commonMiddleware.isValidId("userId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(
@@ -75,7 +75,7 @@ router.patch(
 router.delete(
     "/moderation/:userId",
     commonMiddleware.isValidId("userId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.USER_DELETE),

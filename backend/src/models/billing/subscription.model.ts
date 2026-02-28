@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 import { CurrencyEnum } from "../../enums/currency.enum";
-import { PlanTypeEnum } from "../../enums/plan-type.enum";
+import { SubscriptionPlanEnum } from "../../enums/subscription-plan.enum";
 import { SubscriptionType } from "../../types/billing/subcription.type";
 
 const { Schema, model } = mongoose;
@@ -17,8 +17,8 @@ const subscriptionSchema = new Schema(
 
         planType: {
             type: String,
-            enum: PlanTypeEnum,
-            default: PlanTypeEnum.BASIC,
+            enum: SubscriptionPlanEnum,
+            default: SubscriptionPlanEnum.BASIC,
         },
 
         price: {

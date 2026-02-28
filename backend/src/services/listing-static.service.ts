@@ -1,6 +1,6 @@
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PeriodEnum } from "../enums/period.enum";
-import { PlanTypeEnum } from "../enums/plan-type.enum";
+import { SubscriptionPlanEnum } from "../enums/subscription-plan.enum";
 import { ApiError } from "../errors/api.error";
 import { ensureIsActive } from "../helpers/ensure.helper";
 import { listingStaticRepository } from "../repositories/listing-static.repository";
@@ -46,7 +46,7 @@ class ListingStaticsService {
             "Your subscription is deactivated. Please renew!",
         );
 
-        if (planType === PlanTypeEnum.BASIC) {
+        if (planType === SubscriptionPlanEnum.BASIC) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
                 "Upgrade premium plan!",

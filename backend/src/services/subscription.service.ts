@@ -1,8 +1,8 @@
 import { CurrencyEnum } from "../enums/currency.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { PaymentStatusEnum } from "../enums/payment-status.enum";
-import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
+import { SubscriptionPlanEnum } from "../enums/subscription-plan.enum";
 import { ApiError } from "../errors/api.error";
 import { ensureIsStatusSame } from "../helpers/ensure.helper";
 import { paymentRepository } from "../repositories/payment.repository";
@@ -37,7 +37,7 @@ class SubscriptionService {
 
         const { planType } = await this.getById(subscriptionId);
 
-        if (planType === PlanTypeEnum.PREMIUM) {
+        if (planType === SubscriptionPlanEnum.PREMIUM) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
                 "User already has PREMIUM subscription",
@@ -73,7 +73,7 @@ class SubscriptionService {
         return subscriptionRepository.updateById(subscriptionId, {
             price,
             activeFrom: new Date(),
-            planType: PlanTypeEnum.PREMIUM,
+            planType: SubscriptionPlanEnum.PREMIUM,
         });
     }
 
@@ -107,7 +107,7 @@ class SubscriptionService {
         userId: string,
         initiatorId: string,
         initiatorRole: PlatformRoleEnum,
-        dto: { newPlan: PlanTypeEnum },
+        dto: { newPlan: SubscriptionPlanEnum },
     ): Promise<SubscriptionType> {
         const user = await userService.getById(userId);
         const subscription = await this.getById(user.subscriptionId);

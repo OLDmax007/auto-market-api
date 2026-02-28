@@ -5,7 +5,7 @@ import handlebars from "handlebars";
 import { createTransport, Transporter } from "nodemailer";
 
 import { mainConfig } from "../configs/main.config";
-import { IEmailData } from "../constants/email-data";
+import { IEmailData } from "../constants/email-data.constants";
 
 class EmailService {
     private transporter: Transporter;

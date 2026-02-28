@@ -1,5 +1,5 @@
 import { mainConfig } from "../configs/main.config";
-import { emailConstants } from "../constants/email-data";
+import { EMAIL_DATA } from "../constants/email-data.constants";
 import { ActionTokenEnum } from "../enums/action-token.enum";
 import { EmailEnum } from "../enums/email.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
@@ -68,7 +68,7 @@ class AuthService {
         );
 
         emailService
-            .sendEmail(user.email, emailConstants.WELCOME, {
+            .sendEmail(user.email, EMAIL_DATA.WELCOME, {
                 catalogLink: buildLink("/cars/makes"),
                 verifyLink: buildLink("/verify", token),
             })
@@ -175,13 +175,9 @@ class AuthService {
             config.tokenType,
         );
 
-        await emailService.sendEmail(
-            user.email,
-            emailConstants[config.emailType],
-            {
-                link: buildLink(config.path, token),
-            },
-        );
+        await emailService.sendEmail(user.email, EMAIL_DATA[config.emailType], {
+            link: buildLink(config.path, token),
+        });
 
         return user;
     };

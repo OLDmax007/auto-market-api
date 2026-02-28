@@ -1,4 +1,4 @@
-export enum PlanTypeEnum {
+export enum SubscriptionPlanEnum {
     BASIC = "basic",
     PREMIUM = "premium",
 }

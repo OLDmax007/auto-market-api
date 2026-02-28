@@ -1,6 +1,6 @@
 import { UploadedFile } from "express-fileupload";
 
-import { defaultImagesEndpoints } from "../constants/default-images-endpoints";
+import { DEFAULT_IMAGES_ENDPOINTS } from "../constants/default-images-endpoints.constants";
 import { CurrencyEnum } from "../enums/currency.enum";
 import { FileItemEnum } from "../enums/file-item.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
@@ -268,7 +268,7 @@ class UserService {
     ): Promise<UserType> {
         const user = await this.getById(userId);
 
-        if (user.avatar && user.avatar !== defaultImagesEndpoints.user) {
+        if (user.avatar && user.avatar !== DEFAULT_IMAGES_ENDPOINTS.user) {
             await s3Service.deleteFile(user.avatar);
         }
 
@@ -283,13 +283,13 @@ class UserService {
     public async deleteAvatar(userId: string): Promise<UserType> {
         const user = await this.getById(userId);
 
-        if (!user.avatar || user.avatar === defaultImagesEndpoints.user) {
+        if (!user.avatar || user.avatar === DEFAULT_IMAGES_ENDPOINTS.user) {
             return user;
         }
 
         await s3Service.deleteFile(user.avatar);
         return userRepository.updateById(userId, {
-            avatar: defaultImagesEndpoints.user,
+            avatar: DEFAULT_IMAGES_ENDPOINTS.user,
         });
     }
 }

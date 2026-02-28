@@ -1,6 +1,6 @@
 import { UploadedFile } from "express-fileupload";
 
-import { defaultImagesEndpoints } from "../constants/default-images-endpoints";
+import { DEFAULT_IMAGES_ENDPOINTS } from "../constants/default-images-endpoints.constants";
 import { CurrencyEnum } from "../enums/currency.enum";
 import { FileItemEnum } from "../enums/file-item.enum";
 import { HttpStatusEnum } from "../enums/http-status.enum";
@@ -276,7 +276,7 @@ class ListingService {
 
         if (
             listing.poster &&
-            listing.poster !== defaultImagesEndpoints.listing
+            listing.poster !== DEFAULT_IMAGES_ENDPOINTS.listing
         ) {
             await s3Service.deleteFile(listing.poster);
         }
@@ -300,7 +300,7 @@ class ListingService {
 
         if (
             !listing.poster ||
-            listing.poster === defaultImagesEndpoints.listing
+            listing.poster === DEFAULT_IMAGES_ENDPOINTS.listing
         ) {
             return listing;
         }
@@ -308,7 +308,7 @@ class ListingService {
         await s3Service.deleteFile(listing.poster);
 
         return listingRepository.updateById(listingId, {
-            poster: defaultImagesEndpoints.listing,
+            poster: DEFAULT_IMAGES_ENDPOINTS.listing,
         });
     }
 }

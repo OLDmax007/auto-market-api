@@ -3,7 +3,7 @@ import { Router } from "express";
 import { subscriptionController } from "../controllers/subscription.controller";
 import { userController } from "../controllers/user.controller";
 import { PlatformPermissionEnum } from "../enums/platform-permission.enum";
-import { TokenTypeEnum } from "../enums/token-type.enum";
+import { TokenEnum } from "../enums/token.enum";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { fileMiddleware } from "../middlewares/file.middleware";
 import { roleMiddleware } from "../middlewares/role.middleware";
@@ -13,7 +13,7 @@ const router = Router();
 
 router.get(
     "/",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.ME_GET),
     userController.getMe,
@@ -21,7 +21,7 @@ router.get(
 
 router.patch(
     "/",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.ME_UPDATE),
@@ -30,7 +30,7 @@ router.patch(
 
 router.patch(
     "/close",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.ME_DEACTIVATE),
     userController.closeMe,
@@ -38,7 +38,7 @@ router.patch(
 
 router.patch(
     "/become-seller",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.ME_BECOME_SELLER),
@@ -46,7 +46,7 @@ router.patch(
 );
 router.patch(
     "/upgrade-plan",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.ME_UPGRADE_PLAN),
@@ -54,7 +54,7 @@ router.patch(
 );
 router.patch(
     "/top-up-balance",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.ME_TOP_UP),
@@ -64,7 +64,7 @@ router.patch(
 router.post(
     "/avatar",
     fileMiddleware.isValidFile("avatar"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.ME_UPLOAD_AVATAR),
@@ -72,7 +72,7 @@ router.post(
 );
 router.delete(
     "/avatar",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.ME_DELETE_AVATAR),

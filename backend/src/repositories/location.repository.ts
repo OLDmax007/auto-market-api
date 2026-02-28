@@ -1,4 +1,4 @@
-import { RegionEnum } from "../enums/region-enum";
+import { RegionEnum } from "../enums/region.enum";
 import { Location } from "../models/location.model";
 import { LocationMapType } from "../types/location.type";
 

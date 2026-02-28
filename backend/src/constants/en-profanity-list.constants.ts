@@ -1,4 +1,4 @@
-export const EnProfanityList = [
+export const EN_PROFANITY_LIST = [
     "fuck",
     "fucking",
     "fucker",

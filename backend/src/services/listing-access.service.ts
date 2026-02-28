@@ -1,8 +1,8 @@
 import { mainConfig } from "../configs/main.config";
-import { emailConstants } from "../constants/email-data";
+import { EMAIL_DATA } from "../constants/email-data.constants";
 import { HttpStatusEnum } from "../enums/http-status.enum";
-import { PlanTypeEnum } from "../enums/plan-type.enum";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
+import { SubscriptionPlanEnum } from "../enums/subscription-plan.enum";
 import { ApiError } from "../errors/api.error";
 import { ensureIsActive } from "../helpers/ensure.helper";
 import { buildLink } from "../helpers/link-builder.helper";
@@ -81,7 +81,7 @@ class ListingAccessService {
                 emailService
                     .sendEmail(
                         mainConfig.EMAIL_SUPPORT,
-                        emailConstants.LISTING_MODERATION,
+                        EMAIL_DATA.LISTING_MODERATION,
                         {
                             listingId: listing._id,
                             link: buildLink(
@@ -129,7 +129,9 @@ class ListingAccessService {
         );
 
         const limit =
-            planType === PlanTypeEnum.PREMIUM && isActive ? Infinity : 1;
+            planType === SubscriptionPlanEnum.PREMIUM && isActive
+                ? Infinity
+                : 1;
 
         if (currentListingsCount >= limit) {
             throw new ApiError(

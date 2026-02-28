@@ -1,6 +1,6 @@
 import { CarMarkEnum, EngineEnum, TransmissionEnum } from "../enums/car.enum";
 import { CountryEnum } from "../enums/country-enum";
-import { RegionEnum } from "../enums/region-enum";
+import { RegionEnum } from "../enums/region.enum";
 import { BaseType } from "./base.type";
 import { CurrencyAmountType } from "./rate.type";
 

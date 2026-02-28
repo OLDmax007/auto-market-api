@@ -1,7 +1,7 @@
 import mongoose, { PaginateModel } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-import { defaultImagesEndpoints } from "../constants/default-images-endpoints";
+import { DEFAULT_IMAGES_ENDPOINTS } from "../constants/default-images-endpoints.constants";
 import { CurrencyEnum } from "../enums/currency.enum";
 import { UserType } from "../types/user.type";
 
@@ -35,7 +35,7 @@ const userSchema = new Schema(
         },
         avatar: {
             type: String,
-            default: defaultImagesEndpoints.user,
+            default: DEFAULT_IMAGES_ENDPOINTS.user,
         },
         isActive: { type: Boolean, default: true },
         isVerified: { type: Boolean, default: true },

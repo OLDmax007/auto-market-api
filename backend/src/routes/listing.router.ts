@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import { listingController } from "../controllers/listing.controller";
 import { PlatformPermissionEnum } from "../enums/platform-permission.enum";
-import { TokenTypeEnum } from "../enums/token-type.enum";
+import { TokenEnum } from "../enums/token.enum";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { commonMiddleware } from "../middlewares/common.middleware";
 import { fileMiddleware } from "../middlewares/file.middleware";
@@ -14,7 +14,7 @@ const router = Router();
 router.get("/", listingController.getAllPublic);
 router.get(
     "/my",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     listingController.getAllMy,
@@ -22,7 +22,7 @@ router.get(
 router.get(
     "/my/:listingId",
     commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_GET_MY_BY_ID),
@@ -31,7 +31,7 @@ router.get(
 
 router.get(
     "/moderation",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(
@@ -43,7 +43,7 @@ router.get(
 router.get(
     "/moderation/:listingId",
     commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(
@@ -55,7 +55,7 @@ router.get(
 router.get(
     "/:listingId/statistics",
     commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_GET_STATS),
@@ -65,13 +65,13 @@ router.get(
 router.get(
     "/:listingId",
     commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS, true),
+    authMiddleware.checkToken(TokenEnum.ACCESS, true),
     listingController.getPublicById,
 );
 
 router.post(
     "/",
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_CREATE),
@@ -81,7 +81,7 @@ router.post(
 router.patch(
     "/:listingId",
     commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_EDIT),
@@ -91,7 +91,7 @@ router.patch(
 router.patch(
     "/moderation/:listingId/activate",
     commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_ACTIVATE),
@@ -101,7 +101,7 @@ router.patch(
 router.patch(
     "/moderation/:listingId/deactivate",
     commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_DEACTIVATE),
@@ -110,7 +110,7 @@ router.patch(
 router.patch(
     "/:listingId/close",
     commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     roleMiddleware.checkPermission(
         PlatformPermissionEnum.ME_LISTING_DEACTIVATE,
@@ -122,7 +122,7 @@ router.post(
     "/:listingId/poster",
     commonMiddleware.isValidId("listingId"),
     fileMiddleware.isValidFile("poster"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(
@@ -133,7 +133,7 @@ router.post(
 router.delete(
     "/:listingId/poster",
     commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(
@@ -145,7 +145,7 @@ router.delete(
 router.delete(
     "/moderation/:listingId",
     commonMiddleware.isValidId("listingId"),
-    authMiddleware.checkToken(TokenTypeEnum.ACCESS),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
     userMiddleware.isActiveUser,
     userMiddleware.isVerifiedUser,
     roleMiddleware.checkPermission(PlatformPermissionEnum.LISTING_DELETE),

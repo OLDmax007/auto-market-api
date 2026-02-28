@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { PlanTypeEnum } from "../enums/plan-type.enum";
+import { SubscriptionPlanEnum } from "../enums/subscription-plan.enum";
 import { OrganizationType } from "../types/organization.type";
 
 const { Schema, model } = mongoose;
@@ -25,8 +25,8 @@ const organizationSchema = new Schema(
         },
         planType: {
             type: String,
-            enum: PlanTypeEnum,
-            default: PlanTypeEnum.BASIC,
+            enum: SubscriptionPlanEnum,
+            default: SubscriptionPlanEnum.BASIC,
         },
         address: { type: addressSchema, required: true },
         isActive: { type: Boolean, default: true, required: true },

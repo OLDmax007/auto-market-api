@@ -1,4 +1,4 @@
-export const RuProfanityList = [
+export const RU_PROFANITY_LIST = [
     "блять",
     "блядь",
     "бля",

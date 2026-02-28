@@ -1,14 +1,14 @@
 import { model, PaginateModel, Schema } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-import { defaultImagesEndpoints } from "../../constants/default-images-endpoints";
+import { DEFAULT_IMAGES_ENDPOINTS } from "../../constants/default-images-endpoints.constants";
 import {
     CarMarkEnum,
     EngineEnum,
     TransmissionEnum,
 } from "../../enums/car.enum";
 import { CountryEnum } from "../../enums/country-enum";
-import { RegionEnum } from "../../enums/region-enum";
+import { RegionEnum } from "../../enums/region.enum";
 import { ListingType } from "../../types/listing.type";
 
 export const listingSchema = new Schema(
@@ -60,7 +60,7 @@ export const listingSchema = new Schema(
         city: { type: String, required: true },
         poster: {
             type: String,
-            default: defaultImagesEndpoints.listing,
+            default: DEFAULT_IMAGES_ENDPOINTS.listing,
         },
         profanityCheckAttempts: { type: Number, default: 0 },
         isProfanity: { type: Boolean, default: false },

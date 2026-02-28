@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { urls } from "../constants/urls";
+import { URLS } from "../constants/urls.constants";
 import { HttpStatusEnum } from "../enums/http-status.enum";
 import { ApiError } from "../errors/api.error";
 import { rateRepository } from "../repositories/rate.repository";
@@ -12,7 +12,7 @@ import {
 
 class PrivatBankService {
     public async getRates(): Promise<PrivatBankRateType[]> {
-        const { data } = await axios.get<PrivatBankRateType[]>(urls.privatBank);
+        const { data } = await axios.get<PrivatBankRateType[]>(URLS.privatBank);
 
         if (!data?.length) {
             throw new ApiError(HttpStatusEnum.NOT_FOUND, "Rates not found");
