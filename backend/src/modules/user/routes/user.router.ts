@@ -1,0 +1,91 @@
+import { Router } from "express";
+
+import { commonMiddleware } from "../../../common/middlewares/common.middleware";
+import { authMiddleware } from "../../auth/auth.middleware";
+import { TokenEnum } from "../../auth/enums/token.enum";
+import { PlatformPermissionEnum } from "../enums/platform-permission.enum";
+import { roleMiddleware } from "../middlewares/role.middleware";
+import { userMiddleware } from "../middlewares/user.middleware";
+import { userController } from "../user.controller";
+
+const router = Router();
+router.get(
+    "/",
+    authMiddleware.checkToken(TokenEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(PlatformPermissionEnum.USER_GET_ALL),
+    userController.getAll,
+);
+
+router.get(
+    "/moderation/:userId",
+    commonMiddleware.isValidId("userId"),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(
+        PlatformPermissionEnum.USER_GET_BY_MODERATION,
+    ),
+    userController.getByIdForModeration,
+);
+
+router.patch(
+    "/moderation/:userId/role",
+    commonMiddleware.isValidId("userId"),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(PlatformPermissionEnum.USER_SET_ROLE),
+    userController.setPlatformRole,
+);
+
+router.patch(
+    "/moderation/:userId/activate",
+    commonMiddleware.isValidId("userId"),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(PlatformPermissionEnum.USER_ACTIVATE),
+    userController.activate,
+);
+
+router.patch(
+    "/moderation/:userId/deactivate",
+    commonMiddleware.isValidId("userId"),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(PlatformPermissionEnum.USER_DEACTIVATE),
+    userController.deactivate,
+);
+
+router.patch(
+    "/moderation/:userId",
+    commonMiddleware.isValidId("userId"),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(
+        PlatformPermissionEnum.USER_EDIT_BY_MODERATION,
+    ),
+    userController.updateByRole,
+);
+
+router.delete(
+    "/moderation/:userId",
+    commonMiddleware.isValidId("userId"),
+    authMiddleware.checkToken(TokenEnum.ACCESS),
+    userMiddleware.isActiveUser,
+    userMiddleware.isVerifiedUser,
+    roleMiddleware.checkPermission(PlatformPermissionEnum.USER_DELETE),
+    userController.deleteById,
+);
+
+router.get(
+    "/:userId",
+    commonMiddleware.isValidId("userId"),
+    userController.getPublicById,
+);
+
+export const userRouter = router;

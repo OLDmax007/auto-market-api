@@ -1,6 +1,8 @@
-import { OrgRole, PlatformRole } from "../src/models";
-import { platformRolePermissionsMap } from "../src/mappers/platform-role-perm.map";
-import { orgRolePermissionsMap } from "../src/mappers/org-role-perm.map";
+import {orgRolePermissionsMap} from "../src/modules/organization/org-role-perm.map";
+import {OrgRole} from "../src/modules/organization/models/org-role.model";
+import {PlatformRole} from "../src/modules/user/models/platform-role.model";
+import {platformRolePermissionsMap} from "../src/modules/user/platform-role-perm.map";
+
 
 export const seedPermissionsAndRoles = async () => {
 

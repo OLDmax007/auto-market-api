@@ -1,8 +1,9 @@
-import {dataBaseService} from "../src/services/database.service";
+
 import {seedPermissionsAndRoles} from "./seed-permissions-and-roles";
 import {seedLocations} from "./seed-locations";
-import {pricingService} from "../src/services/pricing.service";
 import {seedCars} from "./seed-cars";
+import {pricingService} from "../src/modules/listing/services/pricing.service";
+import {dataBaseService} from "../src/common/services/database.service";
 
 const mainSeed = async () => {
     try {

@@ -1,13 +1,13 @@
-import "./models/index";
+import "./index-models";
 
 import express, { NextFunction, Request, Response } from "express";
 import fileUpload from "express-fileupload";
 
-import { mainConfig } from "./configs/main.config";
-import { cronRunner } from "./crons";
-import { ApiError } from "./errors/api.error";
-import { apiRouter } from "./routes/api.router";
-import { dataBaseService } from "./services/database.service";
+import { apiRouter } from "./api.router";
+import { mainConfig } from "./common/configs/main.config";
+import { ApiError } from "./common/errors/api.error";
+import { dataBaseService } from "./common/services/database.service";
+import { cronRunner } from "./index-crons";
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -35,4 +35,4 @@ const startServer = async () => {
     }
 };
 
-startServer();
+void startServer();

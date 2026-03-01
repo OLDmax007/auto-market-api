@@ -1,0 +1,104 @@
+import jwt from "jsonwebtoken";
+
+import { mainConfig } from "../../../common/configs/main.config";
+import { HttpStatusEnum } from "../../../common/enums/http-status.enum";
+import { ApiError } from "../../../common/errors/api.error";
+import { ActionTokenEnum } from "../enums/action-token.enum";
+import { TokenEnum } from "../enums/token.enum";
+import { tokenRepository } from "../token.repository";
+import { TokenPairType, TokenPayloadType } from "../token.type";
+
+const {
+    JWT_ACCESS_SECRET,
+    JWT_ACCESS_LIFETIME,
+    JWT_REFRESH_SECRET,
+    JWT_REFRESH_LIFETIME,
+    JWT_VERIFY_SECRET,
+    JWT_VERIFY_LIFETIME,
+    JWT_RECOVERY_SECRET,
+    JWT_RECOVERY_LIFETIME,
+} = mainConfig;
+
+class TokenService {
+    public generateTokens(payload: TokenPayloadType): TokenPairType {
+        const accessToken = jwt.sign(payload, JWT_ACCESS_SECRET, {
+            expiresIn: JWT_ACCESS_LIFETIME,
+        });
+        const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, {
+            expiresIn: JWT_REFRESH_LIFETIME,
+        });
+        return { accessToken, refreshToken };
+    }
+    public generateActionToken(
+        payload: TokenPayloadType,
+        tokenType: ActionTokenEnum,
+    ): string {
+        let secret: string;
+        let expiresIn: any;
+
+        switch (tokenType) {
+            case ActionTokenEnum.VERIFY_USER:
+                secret = JWT_VERIFY_SECRET;
+                expiresIn = JWT_VERIFY_LIFETIME;
+                break;
+            case ActionTokenEnum.RECOVER_PASSWORD:
+                secret = JWT_RECOVERY_SECRET;
+                expiresIn = JWT_RECOVERY_LIFETIME;
+                break;
+        }
+        return jwt.sign(payload, secret, {
+            expiresIn,
+        });
+    }
+
+    public verifyToken(
+        token: string,
+        tokenType: TokenEnum | ActionTokenEnum,
+    ): TokenPayloadType {
+        try {
+            let secret: string;
+            switch (tokenType) {
+                case TokenEnum.ACCESS:
+                    secret = JWT_ACCESS_SECRET;
+                    break;
+                case TokenEnum.REFRESH:
+                    secret = JWT_REFRESH_SECRET;
+                    break;
+                case ActionTokenEnum.VERIFY_USER:
+                    secret = JWT_VERIFY_SECRET;
+                    break;
+                case ActionTokenEnum.RECOVER_PASSWORD:
+                    secret = JWT_RECOVERY_SECRET;
+                    break;
+                default:
+                    throw new ApiError(
+                        HttpStatusEnum.UNAUTHORIZED,
+                        "Unauthorized",
+                    );
+            }
+            return jwt.verify(token, secret) as TokenPayloadType;
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                console.error(e.message);
+            }
+
+            throw new ApiError(
+                HttpStatusEnum.UNAUTHORIZED,
+                "Invalid or expired token",
+            );
+        }
+    }
+
+    public async isTokenValid(
+        token: string,
+        type: TokenEnum,
+    ): Promise<boolean> {
+        const tokenRecord = await tokenRepository.getOneByParams({
+            [type]: token,
+        });
+
+        return !!tokenRecord;
+    }
+}
+
+export const tokenService = new TokenService();

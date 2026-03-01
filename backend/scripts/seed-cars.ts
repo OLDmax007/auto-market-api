@@ -1,5 +1,5 @@
-import {Car} from "../src/models/car.model";
-import {CarMap} from "../src/mappers/car.map";
+import {Car} from "../src/modules/car/car.model";
+import {CarMap} from "../src/modules/car/car.map";
 
 
 export const seedCars = async () => {
