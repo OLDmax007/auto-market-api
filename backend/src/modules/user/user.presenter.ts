@@ -1,57 +1,72 @@
-// import { PlatformRoleEnum } from "./enums/platform-role.enum";
-// import { UserType } from "./types/user.type";
-//
-// class UserPresenter {
-//
-//     private getBaseFields(user: UserType) {
-//         return {
-//             _id: user._id,
-//             firstName: user.firstName,
-//             lastName: user.lastName,
-//             age: user.age,
-//             email: user.email,
-//             organizationId: user.organizationId,
-//             platformRoleId: user.platformRoleId,
-//             avatar: user.avatar,
-//         };
-//     }
-//
-//     public toPublicResponse(
-//         user: UserType,
-//         role: PlatformRoleEnum,
-//     ): Partial<UserType> {
-//         const baseFields = this.getBaseFields(user);
-//
-//         switch (role) {
-//             case PlatformRoleEnum.ADMIN:
-//             case PlatformRoleEnum.MANAGER:
-//                 return {
-//                     ...baseFields,
-//                     isActive: user.isActive,
-//                     isVerified: user.isVerified,
-//                     balance: user.balance,
-//                     subscriptionId: user.subscriptionId,
-//                     createdAt: user.createdAt,
-//                     updatedAt: user.updatedAt,
-//                 };
-//
-//             default:
-//                 return baseFields;
-//         }
-//     }
-//
-//     public toPrivateResponse(user: UserType): Partial<UserType> {
-//         const baseFields = this.getBaseFields(user);
-//
-//         return {
-//             ...baseFields,
-//             subscriptionId: user.subscriptionId,
-//             balance: user.balance,
-//             isActive: user.isActive,
-//             isVerified: user.isVerified,
-//             createdAt: user.createdAt,
-//         };
-//     }
-// }
-//
-// export const userPresenter = new UserPresenter();
+import { mainConfig } from "../../common/configs/main.config";
+import { PlatformRoleEnum } from "./enums/platform-role.enum";
+import { UserType } from "./types/user.type";
+
+export class UserPresenter {
+    private static getBaseFields(user: UserType) {
+        return {
+            _id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            age: user.age,
+            avatar: `${mainConfig.AWS_S3_BUCKET_URL}/${user.avatar}`,
+            organizationId: user.organizationId,
+        };
+    }
+
+    public static toPublicResponse(user: UserType): Partial<UserType> {
+        return this.getBaseFields(user);
+    }
+
+    public static toPrivateResponse(user: UserType): Partial<UserType> {
+        return {
+            ...this.getBaseFields(user),
+            platformRoleId: user.platformRoleId,
+            subscriptionId: user.subscriptionId,
+            email: user.email,
+            balance: user.balance,
+            isActive: user.isActive,
+            isVerified: user.isVerified,
+            createdAt: user.createdAt,
+        };
+    }
+
+    public static toAdminResponse(user: UserType): Partial<UserType> {
+        return {
+            ...this.getBaseFields(user),
+            email: user.email,
+            balance: user.balance,
+            platformRoleId: user.platformRoleId,
+            subscriptionId: user.subscriptionId,
+            isActive: user.isActive,
+            isVerified: user.isVerified,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        };
+    }
+
+    public static toModerationResponse(user: UserType): Partial<UserType> {
+        return {
+            ...this.getBaseFields(user),
+            platformRoleId: user.platformRoleId,
+            subscriptionId: user.subscriptionId,
+            isActive: user.isActive,
+            isVerified: user.isVerified,
+        };
+    }
+
+    public static toResponseByRole(
+        user: UserType,
+        role: PlatformRoleEnum,
+    ): Partial<UserType> {
+        if (role === PlatformRoleEnum.ADMIN) {
+            return this.toAdminResponse(user);
+        }
+
+        if (role === PlatformRoleEnum.MANAGER) {
+            return this.toModerationResponse(user);
+        }
+
+        return this.toPublicResponse(user);
+    }
+}
