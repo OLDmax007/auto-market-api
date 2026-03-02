@@ -1,6 +1,6 @@
-import { CarMarkEnum } from "./car.enum";
+import { CarMakeEnum } from "./car.enum";
 
 export type CarMapType = {
-    make: CarMarkEnum;
+    make: CarMakeEnum;
     models: string[];
 };

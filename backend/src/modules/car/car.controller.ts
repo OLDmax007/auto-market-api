@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusEnum } from "../../common/enums/http-status.enum";
-import { CarMarkEnum } from "./car.enum";
+import { CarMakeEnum } from "./car.enum";
 import { carService } from "./car.service";
 
 class CarController {
@@ -20,7 +20,7 @@ class CarController {
         next: NextFunction,
     ) {
         try {
-            const make = req.params.make as CarMarkEnum;
+            const make = req.params.make as CarMakeEnum;
             const data = await carService.getModelsByMake(make);
             res.status(HttpStatusEnum.OK).json(data);
         } catch (e: unknown) {
@@ -34,7 +34,7 @@ class CarController {
         next: NextFunction,
     ) {
         try {
-            const dto = req.body as { model: string };
+            const dto = req.body as { make: CarMakeEnum; model: string };
             await carService.sendMissingModel(dto);
             res.sendStatus(HttpStatusEnum.NO_CONTENT);
         } catch (e: unknown) {
