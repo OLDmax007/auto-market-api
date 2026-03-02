@@ -2,7 +2,7 @@ import { model, PaginateModel, Schema } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
 import { DEFAULT_IMAGES_ENDPOINTS } from "../../../common/constants/default-images-endpoints.constants";
-import { CarMarkEnum, EngineEnum, TransmissionEnum } from "../../car/car.enum";
+import { CarMakeEnum } from "../../car/car.enum";
 import { CountryEnum } from "../../location/enums/country.enum";
 import { RegionEnum } from "../../location/enums/region.enum";
 import { ListingType } from "../types/listing.type";
@@ -21,23 +21,13 @@ export const listingSchema = new Schema(
         },
         title: { type: String, required: true },
         description: { type: String, required: true },
-        make: { type: String, enum: CarMarkEnum, required: true },
+        make: { type: String, enum: CarMakeEnum, required: true },
         model: {
             type: String,
             required: true,
         },
         year: { type: Number, required: true },
         mileage_km: { type: Number, required: true },
-        engineType: {
-            type: String,
-            enum: EngineEnum,
-            required: true,
-        },
-        transmission: {
-            type: String,
-            enum: TransmissionEnum,
-            required: true,
-        },
         prices: [
             {
                 _id: false,

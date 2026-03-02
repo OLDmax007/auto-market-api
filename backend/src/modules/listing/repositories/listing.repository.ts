@@ -4,7 +4,7 @@ import {
     PaginateFilterType,
     PaginateOptionsType,
 } from "../../../common/types/pagination.type";
-import { Listing } from "../modules/listing.model";
+import { Listing } from "../models/listing.model";
 import { ListingCreateDbType, ListingType } from "../types/listing.type";
 
 class ListingRepository {

@@ -1,6 +1,6 @@
 import { CronJob } from "cron";
 
-import { Listing } from "../listing/modules/listing.model";
+import { Listing } from "../listing/models/listing.model";
 import { pricingService } from "../listing/services/pricing.service";
 
 export const exchangeRatesAndPricesCron = new CronJob(

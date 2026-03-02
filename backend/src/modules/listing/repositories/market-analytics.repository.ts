@@ -1,4 +1,4 @@
-import { Listing } from "../modules/listing.model";
+import { Listing } from "../models/listing.model";
 import {
     ListingAveragePriceByLocationType,
     MarketAnalyticsDtoType,

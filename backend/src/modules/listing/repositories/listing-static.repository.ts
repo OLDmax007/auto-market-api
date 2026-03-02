@@ -1,5 +1,5 @@
 import { PeriodEnum } from "../../location/enums/period.enum";
-import { ListingStatics } from "../modules/listing-statics.model";
+import { ListingStatics } from "../models/listing-statics.model";
 import {
     ListingStaticsCreateDtoType,
     ListingStaticsType,
