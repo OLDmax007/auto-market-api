@@ -13,7 +13,7 @@ class FileMiddleware {
                 if (!file) {
                     throw new ApiError(
                         HttpStatusEnum.BAD_REQUEST,
-                        `Field "${key}" is missing a file`,
+                        `Field '${key}' is missing a file`,
                     );
                 }
                 const allowedMimetypes = ["image/jpeg", "image/png"];
