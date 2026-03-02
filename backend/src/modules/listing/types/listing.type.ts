@@ -1,5 +1,5 @@
 import { BaseType } from "../../../common/types/base.type";
-import { CarMarkEnum, EngineEnum, TransmissionEnum } from "../../car/car.enum";
+import { CarMakeEnum } from "../../car/car.enum";
 import { CountryEnum } from "../../location/enums/country.enum";
 import { RegionEnum } from "../../location/enums/region.enum";
 import { CurrencyAmountType } from "../../rate/rate.type";
@@ -10,12 +10,10 @@ export type ListingType = {
     organizationId: string | null;
     title: string;
     description: string;
-    make: CarMarkEnum;
+    make: CarMakeEnum;
     model: string;
     year: number;
     mileage_km: number;
-    engineType: EngineEnum;
-    transmission: TransmissionEnum;
     prices: CurrencyAmountType[];
     country: CountryEnum.UKRAINE;
     region: RegionEnum;
@@ -35,8 +33,6 @@ export type ListingCreateDtoType = Pick<
     | "model"
     | "year"
     | "mileage_km"
-    | "engineType"
-    | "transmission"
     | "region"
     | "city"
 > & {
