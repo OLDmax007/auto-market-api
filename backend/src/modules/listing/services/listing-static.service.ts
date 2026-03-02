@@ -4,6 +4,8 @@ import { ensureIsActive } from "../../../common/helpers/ensure.helper";
 import { PeriodEnum } from "../../location/enums/period.enum";
 import { SubscriptionPlanEnum } from "../../subscription/enums/subscription-plan.enum";
 import { subscriptionService } from "../../subscription/subscription.service";
+import { PlatformRoleEnum } from "../../user/enums/platform-role.enum";
+import { userAccessService } from "../../user/services/user-access.service";
 import { listingStaticRepository } from "../repositories/listing-static.repository";
 import {
     ListingAveragePriceByLocationType,
@@ -18,6 +20,7 @@ class ListingStaticsService {
         userId: string,
         subscriptionId: string,
         listingId: string,
+        initiatorRole: PlatformRoleEnum,
     ): Promise<{
         views: ListingStaticsType["views"];
         averagePrice: ListingAveragePriceByLocationType;
@@ -34,23 +37,29 @@ class ListingStaticsService {
             userId: userIdByListing,
         } = await listingService.getById(listingId);
 
-        if (String(userIdByListing) !== String(userId)) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "You can only view statistics for your own listings.",
-            );
-        }
+        const isStaff = [
+            PlatformRoleEnum.ADMIN,
+            PlatformRoleEnum.MANAGER,
+        ].includes(initiatorRole);
 
-        ensureIsActive(
-            isActive,
-            "Your subscription is deactivated. Please renew!",
-        );
-
-        if (planType === SubscriptionPlanEnum.BASIC) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "Upgrade premium plan!",
+        if (!isStaff) {
+            userAccessService.checkAccountOwnership(
+                userId,
+                userIdByListing,
+                "listing",
             );
+
+            ensureIsActive(
+                isActive,
+                "Your subscription is deactivated. Please renew!",
+            );
+
+            if (planType === SubscriptionPlanEnum.BASIC) {
+                throw new ApiError(
+                    HttpStatusEnum.FORBIDDEN,
+                    "Upgrade premium plan!",
+                );
+            }
         }
 
         const [stats, avgPrices] = await Promise.all([
