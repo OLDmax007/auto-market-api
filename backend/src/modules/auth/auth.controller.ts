@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { EmailEnum } from "../../common/enums/email.enum";
 import { HttpStatusEnum } from "../../common/enums/http-status.enum";
 import { UserCreateDtoType, UserLoginDtoType } from "../user/types/user.type";
+import { UserPresenter } from "../user/user.presenter";
 import { ActionTokenEnum } from "./enums/action-token.enum";
 import { authService } from "./serivces/auth.service";
 import { TokenPayloadType } from "./token.type";
@@ -12,16 +13,25 @@ class AuthController {
         try {
             const dto = req.body as UserCreateDtoType;
             const data = await authService.signUp(dto);
-            res.status(HttpStatusEnum.CREATED).json(data);
+            const presented = {
+                user: UserPresenter.toPrivateResponse(data.user),
+                tokens: data.tokens,
+            };
+            res.status(HttpStatusEnum.CREATED).json(presented);
         } catch (e: unknown) {
             next(e);
         }
     }
+
     public async signIn(req: Request, res: Response, next: NextFunction) {
         try {
             const dto = req.body as UserLoginDtoType;
             const data = await authService.signIn(dto);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = {
+                user: UserPresenter.toPrivateResponse(data.user),
+                tokens: data.tokens,
+            };
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -42,7 +52,8 @@ class AuthController {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await authService.verify(userId);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = UserPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -55,12 +66,14 @@ class AuthController {
     ) {
         try {
             const { email } = req.body as { email: string };
-            const data = await authService.sendAuthActionEmail(email, {
+            await authService.sendAuthActionEmail(email, {
                 emailType: EmailEnum.VERIFY_USER,
                 tokenType: ActionTokenEnum.VERIFY_USER,
                 path: "/verify",
             });
-            res.status(HttpStatusEnum.OK).json(data);
+            res.status(HttpStatusEnum.OK).json({
+                message: "Verification email sent",
+            });
         } catch (e: unknown) {
             next(e);
         }
@@ -73,12 +86,14 @@ class AuthController {
     ) {
         try {
             const { email } = req.body as { email: string };
-            const data = await authService.sendAuthActionEmail(email, {
+            await authService.sendAuthActionEmail(email, {
                 emailType: EmailEnum.RECOVER_PASSWORD,
                 tokenType: ActionTokenEnum.RECOVER_PASSWORD,
                 path: "/reset-password",
             });
-            res.status(HttpStatusEnum.OK).json(data);
+            res.status(HttpStatusEnum.OK).json({
+                message: "Recovery email sent",
+            });
         } catch (e: unknown) {
             next(e);
         }
@@ -93,7 +108,11 @@ class AuthController {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const { password } = req.body as { password: string };
             const data = await authService.resetPassword(userId, password);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = {
+                user: UserPresenter.toPrivateResponse(data.user),
+                tokens: data.tokens,
+            };
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
