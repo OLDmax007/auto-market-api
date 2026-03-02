@@ -4,6 +4,7 @@ import { HttpStatusEnum } from "../../common/enums/http-status.enum";
 import { TokenPayloadType } from "../auth/token.type";
 import { PlatformRoleType } from "../user/types/platform-role.type";
 import { SubscriptionPlanEnum } from "./enums/subscription-plan.enum";
+import { SubscriptionPresenter } from "./subscription.presenter";
 import { subscriptionService } from "./subscription.service";
 
 class SubscriptionController {
@@ -25,7 +26,8 @@ class SubscriptionController {
                 role,
                 dto,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = SubscriptionPresenter.toAdminResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -44,7 +46,8 @@ class SubscriptionController {
                 role,
                 true,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = SubscriptionPresenter.toAdminResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -63,7 +66,8 @@ class SubscriptionController {
                 role,
                 false,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = SubscriptionPresenter.toAdminResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -77,7 +81,8 @@ class SubscriptionController {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await subscriptionService.upgradeToPremium(userId);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = SubscriptionPresenter.toResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
