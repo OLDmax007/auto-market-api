@@ -1,4 +1,3 @@
-import { CurrencyEnum } from "../../common/enums/currency.enum";
 import { HttpStatusEnum } from "../../common/enums/http-status.enum";
 import { ApiError } from "../../common/errors/api.error";
 import { ensureIsStatusSame } from "../../common/helpers/ensure.helper";
@@ -11,6 +10,7 @@ import { PaymentStatusEnum } from "./enums/payment-status.enum";
 import { SubscriptionPlanEnum } from "./enums/subscription-plan.enum";
 import { paymentRepository } from "./repositories/payment.repository";
 import { subscriptionRepository } from "./repositories/subscription.repository";
+import { SUBSCRIPTION_PLANS } from "./subscription.constants";
 import {
     SubscriptionCreateType,
     SubscriptionType,
@@ -43,9 +43,10 @@ class SubscriptionService {
                 "User already has PREMIUM subscription",
             );
         }
-        const price = { amount: 500, currency: CurrencyEnum.UAH };
+        const { price, currency } =
+            SUBSCRIPTION_PLANS[SubscriptionPlanEnum.PREMIUM];
 
-        if (balance.amount < price.amount) {
+        if (balance.amount < price) {
             throw new ApiError(
                 HttpStatusEnum.BAD_REQUEST,
                 "User does not has enough money",
@@ -56,8 +57,8 @@ class SubscriptionService {
             subscriptionId,
             userId,
             price: {
-                amount: price.amount,
-                currency: CurrencyEnum.UAH,
+                amount: price,
+                currency: currency,
             },
             paidAt: new Date(),
             status: PaymentStatusEnum.SUCCESS,
@@ -65,13 +66,16 @@ class SubscriptionService {
 
         await userRepository.updateById(userId, {
             balance: {
-                amount: balance.amount - price.amount,
-                currency: CurrencyEnum.UAH,
+                amount: balance.amount - price,
+                currency: currency,
             },
         });
 
         return subscriptionRepository.updateById(subscriptionId, {
-            price,
+            price: {
+                amount: price,
+                currency,
+            },
             activeFrom: new Date(),
             planType: SubscriptionPlanEnum.PREMIUM,
         });
