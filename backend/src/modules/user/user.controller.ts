@@ -13,13 +13,18 @@ import {
     UserUpdateByAdminDtoType,
     UserUpdateDtoType,
 } from "./types/user.type";
+import { UserPresenter } from "./user.presenter";
 
 class UserController {
     public async getAll(req: Request, res: Response, next: NextFunction) {
         try {
             const query = req.query as QueryType;
+            const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await userService.getAll(query);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = data.map((user) =>
+                UserPresenter.toResponseByRole(user, role),
+            );
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -32,8 +37,10 @@ class UserController {
     ) {
         try {
             const { userId } = req.params as { userId: string };
+            const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await userService.getById(userId);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = UserPresenter.toResponseByRole(data, role);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -47,7 +54,8 @@ class UserController {
         try {
             const { userId } = req.params as { userId: string };
             const data = await userService.getPublicById(userId);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = UserPresenter.toPublicResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -56,7 +64,8 @@ class UserController {
     public async getMe(req: Request, res: Response, next: NextFunction) {
         try {
             const user = res.locals.user as UserType;
-            res.status(HttpStatusEnum.OK).json(user);
+            const presented = UserPresenter.toPrivateResponse(user);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -73,7 +82,8 @@ class UserController {
                 role,
                 dto,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = UserPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -92,7 +102,8 @@ class UserController {
                 role,
                 dto,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = UserPresenter.toResponseByRole(data, role);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -110,7 +121,8 @@ class UserController {
                 role,
                 true,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = UserPresenter.toResponseByRole(data, role);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -128,7 +140,8 @@ class UserController {
                 role,
                 false,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = UserPresenter.toResponseByRole(data, role);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -145,7 +158,8 @@ class UserController {
                 subscriptionId,
                 isActive,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = UserPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -168,7 +182,8 @@ class UserController {
                 role,
                 body,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = UserPresenter.toResponseByRole(data, role);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -179,7 +194,8 @@ class UserController {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const { _id } = res.locals.rolePayload as PlatformRoleType;
             const data = await userService.becomeSeller(userId, _id);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = UserPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -197,25 +213,13 @@ class UserController {
         }
     }
 
-    public async deleteById(req: Request, res: Response, next: NextFunction) {
-        try {
-            const { userId: userIdByParams } = req.params as { userId: string };
-            const { userId: userIdByPayload } = res.locals
-                .tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
-            await userService.deleteById(userIdByParams, userIdByPayload, role);
-            res.sendStatus(HttpStatusEnum.NO_CONTENT);
-        } catch (e: unknown) {
-            next(e);
-        }
-    }
-
     public async uploadAvatar(req: Request, res: Response, next: NextFunction) {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const avatar = req.files.avatar as UploadedFile;
             const data = await userService.uploadAvatar(userId, avatar);
-            res.status(HttpStatusEnum.CREATED).json(data);
+            const presented = UserPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.CREATED).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -225,7 +229,21 @@ class UserController {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await userService.deleteAvatar(userId);
-            res.status(HttpStatusEnum.CREATED).json(data);
+            const presented = UserPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.CREATED).json(presented);
+        } catch (e: unknown) {
+            next(e);
+        }
+    }
+
+    public async deleteById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { userId: userIdByParams } = req.params as { userId: string };
+            const { userId: userIdByPayload } = res.locals
+                .tokenPayload as TokenPayloadType;
+            const { role } = res.locals.rolePayload as PlatformRoleType;
+            await userService.deleteById(userIdByParams, userIdByPayload, role);
+            res.sendStatus(HttpStatusEnum.NO_CONTENT);
         } catch (e: unknown) {
             next(e);
         }
