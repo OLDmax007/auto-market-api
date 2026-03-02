@@ -116,7 +116,7 @@ class AuthService {
     public async refresh(
         payload: TokenPayloadType,
         refreshTokenInput: string,
-    ): Promise<TokenType> {
+    ): Promise<Pick<TokenType, "accessToken" | "refreshToken">> {
         const result = await tokenRepository.deleteOneByParams({
             userId: payload.userId,
             refreshToken: refreshTokenInput,
@@ -129,10 +129,12 @@ class AuthService {
         }
         const cleanPayload = buildTokenPayload(payload);
         const tokens = tokenService.generateTokens(cleanPayload);
-        return tokenRepository.create({
+        const { accessToken, refreshToken } = await tokenRepository.create({
             ...tokens,
             userId: payload.userId,
         });
+
+        return { accessToken, refreshToken };
     }
 
     public verify = async (userId: string): Promise<UserType> => {
@@ -152,7 +154,7 @@ class AuthService {
             tokenType: ActionTokenEnum;
             path: string;
         },
-    ): Promise<UserType> => {
+    ): Promise<void> => {
         const user = await userService.getByEmail(
             inputEmail,
             "If an account with this email exists, a message has been sent to your email",
@@ -173,23 +175,45 @@ class AuthService {
 
         await emailService.sendEmail(user.email, EMAIL_DATA[config.emailType], {
             link: buildLink(config.path, token),
+            token,
         });
-
-        return user;
     };
 
     public resetPassword = async (
         userId: string,
         password: string,
-    ): Promise<UserType> => {
+    ): Promise<{ user: UserType; tokens: TokenPairType }> => {
         const user = await userService.getById(userId);
         ensureIsActive(user.isActive, "Your account is deactivated");
+        const isSamePassword = await passwordService.comparePassword(
+            password,
+            user.password,
+        );
+
+        if (isSamePassword) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "Create new password!",
+            );
+        }
 
         const hashedPassword = await passwordService.hashPassword(password);
 
-        return userRepository.updateById(userId, {
+        await userRepository.updateById(userId, {
             password: hashedPassword,
         });
+
+        await this.logoutFromAllDevices(user._id);
+
+        const payload = buildTokenPayload(user);
+        const tokens = tokenService.generateTokens(payload);
+
+        await tokenRepository.create({
+            ...tokens,
+            userId: user._id,
+        });
+
+        return { user, tokens };
     };
 
     public async logout(
