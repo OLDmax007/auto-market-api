@@ -38,6 +38,7 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.LISTING_GET_STATS,
         PlatformPermissionEnum.LISTING_GET_ALL_BY_MODERATION,
         PlatformPermissionEnum.LISTING_GET_BY_MODERATION,
+        PlatformPermissionEnum.USER_GET_BY_MODERATION,
         PlatformPermissionEnum.USER_GET_ALL,
         PlatformPermissionEnum.USER_ACTIVATE,
         PlatformPermissionEnum.USER_DEACTIVATE,
@@ -45,6 +46,8 @@ export const platformRolePermissionsMap: Record<
         PlatformPermissionEnum.ME_DELETE_AVATAR,
     ],
     [PlatformRoleEnum.ADMIN]: Object.values(PlatformPermissionEnum).filter(
-        (permission) => permission !== PlatformPermissionEnum.ME_DEACTIVATE,
+        (permission) =>
+            permission !== PlatformPermissionEnum.ME_DEACTIVATE &&
+            permission !== PlatformPermissionEnum.ME_BECOME_SELLER,
     ),
 };
