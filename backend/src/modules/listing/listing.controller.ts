@@ -6,6 +6,7 @@ import { ListingQueryType } from "../../common/types/pagination.type";
 import { TokenPayloadType } from "../auth/token.type";
 import { PlatformRoleType } from "../user/types/platform-role.type";
 import { UserType } from "../user/types/user.type";
+import { ListingPresenter } from "./listing.presenter";
 import { listingService } from "./services/listing.service";
 import { listingStaticService } from "./services/listing-static.service";
 import {
@@ -23,7 +24,10 @@ class ListingController {
                 isActive: true,
                 isProfanity: false,
             });
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = data.map((listing) =>
+                ListingPresenter.toPublicResponse(listing),
+            );
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -41,7 +45,8 @@ class ListingController {
                 listingId,
                 payload,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = ListingPresenter.toPublicResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -52,7 +57,10 @@ class ListingController {
             const query = req.query as ListingQueryType;
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await listingService.getAll({ ...query, userId });
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = data.map((listing) =>
+                ListingPresenter.toPrivateResponse(listing),
+            );
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e) {
             next(e);
         }
@@ -63,7 +71,8 @@ class ListingController {
             const { listingId } = req.params as { listingId: string };
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await listingService.getMyById(listingId, userId);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = ListingPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -76,8 +85,12 @@ class ListingController {
     ) {
         try {
             const query = req.query as ListingQueryType;
+            const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await listingService.getAll(query);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = data.map((listing) =>
+                ListingPresenter.toResponseByRole(listing, role),
+            );
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -90,8 +103,10 @@ class ListingController {
     ) {
         try {
             const { listingId } = req.params as { listingId: string };
+            const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await listingService.getById(listingId);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = ListingPresenter.toResponseByRole(data, role);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -106,11 +121,13 @@ class ListingController {
                 organizationId,
                 dto,
             );
-            res.status(HttpStatusEnum.CREATED).json(data);
+            const presented = ListingPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.CREATED).json(presented);
         } catch (e: unknown) {
             next(e);
         }
     }
+
     public async updateById(req: Request, res: Response, next: NextFunction) {
         try {
             const { listingId } = req.params as { listingId: string };
@@ -123,7 +140,8 @@ class ListingController {
                 role,
                 dto,
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = ListingPresenter.toResponseByRole(data, role);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e) {
             next(e);
         }
@@ -140,7 +158,8 @@ class ListingController {
                 role,
                 { isActive: true },
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = ListingPresenter.toResponseByRole(data, role);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -157,7 +176,8 @@ class ListingController {
                 role,
                 { isActive: false },
             );
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = ListingPresenter.toResponseByRole(data, role);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -172,7 +192,8 @@ class ListingController {
             const { listingId } = req.params as { listingId: string };
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await listingService.closeListing(listingId, userId);
-            res.status(HttpStatusEnum.OK).json(data);
+            const presented = ListingPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -186,10 +207,12 @@ class ListingController {
         try {
             const { listingId } = req.params as { listingId: string };
             const { _id, subscriptionId } = res.locals.user as UserType;
+            const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await listingStaticService.getPremiumStatsByListingId(
                 _id,
                 subscriptionId,
                 listingId,
+                role,
             );
             res.status(HttpStatusEnum.OK).json(data);
         } catch (err) {
@@ -219,7 +242,8 @@ class ListingController {
                 userId,
                 poster,
             );
-            res.status(HttpStatusEnum.CREATED).json(data);
+            const presented = ListingPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.CREATED).json(presented);
         } catch (e: unknown) {
             next(e);
         }
@@ -230,7 +254,8 @@ class ListingController {
             const { listingId } = req.params as { listingId: string };
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await listingService.deletePoster(listingId, userId);
-            res.status(HttpStatusEnum.CREATED).json(data);
+            const presented = ListingPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.CREATED).json(presented);
         } catch (e: unknown) {
             next(e);
         }
