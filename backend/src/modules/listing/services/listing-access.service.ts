@@ -6,17 +6,16 @@ import { ensureIsActive } from "../../../common/helpers/ensure.helper";
 import { buildLink } from "../../../common/helpers/link-builder.helper";
 import { emailService } from "../../../common/services/email.service";
 import { UpdateEntityType } from "../../../common/types/base.type";
-import { SubscriptionPlanEnum } from "../../subscription/enums/subscription-plan.enum";
+import { SUBSCRIPTION_PLANS } from "../../subscription/subscription.constants";
 import { subscriptionService } from "../../subscription/subscription.service";
 import { PlatformRoleEnum } from "../../user/enums/platform-role.enum";
 import { userService } from "../../user/services/user.service";
+import { listingConfig } from "../listing.config";
 import { listingRepository } from "../repositories/listing.repository";
 import { ListingCreateDbType, ListingType } from "../types/listing.type";
 import { profanityService } from "./profanity.service";
 
 class ListingAccessService {
-    private readonly maxAttempts = 3;
-
     public checkListingOwnership(ownerId: string, initiatorId: string): void {
         if (String(ownerId) !== String(initiatorId)) {
             throw new ApiError(
@@ -34,6 +33,8 @@ class ListingAccessService {
         updateProfanity: Partial<ListingCreateDbType>;
         error: ApiError | null;
     }> {
+        const { maxAttempts } = listingConfig;
+
         const isStaff = [
             PlatformRoleEnum.ADMIN,
             PlatformRoleEnum.MANAGER,
@@ -55,7 +56,7 @@ class ListingAccessService {
         }
 
         if (!isStaff) {
-            if (listing.profanityCheckAttempts >= this.maxAttempts) {
+            if (listing.profanityCheckAttempts >= maxAttempts) {
                 throw new ApiError(
                     HttpStatusEnum.FORBIDDEN,
                     "Listing deactivated due to profanity limit.",
@@ -77,7 +78,7 @@ class ListingAccessService {
             updateProfanity.isActive = false;
             updateProfanity.profanityCheckAttempts = newAttempts;
 
-            if (newAttempts === this.maxAttempts) {
+            if (newAttempts === maxAttempts) {
                 emailService
                     .sendEmail(
                         mainConfig.EMAIL_SUPPORT,
@@ -92,13 +93,13 @@ class ListingAccessService {
                     .catch();
             }
 
-            const attemptsLeft = this.maxAttempts - newAttempts;
+            const attemptsLeft = maxAttempts - newAttempts;
             return {
                 updateProfanity,
                 error: new ApiError(
                     HttpStatusEnum.BAD_REQUEST,
                     attemptsLeft > 0
-                        ? `Profanity! Attempts left: ${attemptsLeft} / ${this.maxAttempts}`
+                        ? `Profanity! Attempts left: ${attemptsLeft} / ${maxAttempts}`
                         : "Profanity! No attempts left. Listing deactivated",
                 ),
             };
@@ -128,12 +129,9 @@ class ListingAccessService {
             "Your subscription is deactivated. Please renew!",
         );
 
-        const limit =
-            planType === SubscriptionPlanEnum.PREMIUM && isActive
-                ? Infinity
-                : 1;
+        const { maxListingsLimit } = SUBSCRIPTION_PLANS[planType];
 
-        if (currentListingsCount >= limit) {
+        if (currentListingsCount >= maxListingsLimit) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
                 "Limit reached. Upgrade to Premium!",
