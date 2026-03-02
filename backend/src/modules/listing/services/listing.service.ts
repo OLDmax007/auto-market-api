@@ -277,8 +277,12 @@ class ListingService {
         file: UploadedFile,
     ): Promise<ListingType> {
         const listing = await this.getById(listingId);
-
-        userAccessService.checkAccountOwnership(listing.userId, userId);
+        userAccessService.checkAccountOwnership(
+            listing.userId,
+            userId,
+            "listing",
+        );
+        ensureIsActive(listing.isActive, "Listing is deactivated");
 
         if (
             listing.poster &&
@@ -301,8 +305,12 @@ class ListingService {
         userId: string,
     ): Promise<ListingType> {
         const listing = await this.getById(listingId);
-
-        userAccessService.checkAccountOwnership(listing.userId, userId);
+        userAccessService.checkAccountOwnership(
+            listing.userId,
+            userId,
+            "listing",
+        );
+        ensureIsActive(listing.isActive, "Listing is deactivated");
 
         if (
             !listing.poster ||
