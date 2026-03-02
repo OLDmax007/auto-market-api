@@ -1,13 +1,6 @@
-import { CarMarkEnum } from "./car.enum";
-import { CarMapType } from "./car.type";
+import { CarMakeEnum } from "./car.enum";
 
-export const CarMap: CarMapType[] = [
-    {
-        make: CarMarkEnum.BMW,
-        models: ["X5"],
-    },
-    {
-        make: CarMarkEnum.Daewoo,
-        models: ["Lanos"],
-    },
-];
+export const CarMap: Record<CarMakeEnum, string[]> = {
+    [CarMakeEnum.BMW]: ["X5"],
+    [CarMakeEnum.Daewoo]: ["Lanos"],
+};
