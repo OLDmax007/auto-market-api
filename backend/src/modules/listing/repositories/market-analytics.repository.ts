@@ -1,3 +1,4 @@
+import { CurrencyEnum } from "../../../common/enums/currency.enum";
 import { Listing } from "../models/listing.model";
 import {
     ListingAveragePriceByLocationType,
@@ -13,7 +14,7 @@ class MarketAnalyticsRepository {
         const result = await Listing.aggregate([
             { $match: { isActive: true, make, model } },
             { $unwind: "$prices" },
-            { $match: { "prices.mainCurrency": true } },
+            { $match: { "prices.currency": CurrencyEnum.UAH } },
             {
                 $facet: {
                     city: [
