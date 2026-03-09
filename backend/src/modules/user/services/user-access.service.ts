@@ -8,6 +8,12 @@ class UserAccessService {
         return String(targetUserId) === String(initiatorId);
     }
 
+    public isStaff(initiatorRole: PlatformRoleEnum): boolean {
+        return [PlatformRoleEnum.ADMIN, PlatformRoleEnum.MANAGER].includes(
+            initiatorRole,
+        );
+    }
+
     public checkIsStaff(
         targetRole: PlatformRoleEnum,
         initiatorRole: PlatformRoleEnum,
@@ -15,7 +21,7 @@ class UserAccessService {
         if (targetRole === PlatformRoleEnum.ADMIN) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
-                "Cannot perform action on an Administrator",
+                "This entity belongs to an Administrator and cannot be modified",
             );
         }
         if (
@@ -24,7 +30,7 @@ class UserAccessService {
         ) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
-                "Managers cannot perform actions on other Managers",
+                "Managers cannot modify each other's data",
             );
         }
     }
@@ -38,10 +44,10 @@ class UserAccessService {
         }
     }
 
-    public checkAccountOwnership(
+    public checkOwnership(
         targetUserId: string,
         initiatorId: string,
-        entityName: string = "account",
+        entityName: string,
     ): void {
         if (!this.isSelfAction(targetUserId, initiatorId)) {
             throw new ApiError(
@@ -69,13 +75,13 @@ class UserAccessService {
         }
     }
 
-    public async checkEmailUniqueness(email: string): Promise<void> {
+    public async checkEmailUniqueness(
+        email: string,
+        message = "User with this email already exists",
+    ): Promise<void> {
         const user = await userRepository.getByEmail(email);
         if (user) {
-            throw new ApiError(
-                HttpStatusEnum.CONFLICT,
-                "User already is exists",
-            );
+            throw new ApiError(HttpStatusEnum.CONFLICT, message);
         }
     }
 }
