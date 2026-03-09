@@ -17,13 +17,16 @@ class SubscriptionController {
             const { userId } = req.params as { userId: string };
             const { userId: initiatorId } = res.locals
                 .tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
+            const { role: initiatorRole } = res.locals
+                .rolePayload as PlatformRoleType;
             const dto = req.body as { newPlan: SubscriptionPlanEnum };
 
             const data = await subscriptionService.setSubscriptionPlanByUserId(
-                userId,
-                initiatorId,
-                role,
+                {
+                    userId,
+                    initiatorId,
+                    initiatorRole,
+                },
                 dto,
             );
             const presented = SubscriptionPresenter.toAdminResponse(data);
@@ -38,14 +41,15 @@ class SubscriptionController {
             const { userId } = req.params as { userId: string };
             const { userId: initiatorId } = res.locals
                 .tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
+            const { role: initiatorRole } = res.locals
+                .rolePayload as PlatformRoleType;
 
-            const data = await subscriptionService.setStatusByUserId(
+            const data = await subscriptionService.setStatusByUserId({
                 userId,
                 initiatorId,
-                role,
-                true,
-            );
+                initiatorRole,
+                isActive: true,
+            });
             const presented = SubscriptionPresenter.toAdminResponse(data);
             res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
@@ -58,14 +62,15 @@ class SubscriptionController {
             const { userId } = req.params as { userId: string };
             const { userId: initiatorId } = res.locals
                 .tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
+            const { role: initiatorRole } = res.locals
+                .rolePayload as PlatformRoleType;
 
-            const data = await subscriptionService.setStatusByUserId(
+            const data = await subscriptionService.setStatusByUserId({
                 userId,
                 initiatorId,
-                role,
-                false,
-            );
+                initiatorRole,
+                isActive: false,
+            });
             const presented = SubscriptionPresenter.toAdminResponse(data);
             res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
@@ -81,7 +86,7 @@ class SubscriptionController {
         try {
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await subscriptionService.upgradeToPremium(userId);
-            const presented = SubscriptionPresenter.toResponse(data);
+            const presented = SubscriptionPresenter.toPrivateResponse(data);
             res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);

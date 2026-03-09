@@ -1,10 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 
-import { EmailEnum } from "../../common/enums/email.enum";
 import { HttpStatusEnum } from "../../common/enums/http-status.enum";
 import { UserCreateDtoType, UserLoginDtoType } from "../user/types/user.type";
 import { UserPresenter } from "../user/user.presenter";
-import { ActionTokenEnum } from "./enums/action-token.enum";
 import { authService } from "./serivces/auth.service";
 import { TokenPayloadType } from "./token.type";
 
@@ -65,12 +63,8 @@ class AuthController {
         next: NextFunction,
     ) {
         try {
-            const { email } = req.body as { email: string };
-            await authService.sendAuthActionEmail(email, {
-                emailType: EmailEnum.VERIFY_USER,
-                tokenType: ActionTokenEnum.VERIFY_USER,
-                path: "/verify",
-            });
+            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            await authService.sendVerificationEmail(userId);
             res.status(HttpStatusEnum.OK).json({
                 message: "Verification email sent",
             });
@@ -86,11 +80,7 @@ class AuthController {
     ) {
         try {
             const { email } = req.body as { email: string };
-            await authService.sendAuthActionEmail(email, {
-                emailType: EmailEnum.RECOVER_PASSWORD,
-                tokenType: ActionTokenEnum.RECOVER_PASSWORD,
-                path: "/reset-password",
-            });
+            await authService.sendRecoveryEmail(email);
             res.status(HttpStatusEnum.OK).json({
                 message: "Recovery email sent",
             });
@@ -105,9 +95,9 @@ class AuthController {
         next: NextFunction,
     ) {
         try {
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
+            const payload = res.locals.tokenPayload as TokenPayloadType;
             const { password } = req.body as { password: string };
-            const data = await authService.resetPassword(userId, password);
+            const data = await authService.resetPassword(payload, password);
             const presented = {
                 user: UserPresenter.toPrivateResponse(data.user),
                 tokens: data.tokens,

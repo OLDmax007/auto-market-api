@@ -10,7 +10,9 @@ import { ListingPresenter } from "./listing.presenter";
 import { listingService } from "./services/listing.service";
 import { listingStaticService } from "./services/listing-static.service";
 import {
+    ListingAdminUpdateDtoType,
     ListingCreateDtoType,
+    ListingType,
     ListingUpdateDtoType,
 } from "./types/listing.type";
 
@@ -78,7 +80,7 @@ class ListingController {
         }
     }
 
-    public async getAllByModeration(
+    public async getAllByStaff(
         req: Request,
         res: Response,
         next: NextFunction,
@@ -96,7 +98,7 @@ class ListingController {
         }
     }
 
-    public async getByIdForModeration(
+    public async getByIdForStaff(
         req: Request,
         res: Response,
         next: NextFunction,
@@ -128,18 +130,58 @@ class ListingController {
         }
     }
 
-    public async updateById(req: Request, res: Response, next: NextFunction) {
+    public async updateMyListing(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
         try {
             const { listingId } = req.params as { listingId: string };
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
             const dto = req.body as ListingUpdateDtoType;
-            const data = await listingService.updateByRole(
+            const data = await listingService.updateMyListing(
                 listingId,
                 userId,
-                role,
                 dto,
             );
+            const presented = ListingPresenter.toPrivateResponse(data);
+            res.status(HttpStatusEnum.OK).json(presented);
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    public async updateByAdmin(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const { role } = res.locals.rolePayload as PlatformRoleType;
+            const dto = req.body as ListingAdminUpdateDtoType;
+            const data = await listingService.updateByStaff(listingId, dto);
+            const presented = ListingPresenter.toResponseByRole(data, role);
+            res.status(HttpStatusEnum.OK).json(presented);
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    public async updateByManager(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const { role } = res.locals.rolePayload as PlatformRoleType;
+
+            const dto: Pick<ListingType, "title" | "description"> = {
+                title: req.body.title,
+                description: req.body.description,
+            };
+            const data = await listingService.updateByStaff(listingId, dto);
             const presented = ListingPresenter.toResponseByRole(data, role);
             res.status(HttpStatusEnum.OK).json(presented);
         } catch (e) {
@@ -150,15 +192,20 @@ class ListingController {
     public async activate(req: Request, res: Response, next: NextFunction) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await listingService.setStatusByRole(
+            const { userId: initiatorId } = res.locals
+                .tokenPayload as TokenPayloadType;
+            const { role: initiatorRole } = res.locals
+                .rolePayload as PlatformRoleType;
+            const data = await listingService.setStatusByStaff({
+                initiatorId,
+                initiatorRole,
                 listingId,
-                userId,
-                role,
-                { isActive: true },
+                isActive: true,
+            });
+            const presented = ListingPresenter.toResponseByRole(
+                data,
+                initiatorRole,
             );
-            const presented = ListingPresenter.toResponseByRole(data, role);
             res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
@@ -168,15 +215,20 @@ class ListingController {
     public async deactivate(req: Request, res: Response, next: NextFunction) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await listingService.setStatusByRole(
+            const { userId: initiatorId } = res.locals
+                .tokenPayload as TokenPayloadType;
+            const { role: initiatorRole } = res.locals
+                .rolePayload as PlatformRoleType;
+            const data = await listingService.setStatusByStaff({
+                initiatorId,
+                initiatorRole,
                 listingId,
-                userId,
-                role,
-                { isActive: false },
+                isActive: false,
+            });
+            const presented = ListingPresenter.toResponseByRole(
+                data,
+                initiatorRole,
             );
-            const presented = ListingPresenter.toResponseByRole(data, role);
             res.status(HttpStatusEnum.OK).json(presented);
         } catch (e: unknown) {
             next(e);
@@ -206,14 +258,15 @@ class ListingController {
     ) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const { _id, subscriptionId } = res.locals.user as UserType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
-            const data = await listingStaticService.getPremiumStatsByListingId(
-                _id,
+            const { _id: userId, subscriptionId } = res.locals.user as UserType;
+            const { role: initiatorRole } = res.locals
+                .rolePayload as PlatformRoleType;
+            const data = await listingStaticService.getPremiumStatsByListingId({
+                userId,
                 subscriptionId,
+                initiatorRole,
                 listingId,
-                role,
-            );
+            });
             res.status(HttpStatusEnum.OK).json(data);
         } catch (err) {
             next(err);
@@ -223,9 +276,7 @@ class ListingController {
     public async deleteById(req: Request, res: Response, next: NextFunction) {
         try {
             const { listingId } = req.params as { listingId: string };
-            const { userId } = res.locals.tokenPayload as TokenPayloadType;
-            const { role } = res.locals.rolePayload as PlatformRoleType;
-            await listingService.deleteById(listingId, userId, role);
+            await listingService.deleteById(listingId);
             res.sendStatus(HttpStatusEnum.NO_CONTENT);
         } catch (e: unknown) {
             next(e);
