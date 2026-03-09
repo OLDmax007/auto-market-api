@@ -1,11 +1,11 @@
 import { HttpStatusEnum } from "../../common/enums/http-status.enum";
 import { ApiError } from "../../common/errors/api.error";
 import { ensureIsStatusSame } from "../../common/helpers/ensure.helper";
-import { PlatformRoleEnum } from "../user/enums/platform-role.enum";
 import { userRepository } from "../user/repositories/user.repository";
 import { platformRoleService } from "../user/services/platform-role.service";
 import { userService } from "../user/services/user.service";
 import { userAccessService } from "../user/services/user-access.service";
+import { UserInitiatorType } from "../user/types/user.type";
 import { PaymentStatusEnum } from "./enums/payment-status.enum";
 import { SubscriptionPlanEnum } from "./enums/subscription-plan.enum";
 import { paymentRepository } from "./repositories/payment.repository";
@@ -17,8 +17,9 @@ import {
 } from "./types/subcription.type";
 
 class SubscriptionService {
-    public async getById(id: string): Promise<SubscriptionType> {
-        const subscription = await subscriptionRepository.getById(id);
+    public async getById(subscriptionId: string): Promise<SubscriptionType> {
+        const subscription =
+            await subscriptionRepository.getById(subscriptionId);
         if (!subscription) {
             throw new ApiError(
                 HttpStatusEnum.NOT_FOUND,
@@ -28,12 +29,8 @@ class SubscriptionService {
         return subscription;
     }
 
-    public async upgradeToPremium(id: string): Promise<SubscriptionType> {
-        const {
-            _id: userId,
-            subscriptionId,
-            balance,
-        } = await userService.getById(id);
+    public async upgradeToPremium(userId: string): Promise<SubscriptionType> {
+        const { subscriptionId, balance } = await userService.getById(userId);
 
         const { planType } = await this.getById(subscriptionId);
 
@@ -81,12 +78,12 @@ class SubscriptionService {
         });
     }
 
-    public async setStatusByUserId(
-        userId: string,
-        initiatorId: string,
-        initiatorRole: PlatformRoleEnum,
-        isActive: boolean,
-    ): Promise<SubscriptionType> {
+    public async setStatusByUserId({
+        userId,
+        initiatorId,
+        initiatorRole,
+        isActive,
+    }: UserInitiatorType & { isActive: boolean }): Promise<SubscriptionType> {
         const user = await userService.getById(userId);
 
         if (!userAccessService.isSelfAction(userId, initiatorId)) {
@@ -108,9 +105,7 @@ class SubscriptionService {
     }
 
     public async setSubscriptionPlanByUserId(
-        userId: string,
-        initiatorId: string,
-        initiatorRole: PlatformRoleEnum,
+        { userId, initiatorId, initiatorRole }: UserInitiatorType,
         dto: { newPlan: SubscriptionPlanEnum },
     ): Promise<SubscriptionType> {
         const user = await userService.getById(userId);
@@ -133,11 +128,6 @@ class SubscriptionService {
         dto: SubscriptionCreateType,
     ): Promise<SubscriptionType> {
         return subscriptionRepository.create(dto);
-    }
-
-    public async deleteById(id: string): Promise<SubscriptionType> {
-        const sub = await this.getById(id);
-        return subscriptionRepository.deleteById(sub._id);
     }
 }
 
