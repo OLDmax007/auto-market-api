@@ -18,12 +18,15 @@ import {
 import { TokenPayloadType } from "../../auth/token.type";
 import { carService } from "../../car/car.service";
 import { locationService } from "../../location/location.service";
-import { PlatformRoleEnum } from "../../user/enums/platform-role.enum";
+import { platformRoleService } from "../../user/services/platform-role.service";
+import { userService } from "../../user/services/user.service";
 import { userAccessService } from "../../user/services/user-access.service";
 import { listingRepository } from "../repositories/listing.repository";
 import {
+    ListingAdminUpdateDtoType,
     ListingCreateDbType,
     ListingCreateDtoType,
+    ListingInitiatorType,
     ListingType,
     ListingUpdateDtoType,
 } from "../types/listing.type";
@@ -38,6 +41,7 @@ class ListingService {
         if (query.userId) {
             filter.userId = String(query.userId);
         }
+
         if (query.isActive !== undefined) {
             filter.isActive = String(query.isActive) === "true";
         }
@@ -81,20 +85,19 @@ class ListingService {
         return listings.docs;
     }
 
-    public async getMyById(id: string, userId: string): Promise<ListingType> {
-        const listing = await this.getById(id);
+    public async getMyById(
+        listingId: string,
+        userId: string,
+    ): Promise<ListingType> {
+        const listing = await this.getById(listingId);
 
-        userAccessService.checkAccountOwnership(
-            listing.userId,
-            userId,
-            "listing",
-        );
+        userAccessService.checkOwnership(listing.userId, userId, "listing");
 
         return listing;
     }
 
-    public async getById(id: string): Promise<ListingType> {
-        const listing = await listingRepository.getById(id);
+    public async getById(listingId: string): Promise<ListingType> {
+        const listing = await listingRepository.getById(listingId);
 
         if (!listing) {
             throw new ApiError(HttpStatusEnum.NOT_FOUND, "Listing not found");
@@ -103,10 +106,10 @@ class ListingService {
     }
 
     public async getFullInfoWithIncrement(
-        id: string,
+        listingId: string,
         payload?: TokenPayloadType,
     ): Promise<ListingType> {
-        const listing = await this.getById(id);
+        const listing = await this.getById(listingId);
 
         if (!listing.isActive || listing.isProfanity) {
             throw new ApiError(HttpStatusEnum.NOT_FOUND, "Listing not found");
@@ -177,30 +180,18 @@ class ListingService {
         return listing;
     }
 
-    public async updateByRole(
-        id: string,
+    public async updateMyListing(
+        listingId: string,
         userId: string,
-        role: PlatformRoleEnum,
         dto: ListingUpdateDtoType,
-    ) {
-        const listing = await this.getById(id);
-        listingAccessService.checkAccess(listing.userId, userId, role);
+    ): Promise<ListingType> {
+        const listing = await this.getById(listingId);
+        userAccessService.checkOwnership(listing.userId, userId, "listing");
+
+        await listingAccessService.validateListingData(dto, listing);
 
         const { updateProfanity, error } =
-            await listingAccessService.handleProfanity(listing, role, dto);
-
-        if (dto.region || dto.city) {
-            await locationService.validateCityInRegion(
-                dto.region ?? listing.region,
-                dto.city ?? listing.city,
-            );
-        }
-        if (dto.make || dto.model) {
-            await carService.validateCarModel(
-                dto.make ?? listing.make,
-                dto.model ?? listing.model,
-            );
-        }
+            await listingAccessService.handleProfanity(listing, dto);
 
         let updateDto: Partial<ListingCreateDbType> = { ...dto };
 
@@ -210,7 +201,7 @@ class ListingService {
             );
         }
 
-        const updatedListing = await listingRepository.updateById(id, {
+        const updatedListing = await listingRepository.updateById(listingId, {
             ...updateDto,
             ...updateProfanity,
         });
@@ -222,51 +213,99 @@ class ListingService {
         return updatedListing;
     }
 
-    public async setStatusByRole(
-        id: string,
-        userId: string,
-        role: PlatformRoleEnum,
-        listingModeration: {
-            isActive: boolean;
-        },
-    ): Promise<ListingType> {
-        const listing = await this.getById(id);
-        listingAccessService.checkAccess(listing.userId, userId, role);
+    public async updateByStaff(
+        listingId: string,
+        dto: ListingAdminUpdateDtoType,
+    ) {
+        const listing = await this.getById(listingId);
 
+        await listingAccessService.validateListingData(dto, listing);
+
+        const isDirty = profanityService.hasAnyProfanity(
+            dto.title ?? listing.title,
+            dto.description ?? listing.description,
+        );
+        if (isDirty) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "Profanity detected. Please clean up your title or description",
+            );
+        }
+
+        let updateDto: Partial<
+            ListingCreateDbType & { profanityCheckAttempts: number }
+        > = { ...dto };
+
+        if (
+            dto.isProfanity === false ||
+            (!listing.isActive && listing.isProfanity)
+        ) {
+            updateDto.isActive = true;
+            updateDto.isProfanity = false;
+            updateDto.profanityCheckAttempts = 0;
+        }
+
+        if (dto.enteredPrice) {
+            updateDto.prices = await pricingService.getCalculatedPrices(
+                dto.enteredPrice,
+            );
+        }
+
+        return listingRepository.updateById(listingId, {
+            ...updateDto,
+        });
+    }
+
+    public async setStatusByStaff({
+        listingId,
+        initiatorId,
+        initiatorRole,
+        isActive,
+    }: ListingInitiatorType & {
+        isActive: boolean;
+    }): Promise<ListingType> {
+        const listing = await this.getById(listingId);
+        const user = await userService.getById(listing.userId);
+
+        if (!userAccessService.isSelfAction(listing.userId, initiatorId)) {
+            const { role } = await platformRoleService.getPlatformRoleById(
+                user.platformRoleId,
+            );
+            userAccessService.checkIsStaff(role, initiatorRole);
+        }
         ensureIsStatusSame(
             listing.isActive,
-            listingModeration.isActive,
+            isActive,
             `Listing is already ${listing.isActive ? "activated" : "deactivated"} `,
         );
 
-        if (listingModeration.isActive && listing.isProfanity) {
+        if (isActive && listing.isProfanity) {
             throw new ApiError(
                 HttpStatusEnum.FORBIDDEN,
                 "Profanity detected. Please clean up title or description",
             );
         }
 
-        return listingRepository.updateById(id, listingModeration);
+        return listingRepository.updateById(listingId, { isActive });
     }
 
-    public async deleteById(
-        id: string,
-        userId: string,
-        role: PlatformRoleEnum,
-    ): Promise<void> {
-        const listing = await this.getById(id);
-        listingAccessService.checkAccess(listing.userId, userId, role);
-        await listingRepository.deleteById(id);
+    public async deleteById(listingId: string): Promise<void> {
+        const listing = await this.getById(listingId);
+        await listingRepository.deleteById(listing._id);
     }
 
     public async closeListing(
-        id: string,
+        listingId: string,
         initiatorId: string,
     ): Promise<ListingType> {
-        const listing = await this.getById(id);
-        listingAccessService.checkListingOwnership(listing.userId, initiatorId);
+        const listing = await this.getById(listingId);
+        userAccessService.checkOwnership(
+            listing.userId,
+            initiatorId,
+            "listing",
+        );
         ensureIsActive(listing.isActive, "Listing is already deactivated");
-        return listingRepository.updateById(id, {
+        return listingRepository.updateById(listingId, {
             isActive: false,
         });
     }
@@ -277,11 +316,7 @@ class ListingService {
         file: UploadedFile,
     ): Promise<ListingType> {
         const listing = await this.getById(listingId);
-        userAccessService.checkAccountOwnership(
-            listing.userId,
-            userId,
-            "listing",
-        );
+        userAccessService.checkOwnership(listing.userId, userId, "listing");
         ensureIsActive(listing.isActive, "Listing is deactivated");
 
         if (
@@ -305,11 +340,7 @@ class ListingService {
         userId: string,
     ): Promise<ListingType> {
         const listing = await this.getById(listingId);
-        userAccessService.checkAccountOwnership(
-            listing.userId,
-            userId,
-            "listing",
-        );
+        userAccessService.checkOwnership(listing.userId, userId, "listing");
         ensureIsActive(listing.isActive, "Listing is deactivated");
 
         if (
