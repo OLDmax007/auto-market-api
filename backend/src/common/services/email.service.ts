@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -8,6 +9,10 @@ import { mainConfig } from "../configs/main.config";
 import { IEmailData } from "../constants/email-data.constants";
 
 class EmailService {
+    public hideEmail(email: string) {
+        return `deleted_${randomUUID().replace(/-/g, "")}_${email}`;
+    }
+
     private transporter: Transporter;
 
     constructor() {
