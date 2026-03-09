@@ -11,6 +11,7 @@ import {
     ensureIsStatusSame,
 } from "../../../common/helpers/ensure.helper";
 import { getPaginationOptions } from "../../../common/helpers/pagination.helper";
+import { emailService } from "../../../common/services/email.service";
 import { s3Service } from "../../../common/services/s3.service";
 import {
     PaginateFilterType,
@@ -20,10 +21,15 @@ import { listingRepository } from "../../listing/repositories/listing.repository
 import { pricingService } from "../../listing/services/pricing.service";
 import { CurrencyAmountType } from "../../rate/rate.type";
 import { subscriptionRepository } from "../../subscription/repositories/subscription.repository";
-import { subscriptionService } from "../../subscription/subscription.service";
 import { PlatformRoleEnum } from "../enums/platform-role.enum";
 import { userRepository } from "../repositories/user.repository";
-import { UserCreateDtoType, UserType } from "../types/user.type";
+import {
+    UserCreateDtoType,
+    UserInitiatorType,
+    UserType,
+    UserUpdateByAdminDtoType,
+    UserUpdateDtoType,
+} from "../types/user.type";
 import { platformRoleService } from "./platform-role.service";
 import { userAccessService } from "./user-access.service";
 
@@ -56,13 +62,13 @@ class UserService {
         return docs;
     }
 
-    public async getById(id: string): Promise<UserType> {
-        const user = await userRepository.getById(id);
+    public async getById(userId: string): Promise<UserType> {
+        const user = await userRepository.getById(userId);
         return ensureEntityExists<UserType>(user, "User not found");
     }
 
-    public async getPublicById(id: string): Promise<UserType> {
-        const user = await this.getById(id);
+    public async getPublicById(userId: string): Promise<UserType> {
+        const user = await this.getById(userId);
 
         if (!user.isActive) {
             throw new ApiError(HttpStatusEnum.NOT_FOUND, "User not found");
@@ -89,66 +95,61 @@ class UserService {
         });
     }
 
-    public async updateByRole(
-        id: string,
-        initiatorId: string,
-        initiatorRole: PlatformRoleEnum,
-        dto: Partial<UserType>,
+    public async updateMe(
+        userId: string,
+        dto: UserUpdateDtoType,
     ): Promise<UserType> {
-        const user = await userService.getById(id);
-        if (userAccessService.isSelfAction(user._id, initiatorId)) {
-            userAccessService.checkAccountOwnership(user._id, initiatorId);
-        } else {
-            if (!userAccessService.isSelfAction(user._id, initiatorId)) {
-                const { role } = await platformRoleService.getPlatformRoleById(
-                    user.platformRoleId,
-                );
-
-                userAccessService.checkIsStaff(role, initiatorRole);
-                const isStaff = [
-                    PlatformRoleEnum.ADMIN,
-                    PlatformRoleEnum.MANAGER,
-                ].includes(initiatorRole);
-                if (!isStaff) {
-                    userAccessService.checkAccountOwnership(
-                        user._id,
-                        initiatorId,
-                    );
-                }
-            }
-
-            return userRepository.updateById(user._id, dto);
-        }
-
+        const user = await this.getById(userId);
         return userRepository.updateById(user._id, dto);
     }
 
-    public async deleteById(
-        id: string,
-        initiatorId: string,
-        initiatorRole: PlatformRoleEnum,
-    ): Promise<void> {
-        const user = await userService.getById(id);
+    public async updateByAdmin(
+        { userId, initiatorId, initiatorRole }: UserInitiatorType,
+        dto: UserUpdateByAdminDtoType,
+    ): Promise<UserType> {
+        const user = await this.getById(userId);
+        userAccessService.checkSelfAction(user._id, initiatorId);
+
+        if (dto.email) {
+            await userAccessService.checkEmailUniqueness(dto.email);
+        }
 
         const { role } = await platformRoleService.getPlatformRoleById(
             user.platformRoleId,
         );
 
-        userAccessService.checkSelfAction(id, initiatorId);
         userAccessService.checkIsStaff(role, initiatorRole);
 
-        await subscriptionService.deleteById(user.subscriptionId);
+        return userRepository.updateById(user._id, dto);
+    }
+
+    public async deleteById({
+        userId,
+        initiatorId,
+        initiatorRole,
+    }: UserInitiatorType): Promise<void> {
+        const user = await this.getById(userId);
+        userAccessService.checkSelfAction(userId, initiatorId);
+
+        const { role } = await platformRoleService.getPlatformRoleById(
+            user.platformRoleId,
+        );
+        userAccessService.checkIsStaff(role, initiatorRole);
+        await userRepository.updateById(user._id, {
+            email: emailService.hideEmail(user.email),
+        });
+        await subscriptionRepository.deleteById(user.subscriptionId);
         await listingRepository.deleteAllByUserId(user._id);
         await userRepository.deleteById(user._id);
     }
 
-    public async setStatusByRole(
-        id: string,
-        initiatorId: string,
-        initiatorRole: PlatformRoleEnum,
-        isActive: boolean,
-    ) {
-        const user = await userService.getById(id);
+    public async setStatusByStaff({
+        userId,
+        initiatorId,
+        initiatorRole,
+        isActive,
+    }: UserInitiatorType & { isActive: boolean }) {
+        const user = await this.getById(userId);
         ensureIsStatusSame(
             user.isActive,
             isActive,
@@ -157,7 +158,7 @@ class UserService {
         const { role } = await platformRoleService.getPlatformRoleById(
             user.platformRoleId,
         );
-        userAccessService.checkSelfAction(id, initiatorId);
+        userAccessService.checkSelfAction(userId, initiatorId);
         userAccessService.checkIsStaff(role, initiatorRole);
 
         isActive
@@ -176,18 +177,16 @@ class UserService {
                   listingRepository.deactivateManyByUserId(user._id),
               ]);
 
-        return userRepository.updateById(id, {
+        return userRepository.updateById(userId, {
             isActive,
         });
     }
 
     public async setPlatformRole(
-        id: string,
-        initiatorId: string,
-        initiatorRole: PlatformRoleEnum,
+        { userId, initiatorId, initiatorRole }: UserInitiatorType,
         dto: { newRole: PlatformRoleEnum },
     ): Promise<UserType> {
-        const user = await this.getById(id);
+        const user = await this.getById(userId);
 
         const { role } = await platformRoleService.getPlatformRoleById(
             user.platformRoleId,
@@ -199,45 +198,59 @@ class UserService {
         return userRepository.updateById(user._id, { platformRoleId: _id });
     }
 
-    public async closeAccount(
-        id: string,
-        initiatorId: string,
-        subscriptionId: string,
-        isActive: boolean,
-    ): Promise<UserType> {
-        userAccessService.checkAccountOwnership(id, initiatorId);
+    public async closeAccount({
+        userId,
+        initiatorId,
+        initiatorRole,
+        subscriptionId,
+        isActive,
+        email,
+    }: UserInitiatorType & {
+        email: string;
+        subscriptionId: string;
+        isActive: boolean;
+    }): Promise<UserType> {
+        userAccessService.checkOwnership(userId, initiatorId, "account");
+
+        if (userAccessService.isStaff(initiatorRole)) {
+            userAccessService.checkSelfAction(userId, initiatorId);
+        }
         ensureIsActive(isActive, "User is already deactivated");
-        await listingRepository.deactivateManyByUserId(id);
-        await subscriptionRepository.updateById(subscriptionId, {
-            isActive: false,
+        await userRepository.updateById(userId, {
+            email: emailService.hideEmail(email),
         });
-        return userRepository.updateById(id, {
-            isActive: false,
-        });
+        await listingRepository.deleteAllByUserId(userId);
+        await subscriptionRepository.deleteById(subscriptionId);
+        return userRepository.deleteById(userId);
     }
 
-    public async becomeSeller(
-        id: string,
-        currentPlatformRoleId: string,
-    ): Promise<UserType> {
+    public async becomeSeller({
+        userId,
+        initiatorId,
+        initiatorRole,
+    }: UserInitiatorType): Promise<UserType> {
+        if (initiatorRole === PlatformRoleEnum.SELLER) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "User is already a seller",
+            );
+        }
+
         const { _id: sellerRoleId } = await platformRoleService.getPlatformRole(
             PlatformRoleEnum.SELLER,
         );
 
-        if (String(currentPlatformRoleId) === String(sellerRoleId)) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "User is already seller",
-            );
+        if (userAccessService.isStaff(initiatorRole)) {
+            userAccessService.checkSelfAction(userId, initiatorId);
         }
 
-        return userRepository.updateById(id, {
+        return userRepository.updateById(userId, {
             platformRoleId: sellerRoleId,
         });
     }
 
     public async topUpBalance(
-        id: string,
+        userId: string,
         currentBalance: CurrencyAmountType,
         { amount, currency }: CurrencyAmountType,
     ): Promise<{ balance: CurrencyAmountType; credited: CurrencyAmountType }> {
@@ -255,7 +268,7 @@ class UserService {
             currency: CurrencyEnum.UAH,
         };
 
-        await userRepository.updateById(id, {
+        await userRepository.updateById(userId, {
             balance: updatedBalance,
         });
 
