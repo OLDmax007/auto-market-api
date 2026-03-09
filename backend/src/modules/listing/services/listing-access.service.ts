@@ -6,28 +6,25 @@ import { ensureIsActive } from "../../../common/helpers/ensure.helper";
 import { buildLink } from "../../../common/helpers/link-builder.helper";
 import { emailService } from "../../../common/services/email.service";
 import { UpdateEntityType } from "../../../common/types/base.type";
+import { CarMakeEnum } from "../../car/car.enum";
+import { carService } from "../../car/car.service";
+import { RegionEnum } from "../../location/enums/region.enum";
+import { locationService } from "../../location/location.service";
 import { SUBSCRIPTION_PLANS } from "../../subscription/subscription.constants";
 import { subscriptionService } from "../../subscription/subscription.service";
-import { PlatformRoleEnum } from "../../user/enums/platform-role.enum";
 import { userService } from "../../user/services/user.service";
 import { listingConfig } from "../listing.config";
 import { listingRepository } from "../repositories/listing.repository";
-import { ListingCreateDbType, ListingType } from "../types/listing.type";
+import {
+    ListingCreateDbType,
+    ListingType,
+    ListingUpdateDtoType,
+} from "../types/listing.type";
 import { profanityService } from "./profanity.service";
 
 class ListingAccessService {
-    public checkListingOwnership(ownerId: string, initiatorId: string): void {
-        if (String(ownerId) !== String(initiatorId)) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "You are not the owner of this listing",
-            );
-        }
-    }
-
     public async handleProfanity(
         listing: ListingType,
-        role: PlatformRoleEnum,
         dto: { title?: string; description?: string },
     ): Promise<{
         updateProfanity: Partial<ListingCreateDbType>;
@@ -35,40 +32,26 @@ class ListingAccessService {
     }> {
         const { maxAttempts } = listingConfig;
 
-        const isStaff = [
-            PlatformRoleEnum.ADMIN,
-            PlatformRoleEnum.MANAGER,
-        ].includes(role);
-
         if (!dto.title && !dto.description)
             return { updateProfanity: {}, error: null };
+
+        if (listing.profanityCheckAttempts >= maxAttempts) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "Listing deactivated due to profanity limit.",
+            );
+        }
+        if (!listing.isActive && !listing.isProfanity) {
+            throw new ApiError(
+                HttpStatusEnum.FORBIDDEN,
+                "Listing is deactivated and cannot be edited",
+            );
+        }
 
         const isDirty = profanityService.hasAnyProfanity(
             dto.title ?? listing.title,
             dto.description ?? listing.description,
         );
-
-        if (isStaff && isDirty) {
-            throw new ApiError(
-                HttpStatusEnum.BAD_REQUEST,
-                "Profanity detected. Please clean up your title or description",
-            );
-        }
-
-        if (!isStaff) {
-            if (listing.profanityCheckAttempts >= maxAttempts) {
-                throw new ApiError(
-                    HttpStatusEnum.FORBIDDEN,
-                    "Listing deactivated due to profanity limit.",
-                );
-            }
-            if (!listing.isActive && !listing.isProfanity) {
-                throw new ApiError(
-                    HttpStatusEnum.FORBIDDEN,
-                    "Listing is deactivated and cannot be edited",
-                );
-            }
-        }
 
         const updateProfanity: UpdateEntityType<ListingType> = {};
 
@@ -82,12 +65,10 @@ class ListingAccessService {
                 emailService
                     .sendEmail(
                         mainConfig.EMAIL_SUPPORT,
-                        EMAIL_DATA.LISTING_MODERATION,
+                        EMAIL_DATA.LISTING_STAFF,
                         {
                             listingId: listing._id,
-                            link: buildLink(
-                                `/listings/moderation/${listing._id}`,
-                            ),
+                            link: buildLink(`/listings/staff/${listing._id}`),
                         },
                     )
                     .catch();
@@ -108,7 +89,7 @@ class ListingAccessService {
         updateProfanity.isProfanity = false;
         updateProfanity.profanityCheckAttempts = 0;
 
-        if (listing.isProfanity && !isStaff) {
+        if (listing.isProfanity) {
             updateProfanity.isActive = true;
         }
 
@@ -139,21 +120,25 @@ class ListingAccessService {
         }
     }
 
-    public checkAccess(
-        targetId: string,
-        userId: string,
-        role: PlatformRoleEnum,
-    ): void {
-        const isOwner = String(targetId) === String(userId);
-        const isStaff = [
-            PlatformRoleEnum.ADMIN,
-            PlatformRoleEnum.MANAGER,
-        ].includes(role);
-
-        if (!isOwner && !isStaff) {
-            throw new ApiError(
-                HttpStatusEnum.FORBIDDEN,
-                "You have no permission for this action",
+    public async validateListingData(
+        dto: ListingUpdateDtoType,
+        listingData: {
+            region: RegionEnum;
+            city: string;
+            make: CarMakeEnum;
+            model: string;
+        },
+    ): Promise<void> {
+        if (dto.region || dto.city) {
+            await locationService.validateCityInRegion(
+                dto.region ?? listingData.region,
+                dto.city ?? listingData.city,
+            );
+        }
+        if (dto.make || dto.model) {
+            await carService.validateCarModel(
+                dto.make ?? listingData.make,
+                dto.model ?? listingData.model,
             );
         }
     }
