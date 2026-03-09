@@ -1,17 +1,22 @@
 import { mainConfig } from "../../common/configs/main.config";
+import { clearName } from "../../common/helpers/clear.name";
 import { PlatformRoleEnum } from "../user/enums/platform-role.enum";
 import { ListingType } from "./types/listing.type";
 
+type ListingResponseDto = Omit<ListingType, "make"> & { make: string };
+
 export class ListingPresenter {
-    private static getPublicFields(listing: ListingType): Partial<ListingType> {
+    private static getPublicFields(
+        listing: ListingType,
+    ): Partial<ListingResponseDto> {
         return {
             _id: listing._id,
             userId: listing.userId,
             organizationId: listing.organizationId,
             title: listing.title,
             description: listing.description,
-            make: listing.make,
-            model: listing.model,
+            make: clearName(listing.make),
+            model: clearName(listing.model),
             year: listing.year,
             mileage_km: listing.mileage_km,
             prices: listing.prices,
@@ -26,7 +31,7 @@ export class ListingPresenter {
     public static toResponseByRole(
         listing: ListingType,
         role: PlatformRoleEnum,
-    ): Partial<ListingType> {
+    ): Partial<ListingResponseDto> {
         const publicFields = this.getPublicFields(listing);
 
         switch (role) {
@@ -48,7 +53,7 @@ export class ListingPresenter {
 
     public static toPrivateResponse(
         listing: ListingType,
-    ): Partial<ListingType> {
+    ): Partial<ListingResponseDto> {
         return {
             ...this.getPublicFields(listing),
             isProfanity: listing.isProfanity,
@@ -57,7 +62,9 @@ export class ListingPresenter {
         };
     }
 
-    public static toPublicResponse(listing: ListingType): Partial<ListingType> {
+    public static toPublicResponse(
+        listing: ListingType,
+    ): Partial<ListingResponseDto> {
         return this.getPublicFields(listing);
     }
 }

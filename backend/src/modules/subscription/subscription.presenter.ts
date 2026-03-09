@@ -1,21 +1,20 @@
 import { SubscriptionType } from "./types/subcription.type";
 
 export class SubscriptionPresenter {
-    private static getBaseFields(subscription: any): Partial<SubscriptionType> {
-        const sub = subscription._doc || subscription;
+    private static getBaseFields(subscription: SubscriptionType) {
         return {
-            _id: sub._id,
-            userId: sub.userId,
-            planType: sub.planType,
-            isActive: sub.isActive,
-            activeTo: sub.activeTo,
-            activeFrom: sub.activeFrom,
-            price: sub.price,
-            createdAt: sub.createdAt,
+            _id: subscription._id,
+            userId: subscription.userId,
+            planType: subscription.planType,
+            isActive: subscription.isActive,
+            activeTo: subscription.activeTo,
+            activeFrom: subscription.activeFrom,
+            price: subscription.price,
+            createdAt: subscription.createdAt,
         };
     }
 
-    public static toResponse(
+    public static toPrivateResponse(
         subscription: SubscriptionType,
     ): Partial<SubscriptionType> {
         return this.getBaseFields(subscription);
@@ -26,6 +25,8 @@ export class SubscriptionPresenter {
     ): Partial<SubscriptionType> {
         return {
             ...this.getBaseFields(subscription),
+            isDeleted: subscription.isDeleted,
+            deletedAt: subscription.deletedAt,
             updatedAt: subscription.updatedAt,
         };
     }

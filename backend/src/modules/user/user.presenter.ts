@@ -31,27 +31,25 @@ export class UserPresenter {
         };
     }
 
-    public static toAdminResponse(user: UserType): Partial<UserType> {
+    public static toStaffResponse(user: UserType): Partial<UserType> {
         return {
             ...this.getBaseFields(user),
             email: user.email,
-            balance: user.balance,
             platformRoleId: user.platformRoleId,
             subscriptionId: user.subscriptionId,
             isActive: user.isActive,
             isVerified: user.isVerified,
+            isDeleted: user.isDeleted,
+            deletedAt: user.deletedAt,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
         };
     }
 
-    public static toModerationResponse(user: UserType): Partial<UserType> {
+    public static toAdminResponse(user: UserType): Partial<UserType> {
         return {
-            ...this.getBaseFields(user),
-            platformRoleId: user.platformRoleId,
-            subscriptionId: user.subscriptionId,
-            isActive: user.isActive,
-            isVerified: user.isVerified,
+            ...this.toStaffResponse(user),
+            balance: user.balance,
         };
     }
 
@@ -64,7 +62,7 @@ export class UserPresenter {
         }
 
         if (role === PlatformRoleEnum.MANAGER) {
-            return this.toModerationResponse(user);
+            return this.toStaffResponse(user);
         }
 
         return this.toPublicResponse(user);
