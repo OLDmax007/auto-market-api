@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { mainConfig } from "../../../common/configs/main.config";
 import { EMAIL_DATA } from "../../../common/constants/email-data.constants";
 import { EmailEnum } from "../../../common/enums/email.enum";
@@ -5,7 +7,6 @@ import { HttpStatusEnum } from "../../../common/enums/http-status.enum";
 import { ApiError } from "../../../common/errors/api.error";
 import { ensureIsActive } from "../../../common/helpers/ensure.helper";
 import { buildLink } from "../../../common/helpers/link-builder.helper";
-import { buildTokenPayload } from "../../../common/helpers/payload.helper";
 import { emailService } from "../../../common/services/email.service";
 import { subscriptionService } from "../../subscription/subscription.service";
 import { userRepository } from "../../user/repositories/user.repository";
@@ -49,9 +50,10 @@ class AuthService {
             subscriptionId,
         });
 
-        const payload = buildTokenPayload(user);
-
-        const tokens = tokenService.generateTokens(payload);
+        const tokens = tokenService.generateTokens({
+            userId: user._id,
+            sessionId: randomUUID(),
+        });
 
         await tokenRepository.create({
             ...tokens,
@@ -59,7 +61,7 @@ class AuthService {
         });
 
         const token = tokenService.generateActionToken(
-            payload,
+            { userId: user._id },
             ActionTokenEnum.VERIFY_USER,
         );
 
@@ -67,6 +69,7 @@ class AuthService {
             .sendEmail(user.email, EMAIL_DATA.WELCOME, {
                 catalogLink: buildLink("/cars/makes"),
                 verifyLink: buildLink("/verify", token),
+                token,
             })
             .catch();
 
@@ -101,9 +104,10 @@ class AuthService {
             );
         }
 
-        const payload = buildTokenPayload(user);
-
-        const tokens = tokenService.generateTokens(payload);
+        const tokens = tokenService.generateTokens({
+            userId: user._id,
+            sessionId: randomUUID(),
+        });
 
         await tokenRepository.create({
             ...tokens,
@@ -127,8 +131,10 @@ class AuthService {
                 "Invalid session. Please login again.",
             );
         }
-        const cleanPayload = buildTokenPayload(payload);
-        const tokens = tokenService.generateTokens(cleanPayload);
+        const tokens = tokenService.generateTokens({
+            userId: payload.userId,
+            sessionId: payload.sessionId,
+        });
         const { accessToken, refreshToken } = await tokenRepository.create({
             ...tokens,
             userId: payload.userId,
@@ -147,43 +153,52 @@ class AuthService {
         });
     };
 
-    public sendAuthActionEmail = async (
-        inputEmail: string,
-        config: {
-            emailType: EmailEnum;
-            tokenType: ActionTokenEnum;
-            path: string;
-        },
-    ): Promise<void> => {
+    public sendVerificationEmail = async (userId: string): Promise<void> => {
+        const user = await userService.getById(userId);
+
+        userAccessService.checkIsNotVerified(user.isVerified);
+        ensureIsActive(user.isActive, "Account is disabled");
+        const token = tokenService.generateActionToken(
+            { userId: user._id },
+            ActionTokenEnum.VERIFY_USER,
+        );
+        await emailService.sendEmail(
+            user.email,
+            EMAIL_DATA[EmailEnum.VERIFY_USER],
+            {
+                link: buildLink("/verify", token),
+                token,
+            },
+        );
+    };
+
+    public sendRecoveryEmail = async (inputEmail: string): Promise<void> => {
         const user = await userService.getByEmail(
             inputEmail,
             "If an account with this email exists, a message has been sent to your email",
         );
 
-        if (config.tokenType === ActionTokenEnum.VERIFY_USER) {
-            userAccessService.checkIsNotVerified(user.isVerified);
-        }
-
-        ensureIsActive(user.isActive, "Cannot send email to inactive account");
-
-        const payload = buildTokenPayload(user);
-
+        ensureIsActive(user.isActive, "Account is disabled");
         const token = tokenService.generateActionToken(
-            payload,
-            config.tokenType,
+            { userId: user._id },
+            ActionTokenEnum.RECOVER_PASSWORD,
         );
 
-        await emailService.sendEmail(user.email, EMAIL_DATA[config.emailType], {
-            link: buildLink(config.path, token),
-            token,
-        });
+        await emailService.sendEmail(
+            user.email,
+            EMAIL_DATA[EmailEnum.RECOVER_PASSWORD],
+            {
+                link: buildLink("/reset-password", token),
+                token,
+            },
+        );
     };
 
     public resetPassword = async (
-        userId: string,
+        payload: TokenPayloadType,
         password: string,
     ): Promise<{ user: UserType; tokens: TokenPairType }> => {
-        const user = await userService.getById(userId);
+        const user = await userService.getById(payload.userId);
         ensureIsActive(user.isActive, "Your account is deactivated");
         const isSamePassword = await passwordService.comparePassword(
             password,
@@ -199,14 +214,16 @@ class AuthService {
 
         const hashedPassword = await passwordService.hashPassword(password);
 
-        await userRepository.updateById(userId, {
+        await userRepository.updateById(payload.userId, {
             password: hashedPassword,
         });
 
         await this.logoutFromAllDevices(user._id);
 
-        const payload = buildTokenPayload(user);
-        const tokens = tokenService.generateTokens(payload);
+        const tokens = tokenService.generateTokens({
+            userId: user._id,
+            sessionId: payload.sessionId,
+        });
 
         await tokenRepository.create({
             ...tokens,
