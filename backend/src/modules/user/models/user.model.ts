@@ -13,7 +13,7 @@ const userSchema = new Schema(
         lastName: { type: String, required: true },
         age: { type: Number, required: true },
         password: { type: String, required: true },
-        email: { type: String, unique: true, required: true },
+        email: { type: String, required: true },
         balance: {
             amount: { type: Number, default: 0 },
             currency: { type: String, default: CurrencyEnum.UAH },
@@ -38,9 +38,25 @@ const userSchema = new Schema(
             default: DEFAULT_IMAGES_ENDPOINTS.user,
         },
         isActive: { type: Boolean, default: true },
+        isDeleted: {
+            type: Boolean,
+            default: false,
+        },
+        deletedAt: {
+            type: Date,
+            default: null,
+        },
         isVerified: { type: Boolean, default: true },
     },
     { timestamps: true, versionKey: false },
+);
+
+userSchema.index(
+    { email: 1 },
+    {
+        unique: true,
+        partialFilterExpression: { isDeleted: false },
+    },
 );
 
 userSchema.plugin(mongoosePaginate);
