@@ -7,7 +7,10 @@ import { platformRoleService } from "../services/platform-role.service";
 import { UserType } from "../types/user.type";
 
 class RoleMiddleware {
-    public checkPermission(permission: PlatformPermissionEnum) {
+    public checkPermission(
+        permission: PlatformPermissionEnum,
+        message: string,
+    ) {
         return async (req: Request, res: Response, next: NextFunction) => {
             try {
                 const user = res.locals.user as UserType;
@@ -24,10 +27,7 @@ class RoleMiddleware {
                 );
 
                 if (!role.permissions?.includes(permission)) {
-                    throw new ApiError(
-                        HttpStatusEnum.FORBIDDEN,
-                        "You have no permission for this action",
-                    );
+                    throw new ApiError(HttpStatusEnum.FORBIDDEN, message);
                 }
 
                 res.locals.rolePayload = role;
