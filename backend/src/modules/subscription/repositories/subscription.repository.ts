@@ -7,7 +7,7 @@ import {
 
 class SubscriptionRepository {
     public getById(id: string): Promise<SubscriptionType> {
-        return Subscription.findById(id);
+        return Subscription.findOne({ _id: id, isDeleted: false });
     }
 
     public create(dto: SubscriptionCreateType): Promise<SubscriptionType> {
@@ -18,11 +18,25 @@ class SubscriptionRepository {
         id: string,
         dto: UpdateEntityType<SubscriptionType>,
     ): Promise<SubscriptionType> {
-        return Subscription.findByIdAndUpdate(id, dto, { new: true });
+        return Subscription.findOneAndUpdate(
+            { _id: id, isDeleted: false },
+            dto,
+            {
+                new: true,
+            },
+        );
     }
 
-    public deleteById(id: string): Promise<SubscriptionType> {
-        return Subscription.findByIdAndDelete(id);
+    public async deleteById(id: string): Promise<SubscriptionType | null> {
+        return Subscription.findByIdAndUpdate(
+            id,
+            {
+                isDeleted: true,
+                isActive: false,
+                deletedAt: new Date(),
+            },
+            { new: true },
+        );
     }
 }
 

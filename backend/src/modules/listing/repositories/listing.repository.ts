@@ -8,48 +8,71 @@ import { Listing } from "../models/listing.model";
 import { ListingCreateDbType, ListingType } from "../types/listing.type";
 
 class ListingRepository {
-    public getAllPaginated(
+    public async getAllPaginated(
         filter: PaginateFilterType,
         options: PaginateOptionsType,
     ): Promise<PaginatedResponseType<ListingType>> {
-        return Listing.paginate(filter, options);
+        return Listing.paginate({ ...filter, isDeleted: false }, options);
     }
 
-    public getById(id: string): Promise<ListingType> {
-        return Listing.findById(id);
+    public async getById(id: string): Promise<ListingType | null> {
+        return Listing.findOne({ _id: id, isDeleted: false });
     }
 
-    public create(dto: ListingCreateDbType): Promise<ListingType> {
+    public async create(dto: ListingCreateDbType): Promise<ListingType> {
         return Listing.create(dto);
     }
 
-    public updateById(
+    public async updateById(
         id: string,
         dto: UpdateEntityType<ListingType>,
-    ): Promise<ListingType> {
-        return Listing.findByIdAndUpdate(id, dto, { new: true });
+    ): Promise<ListingType | null> {
+        return Listing.findOneAndUpdate({ _id: id, isDeleted: false }, dto, {
+            new: true,
+        });
     }
 
-    public deleteById(id: string): Promise<ListingType> {
-        return Listing.findByIdAndDelete(id);
-    }
-    public async deleteAllByUserId(userId: string) {
-        return Listing.deleteMany({ userId });
+    public async deleteById(id: string): Promise<ListingType | null> {
+        return Listing.findByIdAndUpdate(
+            id,
+            {
+                isDeleted: true,
+                isActive: false,
+                deletedAt: new Date(),
+            },
+            { new: true },
+        );
     }
 
-    public async deactivateManyByUserId(userId: string) {
-        return Listing.updateMany({ userId }, { $set: { isActive: false } });
-    }
-
-    public async activateManyByUserId(userId: string) {
+    public async deleteAllByUserId(userId: string): Promise<any> {
         return Listing.updateMany(
-            { userId, isProfanity: false },
+            { userId, isDeleted: false },
+            {
+                $set: {
+                    isDeleted: true,
+                    isActive: false,
+                    deletedAt: new Date(),
+                },
+            },
+        );
+    }
+
+    public async deactivateManyByUserId(userId: string): Promise<any> {
+        return Listing.updateMany(
+            { userId, isDeleted: false },
+            { $set: { isActive: false } },
+        );
+    }
+
+    public async activateManyByUserId(userId: string): Promise<any> {
+        return Listing.updateMany(
+            { userId, isProfanity: false, isDeleted: false },
             { $set: { isActive: true } },
         );
     }
 
     public async countByUserId(userId: string): Promise<number> {
-        return Listing.countDocuments({ userId });
+        return Listing.countDocuments({ userId, isDeleted: false });
     }
 }
 

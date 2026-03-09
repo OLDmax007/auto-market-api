@@ -12,15 +12,15 @@ class UserRepository {
         filter: PaginateFilterType,
         options: PaginateOptionsType,
     ): Promise<PaginatedResponseType<UserType>> {
-        return User.paginate(filter, options);
+        return User.paginate({ ...filter, isDeleted: false }, options);
     }
 
     public getById(id: string): Promise<UserType> {
-        return User.findById(id);
+        return User.findOne({ _id: id, isDeleted: false });
     }
 
     public getByEmail(email: string): Promise<UserType> {
-        return User.findOne({ email });
+        return User.findOne({ email, isDeleted: false });
     }
 
     public create(dto: UserCreateDbType): Promise<UserType> {
@@ -31,11 +31,21 @@ class UserRepository {
         id: string,
         dto: UpdateEntityType<UserType>,
     ): Promise<UserType> {
-        return User.findByIdAndUpdate(id, dto, { new: true });
+        return User.findOneAndUpdate({ _id: id, isDeleted: false }, dto, {
+            new: true,
+        });
     }
 
-    public deleteById(id: string): Promise<UserType> {
-        return User.findByIdAndDelete(id);
+    public async deleteById(id: string): Promise<UserType | null> {
+        return User.findByIdAndUpdate(
+            id,
+            {
+                isDeleted: true,
+                isActive: false,
+                deletedAt: new Date(),
+            },
+            { new: true },
+        );
     }
 }
 
