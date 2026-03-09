@@ -1,9 +1,9 @@
-
-import {seedPermissionsAndRoles} from "./seed-permissions-and-roles";
 import {seedLocations} from "./seed-locations";
 import {seedCars} from "./seed-cars";
 import {pricingService} from "../src/modules/listing/services/pricing.service";
 import {dataBaseService} from "../src/common/services/database.service";
+import {seedAdmin} from "./seed.admin";
+import {seedPermissionsAndRoles} from "./seed-permissions-and-roles";
 
 const mainSeed = async () => {
     try {
@@ -12,8 +12,9 @@ const mainSeed = async () => {
         await seedPermissionsAndRoles();
         await seedLocations();
         await seedCars()
+        await seedAdmin()
         await dataBaseService.disconnectDB();
-        console.log("DONE!!!");
+        console.log("Main seed successfully DONE!");
     } catch (err) {
         console.error("\nSEEDING FAILED");
         if (err.response) {

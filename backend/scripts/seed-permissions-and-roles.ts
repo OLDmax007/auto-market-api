@@ -36,5 +36,5 @@ export const seedPermissionsAndRoles = async () => {
         }
     }
 
-    console.log("✅ Idempotent seed completed: Permissions and Roles are safe!");
+    console.log("Permissions and Roles seeded successfully");
 };
