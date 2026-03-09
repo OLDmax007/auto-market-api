@@ -4,9 +4,9 @@ import { ensureIsActive } from "../../../common/helpers/ensure.helper";
 import { PeriodEnum } from "../../location/enums/period.enum";
 import { SubscriptionPlanEnum } from "../../subscription/enums/subscription-plan.enum";
 import { subscriptionService } from "../../subscription/subscription.service";
-import { PlatformRoleEnum } from "../../user/enums/platform-role.enum";
 import { userAccessService } from "../../user/services/user-access.service";
 import { listingStaticRepository } from "../repositories/listing-static.repository";
+import { ListingInitiatorType } from "../types/listing.type";
 import {
     ListingAveragePriceByLocationType,
     ListingStaticsCreateDtoType,
@@ -16,38 +16,24 @@ import { listingService } from "./listing.service";
 import { marketAnalyticsService } from "./market-analytics.service";
 
 class ListingStaticsService {
-    async getPremiumStatsByListingId(
-        userId: string,
-        subscriptionId: string,
-        listingId: string,
-        initiatorRole: PlatformRoleEnum,
-    ): Promise<{
+    async getPremiumStatsByListingId({
+        userId,
+        subscriptionId,
+        initiatorRole,
+        listingId,
+    }: Omit<ListingInitiatorType, "initiatorId"> & {
+        userId: string;
+        subscriptionId: string;
+    }): Promise<{
         views: ListingStaticsType["views"];
         averagePrice: ListingAveragePriceByLocationType;
     }> {
-        const { isActive, planType } =
-            await subscriptionService.getById(subscriptionId);
+        const listing = await listingService.getById(listingId);
 
-        const {
-            model,
-            make,
-            country,
-            region,
-            city,
-            userId: userIdByListing,
-        } = await listingService.getById(listingId);
-
-        const isStaff = [
-            PlatformRoleEnum.ADMIN,
-            PlatformRoleEnum.MANAGER,
-        ].includes(initiatorRole);
-
-        if (!isStaff) {
-            userAccessService.checkAccountOwnership(
-                userId,
-                userIdByListing,
-                "listing",
-            );
+        if (!userAccessService.isStaff(initiatorRole)) {
+            userAccessService.checkOwnership(listing.userId, userId, "listing");
+            const { isActive, planType } =
+                await subscriptionService.getById(subscriptionId);
 
             ensureIsActive(
                 isActive,
@@ -65,11 +51,11 @@ class ListingStaticsService {
         const [stats, avgPrices] = await Promise.all([
             this.getViewsByListingId(listingId),
             marketAnalyticsService.getAveragePriceByLocations({
-                model,
-                make,
-                country,
-                region,
-                city,
+                model: listing.model,
+                make: listing.make,
+                country: listing.country,
+                region: listing.region,
+                city: listing.city,
             }),
         ]);
 
