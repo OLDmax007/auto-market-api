@@ -1,5 +1,6 @@
 import { BaseType } from "../../../common/types/base.type";
 import { CurrencyAmountType } from "../../rate/rate.type";
+import { PlatformRoleEnum } from "../enums/platform-role.enum";
 
 export type UserType = {
     _id: string;
@@ -14,6 +15,8 @@ export type UserType = {
     balance: CurrencyAmountType;
     avatar: string;
     isActive: boolean;
+    isDeleted: boolean;
+    deletedAt: Date | null;
     isVerified: boolean;
 } & BaseType;
 
@@ -30,6 +33,12 @@ export type UserCreateDbType = Pick<UserType, "platformRoleId"> &
     UserCreateDtoType;
 
 export type UserUpdateByAdminDtoType = Partial<
-    Omit<UserType, "_id" | "createdAt" | "updatedAt">
+    Pick<UserType, "firstName" | "lastName" | "email" | "age" | "isVerified">
 >;
 export type UserLoginDtoType = Pick<UserType, "email" | "password">;
+
+export type UserInitiatorType = {
+    userId: string;
+    initiatorId: string;
+    initiatorRole: PlatformRoleEnum;
+};

@@ -13,5 +13,6 @@ export type OrganizationType = {
         street: string;
     };
     isActive: boolean;
+    isDeleted: boolean;
     deletedAt: Date | null;
 } & BaseType;

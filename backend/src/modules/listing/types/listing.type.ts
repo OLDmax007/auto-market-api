@@ -3,6 +3,7 @@ import { CarMakeEnum } from "../../car/car.enum";
 import { CountryEnum } from "../../location/enums/country.enum";
 import { RegionEnum } from "../../location/enums/region.enum";
 import { CurrencyAmountType } from "../../rate/rate.type";
+import { PlatformRoleEnum } from "../../user/enums/platform-role.enum";
 
 export type ListingType = {
     _id: string;
@@ -21,6 +22,8 @@ export type ListingType = {
     poster: string;
     isProfanity: boolean;
     isActive: boolean;
+    isDeleted: boolean;
+    deletedAt: Date | null;
     profanityCheckAttempts: number;
     publishedAt: Date | null;
 } & BaseType;
@@ -41,6 +44,10 @@ export type ListingCreateDtoType = Pick<
 
 export type ListingUpdateDtoType = Partial<ListingCreateDtoType>;
 
+export type ListingAdminUpdateDtoType = Partial<
+    ListingCreateDtoType & { isProfanity: false }
+>;
+
 export type ListingCreateDbType = Omit<ListingCreateDtoType, "enteredPrice"> &
     Pick<
         ListingType,
@@ -51,3 +58,9 @@ export type ListingCreateDbType = Omit<ListingCreateDtoType, "enteredPrice"> &
         | "publishedAt"
         | "prices"
     >;
+
+export type ListingInitiatorType = {
+    listingId: string;
+    initiatorId: string;
+    initiatorRole: PlatformRoleEnum;
+};

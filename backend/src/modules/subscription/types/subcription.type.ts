@@ -10,6 +10,8 @@ export type SubscriptionType = {
     activeFrom: Date;
     activeTo: Date | null;
     isActive: boolean;
+    isDeleted: boolean;
+    deletedAt: Date | null;
 } & BaseType;
 
 export type SubscriptionCreateType = Pick<SubscriptionType, "userId">;
