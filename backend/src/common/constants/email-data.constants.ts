@@ -23,12 +23,12 @@ export const EMAIL_DATA: IEmailConstants<typeof EmailEnum> = {
         template: "recovery-password",
     },
 
-    [EmailEnum.LISTING_MODERATION]: {
-        subject: "MODERATION REQUIRED: Profanity detected",
-        template: "listing-moderation",
+    [EmailEnum.LISTING_STAFF]: {
+        subject: "STAFF REQUIRED: Profanity detected",
+        template: "listing-check-staff",
     },
-    [EmailEnum.CAR_MODEL_MISSING]: {
-        subject: "Missing car model requested",
-        template: "car-model-missing",
+    [EmailEnum.CAR_MISSING]: {
+        subject: "Missing car requested",
+        template: "car-missing",
     },
 };
