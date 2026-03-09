@@ -1,4 +1,4 @@
 export enum CarMakeEnum {
-    BMW = "BMW",
-    Daewoo = "Daewoo",
+    BMW = "bmw",
+    DAEWOO = "daewoo",
 }
