@@ -28,6 +28,11 @@ type MainConfig = {
     AWS_S3_REGION: string;
     AWS_S3_ACL: ObjectCannedACL;
     AWS_S3_BUCKET_URL: string;
+    SEED_ADMIN_EMAIL: string;
+    SEED_ADMIN_PASSWORD: string;
+    SEED_ADMIN_FIRSTNAME: string;
+    SEED_ADMIN_LASTNAME: string;
+    SEED_ADMIN_AGE: number;
 };
 
 export const mainConfig: MainConfig = {
@@ -54,4 +59,9 @@ export const mainConfig: MainConfig = {
     AWS_S3_REGION: process.env.AWS_S3_REGION,
     AWS_S3_ACL: process.env.AWS_S3_ACL as ObjectCannedACL,
     AWS_S3_BUCKET_URL: process.env.AWS_S3_BUCKET_URL,
+    SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL,
+    SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD,
+    SEED_ADMIN_FIRSTNAME: process.env.SEED_ADMIN_FIRSTNAME,
+    SEED_ADMIN_LASTNAME: process.env.SEED_ADMIN_LASTNAME,
+    SEED_ADMIN_AGE: Number(process.env.SEED_ADMIN_AGE),
 };
