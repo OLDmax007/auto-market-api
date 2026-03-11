@@ -39,7 +39,7 @@ router.patch(
     userController.updateMe,
 );
 
-router.patch(
+router.delete(
     "/close",
     roleMiddleware.checkPermission(
         PlatformPermissionEnum.ME_DEACTIVATE,
