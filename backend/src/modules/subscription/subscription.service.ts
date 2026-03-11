@@ -61,9 +61,11 @@ class SubscriptionService {
             status: PaymentStatusEnum.SUCCESS,
         });
 
+        const newTotalAmount = Math.round((balance.amount - price) * 100) / 100;
+
         await userRepository.updateById(userId, {
             balance: {
-                amount: balance.amount - price,
+                amount: newTotalAmount,
                 currency: currency,
             },
         });
@@ -111,6 +113,12 @@ class SubscriptionService {
         const user = await userService.getById(userId);
         const subscription = await this.getById(user.subscriptionId);
 
+        if (subscription.planType === dto.newPlan) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                `User already has ${dto.newPlan.toUpperCase()} subscription`,
+            );
+        }
         if (!userAccessService.isSelfAction(userId, initiatorId)) {
             const { role } = await platformRoleService.getPlatformRoleById(
                 user.platformRoleId,
