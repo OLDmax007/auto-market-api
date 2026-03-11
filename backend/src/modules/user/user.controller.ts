@@ -21,10 +21,10 @@ class UserController {
             const query = req.query as QueryType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await userService.getAll(query);
-            const presented = data.map((user) =>
+            const presented = data.docs.map((user) =>
                 UserPresenter.toResponseByRole(user, role),
             );
-            res.status(HttpStatusEnum.OK).json(presented);
+            res.status(HttpStatusEnum.OK).json({ ...data, docs: presented });
         } catch (e: unknown) {
             next(e);
         }

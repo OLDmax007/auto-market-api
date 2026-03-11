@@ -26,10 +26,10 @@ class ListingController {
                 isActive: true,
                 isProfanity: false,
             });
-            const presented = data.map((listing) =>
+            const presented = data.docs.map((listing) =>
                 ListingPresenter.toPublicResponse(listing),
             );
-            res.status(HttpStatusEnum.OK).json(presented);
+            res.status(HttpStatusEnum.OK).json({ ...data, docs: presented });
         } catch (e: unknown) {
             next(e);
         }
@@ -59,10 +59,10 @@ class ListingController {
             const query = req.query as ListingQueryType;
             const { userId } = res.locals.tokenPayload as TokenPayloadType;
             const data = await listingService.getAll({ ...query, userId });
-            const presented = data.map((listing) =>
+            const presented = data.docs.map((listing) =>
                 ListingPresenter.toPrivateResponse(listing),
             );
-            res.status(HttpStatusEnum.OK).json(presented);
+            res.status(HttpStatusEnum.OK).json({ ...data, docs: presented });
         } catch (e) {
             next(e);
         }
@@ -89,10 +89,10 @@ class ListingController {
             const query = req.query as ListingQueryType;
             const { role } = res.locals.rolePayload as PlatformRoleType;
             const data = await listingService.getAll(query);
-            const presented = data.map((listing) =>
+            const presented = data.docs.map((listing) =>
                 ListingPresenter.toResponseByRole(listing, role),
             );
-            res.status(HttpStatusEnum.OK).json(presented);
+            res.status(HttpStatusEnum.OK).json({ ...data, docs: presented });
         } catch (e: unknown) {
             next(e);
         }

@@ -13,6 +13,7 @@ import { getPaginationOptions } from "../../../common/helpers/pagination.helper"
 import { s3Service } from "../../../common/services/s3.service";
 import {
     ListingQueryType,
+    PaginatedResponseType,
     PaginateFilterType,
 } from "../../../common/types/pagination.type";
 import { TokenPayloadType } from "../../auth/token.type";
@@ -36,7 +37,9 @@ import { pricingService } from "./pricing.service";
 import { profanityService } from "./profanity.service";
 
 class ListingService {
-    public async getAll(query: ListingQueryType = {}): Promise<ListingType[]> {
+    public async getAll(
+        query: ListingQueryType = {},
+    ): Promise<PaginatedResponseType<ListingType>> {
         const filter: PaginateFilterType = {};
         if (query.userId) {
             filter.userId = String(query.userId);
@@ -78,11 +81,7 @@ class ListingService {
 
         const options = getPaginationOptions(query);
 
-        const listings = await listingRepository.getAllPaginated(
-            filter,
-            options,
-        );
-        return listings.docs;
+        return listingRepository.getAllPaginated(filter, options);
     }
 
     public async getMyById(

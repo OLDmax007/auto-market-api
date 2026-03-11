@@ -14,6 +14,7 @@ import { getPaginationOptions } from "../../../common/helpers/pagination.helper"
 import { emailService } from "../../../common/services/email.service";
 import { s3Service } from "../../../common/services/s3.service";
 import {
+    PaginatedResponseType,
     PaginateFilterType,
     UserQueryType,
 } from "../../../common/types/pagination.type";
@@ -34,7 +35,9 @@ import { platformRoleService } from "./platform-role.service";
 import { userAccessService } from "./user-access.service";
 
 class UserService {
-    public async getAll(query: UserQueryType = {}): Promise<UserType[]> {
+    public async getAll(
+        query: UserQueryType = {},
+    ): Promise<PaginatedResponseType<UserType>> {
         const filter: PaginateFilterType = {};
 
         if (query.userId) {
@@ -55,11 +58,10 @@ class UserService {
 
         const options = getPaginationOptions(query);
 
-        const { docs } = await userRepository.getAllPaginated(filter, {
+        return userRepository.getAllPaginated(filter, {
             ...options,
             select: "",
         });
-        return docs;
     }
 
     public async getById(userId: string): Promise<UserType> {
@@ -259,9 +261,8 @@ class UserService {
             currency,
         );
 
-        const newTotalAmount = Number(
-            (currentBalance.amount + convertedMoney).toFixed(2),
-        );
+        const newTotalAmount =
+            Math.round((currentBalance.amount + convertedMoney) * 100) / 100;
 
         const updatedBalance = {
             amount: newTotalAmount,
@@ -274,7 +275,7 @@ class UserService {
 
         return {
             balance: updatedBalance,
-            credited: { amount: Number(amount.toFixed(2)), currency },
+            credited: { amount: Math.round(amount * 100) / 100, currency },
         };
     }
 
