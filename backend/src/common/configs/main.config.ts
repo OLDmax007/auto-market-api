@@ -6,6 +6,7 @@ import { config } from "dotenv";
 config({ path: path.resolve(__dirname, "../../../../.env") });
 type MainConfig = {
     FRONTEND_URL: string;
+    BACKEND_URL: string;
     HOST: string;
     PORT: string;
     MONGO_URI: string;
@@ -37,6 +38,7 @@ type MainConfig = {
 
 export const mainConfig: MainConfig = {
     FRONTEND_URL: process.env.FRONTEND_URL,
+    BACKEND_URL: process.env.BACKEND_URL,
     HOST: process.env.HOST,
     PORT: process.env.PORT,
     MONGO_URI: process.env.MONGO_URI,
