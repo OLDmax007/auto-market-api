@@ -1,5 +1,3 @@
-import "./index-models";
-
 import express, { NextFunction, Request, Response } from "express";
 import fileUpload from "express-fileupload";
 import swaggerUi from "swagger-ui-express";

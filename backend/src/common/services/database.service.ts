@@ -1,3 +1,5 @@
+import "../../modules/organization/models/index";
+
 import * as mongoose from "mongoose";
 
 import { mainConfig } from "../configs/main.config";
