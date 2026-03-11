@@ -20,16 +20,27 @@ class PricingService {
         if (currency === CurrencyEnum.UAH) {
             return money;
         }
-        const rates = await privatBankService.getRates();
+        const rates = await rateRepository.getAll();
+
+        if (!rates || rates.length === 0) {
+            throw new ApiError(
+                HttpStatusEnum.SERVICE_UNAVAILABLE,
+                "Currency rates database is empty. Please update rates first.",
+            );
+        }
+
         const rate = rates.find((rate) => rate.ccy === currency);
 
-        if (!rate?.sale) {
-            throw new Error(`Rate for ${currency} not found`);
+        if (!rate || !rate.sale) {
+            throw new ApiError(
+                HttpStatusEnum.NOT_FOUND,
+                `Rate for ${currency} not found in the system`,
+            );
         }
 
         const result = money * Number(rate.sale);
 
-        return Number(result.toFixed(2));
+        return Math.round(result * 100) / 100;
     }
 
     public async calculateListingPrices(
