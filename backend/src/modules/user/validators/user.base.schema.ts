@@ -38,13 +38,17 @@ export const UserBaseSchema = {
         "number.max": "Age cannot exceed 120",
     }),
 
-    email: Joi.string().trim().lowercase().email().max(100).messages({
-        "any.required": "Email is a required field",
-        "string.empty": "Email cannot be empty",
-        "string.email": "Invalid email format",
-        "string.max": "Email is too long",
-    }),
-
+    email: Joi.string()
+        .trim()
+        .lowercase()
+        .pattern(REGEX_CONSTANTS.USER.EMAIL)
+        .max(100)
+        .messages({
+            "any.required": "Email is a required field",
+            "string.empty": "Email cannot be empty",
+            "string.max": "Email address is too long (max 100 characters)",
+            "string.pattern.base": "Invalid email address",
+        }),
     password: Joi.string()
         .min(8)
         .max(50)
