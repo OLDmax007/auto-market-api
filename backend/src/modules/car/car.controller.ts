@@ -50,7 +50,9 @@ class CarController {
             const dto = req.body as { make: CarMakeEnum; model: string };
             const userData = this.getUserData(res);
             await carService.sendMissingModel(userData, dto);
-            res.sendStatus(HttpStatusEnum.NO_CONTENT);
+            res.status(HttpStatusEnum.OK).json({
+                message: "Report sent successfully",
+            });
         } catch (e: unknown) {
             next(e);
         }
@@ -65,7 +67,9 @@ class CarController {
             const dto = req.body as { make: string };
             const userData = this.getUserData(res);
             await carService.sendMissingMake(userData, dto);
-            res.sendStatus(HttpStatusEnum.NO_CONTENT);
+            res.status(HttpStatusEnum.OK).json({
+                message: "Report sent successfully",
+            });
         } catch (e: unknown) {
             next(e);
         }
