@@ -67,6 +67,7 @@ export class ListingValidator {
         });
 
     private static region = Joi.string()
+        .lowercase()
         .valid(...Object.values(RegionEnum))
         .messages({
             "any.only": "Please select a valid region from the list",
