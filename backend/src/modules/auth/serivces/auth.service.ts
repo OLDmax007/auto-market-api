@@ -65,6 +65,8 @@ class AuthService {
             ActionTokenEnum.VERIFY_USER,
         );
 
+        console.log(`[TEST] Verify Token: ${token}`);
+
         emailService
             .sendEmail(user.email, EMAIL_DATA.WELCOME, {
                 catalogLink: buildLink("/cars/makes"),
@@ -162,6 +164,9 @@ class AuthService {
             { userId: user._id },
             ActionTokenEnum.VERIFY_USER,
         );
+
+        console.log(`[TEST] Verify Token: ${token}`);
+
         await emailService.sendEmail(
             user.email,
             EMAIL_DATA[EmailEnum.VERIFY_USER],
@@ -183,6 +188,8 @@ class AuthService {
             { userId: user._id },
             ActionTokenEnum.RECOVER_PASSWORD,
         );
+
+        console.log(`[TEST] Reset password Token: ${token}`);
 
         await emailService.sendEmail(
             user.email,
