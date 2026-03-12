@@ -20,12 +20,19 @@ export class CarValidator {
         .trim()
         .required()
         .lowercase()
+        .min(2)
+        .max(50)
         .invalid(...Object.values(CarMakeEnum))
+        .regex(REGEX_CONSTANTS.CAR.MAKE)
         .messages({
             "string.empty": "Car make cannot be empty",
+            "string.min": "Car make name must be at least 2 characters long",
+            "string.max": "Car make name cannot exceed 50 characters",
             "any.required": "Car make is required",
             "any.invalid":
                 "This car make already exists on our platform. Please check the existing list",
+            "string.pattern.base":
+                "Car make can only contain letters, numbers, and a single space or hyphen (e.g., 'Land Rover')",
         });
 
     private static readonly model = Joi.string()
