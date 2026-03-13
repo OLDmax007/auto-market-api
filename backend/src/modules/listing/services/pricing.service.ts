@@ -134,8 +134,14 @@ class PricingService {
 
     public async refreshAllListingsPrices(listing: ListingType): Promise<void> {
         const originalPrice = listing.prices.find((p) => p.mainCurrency);
+        if (!originalPrice) {
+            return;
+        }
         const resultPrices = await this.getCalculatedPrices({
-            ...originalPrice,
+            mainCurrency: originalPrice.mainCurrency,
+            currency: originalPrice.currency,
+            amount: originalPrice.amount,
+            rate: originalPrice.rate,
         });
 
         await listingRepository.updateById(listing._id, {
