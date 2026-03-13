@@ -1,0 +1,2194 @@
+{
+  "info": {
+    "_postman_id": "76f0fd7f-8eaa-42d0-9c0b-fd0b13e321fa",
+    "name": "AutoMarket_Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39602812",
+    "_collection_link": "https://go.postman.co/collection/39602812-76f0fd7f-8eaa-42d0-9c0b-fd0b13e321fa?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "sign up",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "if (response.user && response.user._id) {\r",
+                  "    pm.environment.set(\"TEST_USER_ID\", response.user._id);\r",
+                  "    console.log(\"User ID updated:\", response.user._id);\r",
+                  "} else {\r",
+                  "    console.warn(\"User _id not found in response\");\r",
+                  "}\r",
+                  "\r",
+                  "if (response.tokens?.accessToken && response.tokens?.refreshToken) {\r",
+                  "    pm.environment.set(\"accessToken\", response.tokens.accessToken);\r",
+                  "    pm.environment.set(\"refreshToken\", response.tokens.refreshToken);\r",
+                  "    console.log(\"Tokens updated:\", response.tokens.accessToken, response.tokens.refreshToken);\r",
+                  "} else {\r",
+                  "    console.warn(\"Tokens not updated, response:\", response);\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "packages": {},
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n\t\"firstName\": \"Partner-Admin\",\r\n    \"lastName\": \"Test\",\r\n    \"age\": 20,\r\n    \"email\": \"{{TEST_EMAIL}}\",\r\n    \"password\": \"{{TEST_PASSWORD}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{auth}}/sign-up",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{auth}}",
+                "sign-up"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "sign in",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "if (response.user && response.user._id) {\r",
+                  "    pm.environment.set(\"TEST_USER_ID\", response.user._id);\r",
+                  "    console.log(\"User ID updated:\", response.user._id);\r",
+                  "} else {\r",
+                  "    console.warn(\"User _id not found in response\");\r",
+                  "}\r",
+                  "\r",
+                  "if (response.tokens?.accessToken && response.tokens?.refreshToken) {\r",
+                  "    pm.environment.set(\"accessToken\", response.tokens.accessToken);\r",
+                  "    pm.environment.set(\"refreshToken\", response.tokens.refreshToken);\r",
+                  "    console.log(\"Tokens updated:\", response.tokens.accessToken, response.tokens.refreshToken);\r",
+                  "} else {\r",
+                  "    console.warn(\"Tokens not updated, response:\", response);\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{TEST_EMAIL}}\",\r\n  \"password\": \"{{TEST_PASSWORD}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{auth}}/sign-in",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{auth}}",
+                "sign-in"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "if (response.accessToken && response.refreshToken) {\r",
+                  "    pm.environment.set(\"accessToken\", response.accessToken);\r",
+                  "    pm.environment.set(\"refreshToken\", response.refreshToken);\r",
+                  "    console.log(\"Tokens updated:\", response.accessToken, response.refreshToken);\r",
+                  "} else {\r",
+                  "    console.warn(\"Tokens not updated, response:\", response);\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{refreshToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{HOST}}/{{auth}}/refresh",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{auth}}",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "verify",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{HOST}}/{{auth}}/verify?token={{TEST_ACTION_TOKEN}}}",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{auth}}",
+                "verify"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{TEST_ACTION_TOKEN}}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "send list with verification",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{auth}}/verify/resend",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{auth}}",
+                "verify",
+                "resend"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "send list with recovery password",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"{{TEST_EMAIL}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{auth}}/recovery-password",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{auth}}",
+                "recovery-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reset password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "\r",
+                  "if (response.tokens?.accessToken && response.tokens?.refreshToken) {\r",
+                  "    pm.environment.set(\"accessToken\", response.tokens.accessToken);\r",
+                  "    pm.environment.set(\"refreshToken\", response.tokens.refreshToken);\r",
+                  "    console.log(\"Tokens updated:\", response.tokens.accessToken, response.tokens.refreshToken);\r",
+                  "} else {\r",
+                  "    console.warn(\"Tokens not updated, response:\", response);\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"password\": \"Admintest-123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{auth}}/reset-password?token={{TEST_ACTION_TOKEN}}",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{auth}}",
+                "reset-password"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{TEST_ACTION_TOKEN}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{refreshToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{auth}}/logout",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{auth}}",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout all",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{refreshToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{HOST}}/{{auth}}/logout-all",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{auth}}",
+                "logout-all"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "me",
+      "item": [
+        {
+          "name": "get me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{HOST}}/{{me}}",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{me}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "become seller",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{HOST}}/{{me}}/become-seller",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{me}}",
+                "become-seller"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "top up balance",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\": 100,\r\n    \"currency\": \"USD\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{me}}/top-up-balance",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{me}}",
+                "top-up-balance"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "upgrade plan",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{me}}/upgrade-plan",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{me}}",
+                "upgrade-plan"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"firstName\": \"Parrel\",\r\n    \"lastName\": \"Loxxxx\",\r\n    \"age\": 18\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{me}}",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{me}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "close account",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{HOST}}/{{me}}/close",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{me}}",
+                "close"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "upload avatar",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "uuid": "e4d85095-def6-4dfd-9b84-798d7a479d9f",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{HOST}}/{{me}}/avatar",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{me}}",
+                "avatar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete avatar",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{HOST}}/{{me}}/avatar",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{me}}",
+                "avatar"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "users",
+      "item": [
+        {
+          "name": "staff",
+          "item": [
+            {
+              "name": "get all for staff",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{users}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{users}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "limit",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sortedBy",
+                      "value": "age",
+                      "disabled": true
+                    },
+                    {
+                      "key": "orderBy",
+                      "value": "asc",
+                      "disabled": true
+                    },
+                    {
+                      "key": "isDeleted",
+                      "value": "true",
+                      "type": "text",
+                      "disabled": true
+                    },
+                    {
+                      "key": "isActive",
+                      "value": "true",
+                      "type": "text",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get by id for staff",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{users}}/:userId",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{users}}",
+                    ":userId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "{{TEST_USER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update by admin",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"firstName\": \"Maximus\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{users}}/:userId",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{users}}",
+                    ":userId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "{{TEST_USER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "set role",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"newRole\": \"manager\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{users}}/:userId/role",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{users}}",
+                    ":userId",
+                    "role"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "{{TEST_USER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "activate",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{users}}/:userId/activate",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{users}}",
+                    ":userId",
+                    "activate"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "{{TEST_USER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "deactivate",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{users}}/:userId/deactivate",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{users}}",
+                    ":userId",
+                    "deactivate"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "{{TEST_USER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete by id",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{users}}/:userId",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{users}}",
+                    ":userId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "{{TEST_USER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "get by id public",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{HOST}}/{{users}}/:userId",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{users}}",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{TEST_USER_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "listings",
+      "item": [
+        {
+          "name": "staff",
+          "item": [
+            {
+              "name": "get all for staff",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{listings}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{listings}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "bmw",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sortedBy",
+                      "value": "publishedAt",
+                      "disabled": true
+                    },
+                    {
+                      "key": "orderBy",
+                      "value": "desc",
+                      "disabled": true
+                    },
+                    {
+                      "key": "minPrice",
+                      "value": "200",
+                      "disabled": true
+                    },
+                    {
+                      "key": "maxPrice",
+                      "value": "5000",
+                      "disabled": true
+                    },
+                    {
+                      "key": "currency",
+                      "value": "EUR",
+                      "disabled": true
+                    },
+                    {
+                      "key": "isActive",
+                      "value": "false",
+                      "disabled": true
+                    },
+                    {
+                      "key": "isProfanity",
+                      "value": "true",
+                      "type": "text",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get by id for staff",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{listings}}/:listingId",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{listings}}",
+                    ":listingId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "listingId",
+                      "value": "{{TEST_LISTING_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update by id by manager",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"title\": \"Title test\",\r\n    \"description\": \"something сука test bbrrr\"\r\n}\r\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{listings}}/manager/:listingId",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{listings}}",
+                    "manager",
+                    ":listingId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "listingId",
+                      "value": "{{TEST_LISTING_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update by id by admin",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"title\": \"BMW X5 M-Package 2022\",\r\n  \"description\": \"машина в ідеальному стані, блалалалааалалал\",\r\n  \"make\": \"bmw\",\r\n  \"model\": \"x5\",\r\n  \"year\": 2022,\r\n  \"mileage_km\": 46000,\r\n  \"city\": \"Irpin\",\r\n  \"region\": \"Kyiv\",\r\n  \"enteredPrice\": {\r\n    \"amount\": 18000,\r\n    \"currency\": \"uah\"\r\n  }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{listings}}/:listingId",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{listings}}",
+                    ":listingId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "listingId",
+                      "value": "{{TEST_LISTING_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "activate",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{listings}}/:listingId/activate",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{listings}}",
+                    ":listingId",
+                    "activate"
+                  ],
+                  "variable": [
+                    {
+                      "key": "listingId",
+                      "value": "{{TEST_LISTING_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "deactivate",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{listings}}/:listingId/deactivate",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{listings}}",
+                    ":listingId",
+                    "deactivate"
+                  ],
+                  "variable": [
+                    {
+                      "key": "listingId",
+                      "value": "{{TEST_LISTING_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete by id",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{listings}}/:listingId",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{listings}}",
+                    ":listingId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "listingId",
+                      "value": "{{TEST_LISTING_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "get premium stats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{HOST}}/{{listings}}/:listingId/statistics",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{listings}}",
+                ":listingId",
+                "statistics"
+              ],
+              "variable": [
+                {
+                  "key": "listingId",
+                  "value": "{{TEST_LISTING_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get all public",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{HOST}}/{{listings}}/public",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{listings}}",
+                "public"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "сука",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "2",
+                  "disabled": true
+                },
+                {
+                  "key": "sortedBy",
+                  "value": "publishedAt",
+                  "disabled": true
+                },
+                {
+                  "key": "orderBy",
+                  "value": "desc",
+                  "disabled": true
+                },
+                {
+                  "key": "minPrice",
+                  "value": "10000",
+                  "disabled": true
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "50000",
+                  "disabled": true
+                },
+                {
+                  "key": "currency",
+                  "value": "UAH",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get by id public",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{HOST}}/{{listings}}/public/:listingId",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{listings}}",
+                "public",
+                ":listingId"
+              ],
+              "variable": [
+                {
+                  "key": "listingId",
+                  "value": "{{TEST_LISTING_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get my all",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{HOST}}/{{listings}}/my",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{listings}}",
+                "my"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "сука",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "disabled": true
+                },
+                {
+                  "key": "sortedBy",
+                  "value": "publishedAt",
+                  "disabled": true
+                },
+                {
+                  "key": "orderBy",
+                  "value": "desc",
+                  "disabled": true
+                },
+                {
+                  "key": "minPrice",
+                  "value": "60",
+                  "disabled": true
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "10",
+                  "disabled": true
+                },
+                {
+                  "key": "currency",
+                  "value": "EUR",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "isProfanity",
+                  "value": "false",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get my by id",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{HOST}}/{{listings}}/my/:listingId",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{listings}}",
+                "my",
+                ":listingId"
+              ],
+              "variable": [
+                {
+                  "key": "listingId",
+                  "value": "{{TEST_LISTING_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "if (response._id) {\r",
+                  "    pm.environment.set(\"TEST_LISTING_ID\", response._id);\r",
+                  "    console.log(\"Listing ID saved:\", response._id);\r",
+                  "} else {\r",
+                  "    console.warn(\"Listing ID (_id) not found in response!\");\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"title\": \"СУКА\",\r\n  \"description\": \"test for profanity!\",\r\n  \"make\": \"bmw\",\r\n  \"model\": \"x5\",\r\n  \"year\": 2020,\r\n  \"mileage_km\": 3000,\r\n  \"city\": \"Kovel\",\r\n  \"region\": \"volyn\",\r\n  \"enteredPrice\": {\r\n    \"amount\": 10000,\r\n    \"currency\": \"USD\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{listings}}",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{listings}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update by user",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"сука\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{listings}}/:listingId",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{listings}}",
+                ":listingId"
+              ],
+              "variable": [
+                {
+                  "key": "listingId",
+                  "value": "{{TEST_LISTING_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "close listing",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{HOST}}/{{listings}}/:listingId/close",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{listings}}",
+                ":listingId",
+                "close"
+              ],
+              "variable": [
+                {
+                  "key": "listingId",
+                  "value": "{{TEST_LISTING_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "upload poster",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "poster",
+                  "type": "file",
+                  "uuid": "e53bad57-2215-4dce-84ac-06075cb6d0db",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{HOST}}/{{listings}}/:listingId/poster",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{listings}}",
+                ":listingId",
+                "poster"
+              ],
+              "variable": [
+                {
+                  "key": "listingId",
+                  "value": "{{TEST_LISTING_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete  poster",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{HOST}}/{{listings}}/:listingId/poster",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{listings}}",
+                ":listingId",
+                "poster"
+              ],
+              "variable": [
+                {
+                  "key": "listingId",
+                  "value": "{{TEST_LISTING_ID}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "cars",
+      "item": [
+        {
+          "name": "get makes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{HOST}}/{{cars}}/makes",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{cars}}",
+                "makes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get models for make",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{HOST}}/{{cars}}/:make/models",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{cars}}",
+                ":make",
+                "models"
+              ],
+              "variable": [
+                {
+                  "key": "make",
+                  "value": "bmw"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "send missing car model",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"make\": \"bmw\",\r\n    \"model\": \"i5\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{cars}}/missing-report/model",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{cars}}",
+                "missing-report",
+                "model"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "send missing car make",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"make\": \"opel\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/{{cars}}/missing-report/make",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "{{cars}}",
+                "missing-report",
+                "make"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "subscriptions",
+      "item": [
+        {
+          "name": "staff",
+          "item": [
+            {
+              "name": "set subscription plan",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"newPlan\": \"premium\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{subscriptions}}/:userId",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{subscriptions}}",
+                    ":userId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "{{TEST_USER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "activate",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{subscriptions}}/:userId/activate",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{subscriptions}}",
+                    ":userId",
+                    "activate"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "{{TEST_USER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "deactivate",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/{{staff}}/{{subscriptions}}/:userId/deactivate",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "{{staff}}",
+                    "{{subscriptions}}",
+                    ":userId",
+                    "deactivate"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "{{TEST_USER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
