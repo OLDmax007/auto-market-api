@@ -16,6 +16,7 @@ router.get("/public", listingController.getAllPublic);
 
 router.get(
     "/public/:listingId",
+    authMiddleware.checkToken(TokenEnum.ACCESS, true),
     commonMiddleware.isValidId("listingId"),
     listingController.getPublicById,
 );
