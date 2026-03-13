@@ -189,7 +189,7 @@ class AuthService {
             ActionTokenEnum.RECOVER_PASSWORD,
         );
 
-        console.log(`[TEST] Reset password Token: ${token}`);
+        console.log(`[TEST] Recovery Password Token: ${token}`);
 
         await emailService.sendEmail(
             user.email,
