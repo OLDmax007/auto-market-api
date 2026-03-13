@@ -70,7 +70,13 @@ To ensure the platform is ready for use immediately after deployment, the built-
 
 # Launch
 
-## 1. Environment configuration
+## 1. Installation & Environment
+
+Install dependencies locally. This is needed for IDE code highlighting and running npm scripts:
+
+```bash
+npm install
+```
 
 For stable operation of the platform, it is necessary to configure environment variables.
 
@@ -127,71 +133,56 @@ The project is fully containerized and consists of two main services. The entire
 
 ### 2. Scripts & Commands
 
-Use the following commands for correct project startup and container interaction:
+For convenience, the `package.json` includes shortcuts for common Docker Compose commands. This allows you to avoid typing long commands manually:
 
-* **Launch the entire project (API + Seeder)**:
-    ```bash
-    docker-compose up --build
-    ```
-  The service automatically executes the `./scripts/main-seed.ts` script using `tsx`. It initializes the Roles & Permissions (RBAC) structure, registers the Super-Admin (using data from your `.env`), and populates the database with car makes and models for the filtering system.
+| Command                     | What it does                           | Docker Equivalent                  |
+|-----------------------------|----------------------------------------|-----------------------------------|
+| `npm run docker:up-all`     | Starts all services (API + Seeder)     | `docker-compose up --build`       |
+| `npm run docker:up-backend` | Starts only the API service            | `docker-compose up backend`       |
+| `npm run docker:run-seeder` | Fills the database (temporary container) | `docker-compose run --rm seeder` |
+| `npm run docker:down`       | Stops all containers                    | `docker-compose down`             |
 
-* **Access the backend terminal**:
-    ```bash
-    docker exec -it auto-market-backend sh
-    ```
+### 3. Technical Details (Dockerfile)
 
-* **View logs (to retrieve the Action Token)**:
-    ```bash
-    docker-compose logs -f backend
-    ```
-
-* **Restart Seeder manually (to update data)**:
-    ```bash
-    docker-compose run --rm seeder
-    ```
-
-* **Start Backend only**:
-    ```bash
-    docker-compose up backend
-    ```
-
-* **Start Seeder only**:
-    ```bash
-    docker-compose up seeder
-    ```
+* **Working directory:** `/app`
+* **Dependencies:** Uses `tsx` to run TypeScript files directly without * precompiling to JavaScript (ideal for development environment).
+* **Volumes:** Your local code changes (`./backend`) are instantly synchronized with the container thanks to volume mounting.
 
 # Postman Testing
 
-A ready-to-use request collection is provided for quick functional testing.
+The `postman/` folder contains collection and environment files. The collection is built as an **End-to-End Flow**, allowing you to test the full application cycle without manually copying IDs.
 
-## How to Import:
-* Download and install [Postman](https://www.postman.com/downloads/).
-* Navigate to the `postman/` folder in the project root.
-* Import the `collection.json` (requests) and `environment.json` (environment variables) files into Postman.
+## 1. Getting Started
+* **Import:** Load the `collection.json` (requests) and `environment.json` (variables) files into Postman.
+* **Environment:** Make sure to select the **"auto-market"** environment in the top-right corner of Postman.
+* **HOST variable:** Ensure that the `{{HOST}}` value matches your local port (default: `http://localhost:5000`).
 
-## Using Variables
-Ensure the following variables are set in your Postman Environment:
-* `{{HOST}}` — your API address (e.g., `http://localhost:5000`).
-* `{{accessToken}}` — automatically populated after login.
+## 2. Automated Flow
+Requests in the collection are arranged in a logical sequence. Built-in scripts automatically pass data between requests:
 
-## Token Management:
-The collection is pre-configured for **Bearer Token** authentication. After registration (`Sign Up`) or authorization (`Sign In`), a Postman script automatically captures your Access Token and applies it to subsequent requests.
+1. **Authorization (`Auth`):** Execute the `Sign Up` or `Sign In` request. The script automatically saves **`accessToken`**, **`refreshToken`**, and your **`TEST_USER_ID`** into the environment variables.
+2. **Create Listing (`Listings`):** After executing `Create Listing`, the `_id` of your new listing is automatically stored in the **`TEST_LISTING_ID`** variable.
+3. **Object Actions:** Subsequent requests (Get by ID, Update, Delete) use these variables, working instantly without manual input.
+4. **Action Tokens (`TEST_ACTION_TOKEN`):** For Email verification or password reset, the token is sent via an external channel:
+    * **Where to get it:** Copy the token string from the email, URL (the part after `token=...`), or server console.
+    * **Where to put it:** Paste the value into the `TEST_ACTION_TOKEN` variable in the Postman environment settings.
 
-## Structure and Modules
+
+## 3. Structure and Modules
 
 The collection is organized to separate public operations, user actions, and administrative functions:
 
 * **🔐 Auth**: Access management.
     * Registration, login, email verification.
-    * Password reset and **refresh token** mechanism.
-    * Option to log out from all devices simultaneously (**logout all**).
+    * Password reset and `refresh token` mechanism.
+    * Option to log out from all devices simultaneously (`logout all`).
 * **🚗 Car**: Working with the car database. Retrieving the list of makes and models available in the system and sending an email about a non-existent model or make.
 * **📋 Listings**: Working with advertisements.
     * Creating, editing, viewing ad statistics, and searching for cars.
     * 📁 **Staff (nested)**: Ad moderation and management of any listing.
 * **👤 Me**: Personal dashboard.
-    * Balance management (**top up balance**) and changing status to seller.
-    * Premium plan purchase (**upgrade plan**).
+    * Balance management (`top up balance`) and changing status to seller.
+    * Premium plan purchase (`upgrade plan`).
     * Uploading or deleting an avatar.
 * **👥 Users**
     * Viewing public user information.
@@ -205,5 +196,5 @@ The collection is organized to separate public operations, user actions, and adm
 
 # API Documentation
 
-* **Swagger UI**: http://localhost:5000/docs — interactive description of all requests.
-* **Postman**: Collection file in the **/postman** folder. Already contains variables for quick testing of admin and regular user functions.
+* **Swagger UI**: `http://localhost:5000/docs`— interactive description of all requests.
+* **Postman**: Collection file in the `/postman` folder. Already contains variables for quick testing of admin and regular user functions.

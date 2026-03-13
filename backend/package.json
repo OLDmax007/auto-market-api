@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "main": "src/main.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf dist && tsc",
     "start": "rimraf dist && tsc-watch --onSuccess \"npm run watch:server\"",
     "watch:server": "tsx src/main.ts --watch",
     "seed": "tsx scripts/main-seed.ts",
-    "swagger": "tsoa spec"
+    "docker:up-all": "docker-compose up --build",
+    "docker:up-backend": "docker-compose up backend",
+    "docker:run-seeder": "docker-compose run --rm seeder",
+    "docker:down": "docker-compose down"
   },
   "author": "",
   "license": "ISC",
