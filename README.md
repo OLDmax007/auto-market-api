@@ -74,6 +74,11 @@ To ensure the platform is ready for use immediately after deployment, the built-
 
 Install dependencies locally. This is needed for IDE code highlighting and running npm scripts:
 
+* Navigate to the backend directory:
+```bash
+cd backend
+```
+* And install the dependencies:
 ```bash
 npm install
 ```

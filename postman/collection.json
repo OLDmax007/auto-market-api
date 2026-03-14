@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "76f0fd7f-8eaa-42d0-9c0b-fd0b13e321fa",
+    "_postman_id": "ee0341d5-32a8-4f96-bea9-b340398e1cf7",
     "name": "AutoMarket_Collection",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "39602812",
-    "_collection_link": "https://go.postman.co/collection/39602812-76f0fd7f-8eaa-42d0-9c0b-fd0b13e321fa?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/39602812-ee0341d5-32a8-4f96-bea9-b340398e1cf7?source=collection_link"
   },
   "item": [
     {
@@ -43,8 +43,12 @@
             {
               "listen": "prerequest",
               "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
                 "packages": {},
-                "type": "text/javascript"
+                "requests": {}
               }
             }
           ],
@@ -53,7 +57,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n\t\"firstName\": \"Partner-Admin\",\r\n    \"lastName\": \"Test\",\r\n    \"age\": 20,\r\n    \"email\": \"{{TEST_EMAIL}}\",\r\n    \"password\": \"{{TEST_PASSWORD}}\"\r\n}",
+              "raw": "{\r\n\t\"firstName\": \"User\",\r\n    \"lastName\": \"Test\",\r\n    \"age\": 20,\r\n    \"email\": \"{{TEST_EMAIL}}\",\r\n    \"password\": \"{{TEST_PASSWORD}}\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -195,7 +199,7 @@
             "method": "PATCH",
             "header": [],
             "url": {
-              "raw": "{{HOST}}/{{auth}}/verify?token={{TEST_ACTION_TOKEN}}}",
+              "raw": "{{HOST}}/{{auth}}/verify?token={{TEST_ACTION_TOKEN}}",
               "host": [
                 "{{HOST}}"
               ],
@@ -206,7 +210,7 @@
               "query": [
                 {
                   "key": "token",
-                  "value": "{{TEST_ACTION_TOKEN}}}"
+                  "value": "{{TEST_ACTION_TOKEN}}"
                 }
               ]
             }
