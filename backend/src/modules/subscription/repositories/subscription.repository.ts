@@ -27,9 +27,9 @@ class SubscriptionRepository {
         );
     }
 
-    public async deleteById(id: string): Promise<SubscriptionType | null> {
-        return Subscription.findByIdAndUpdate(
-            id,
+    public async deleteById(id: string): Promise<SubscriptionType> {
+        return Subscription.findOneAndUpdate(
+            { _id: id, isDeleted: false },
             {
                 isDeleted: true,
                 isActive: false,

@@ -36,9 +36,9 @@ class UserRepository {
         });
     }
 
-    public async deleteById(id: string): Promise<UserType | null> {
-        return User.findByIdAndUpdate(
-            id,
+    public async deleteById(id: string): Promise<UserType> {
+        return User.findOneAndUpdate(
+            { _id: id, isDeleted: false },
             {
                 isDeleted: true,
                 isActive: false,

@@ -15,7 +15,7 @@ class ListingRepository {
         return Listing.paginate({ ...filter, isDeleted: false }, options);
     }
 
-    public async getById(id: string): Promise<ListingType | null> {
+    public async getById(id: string): Promise<ListingType> {
         return Listing.findOne({ _id: id, isDeleted: false });
     }
 
@@ -26,15 +26,15 @@ class ListingRepository {
     public async updateById(
         id: string,
         dto: UpdateEntityType<ListingType>,
-    ): Promise<ListingType | null> {
+    ): Promise<ListingType> {
         return Listing.findOneAndUpdate({ _id: id, isDeleted: false }, dto, {
             new: true,
         });
     }
 
-    public async deleteById(id: string): Promise<ListingType | null> {
-        return Listing.findByIdAndUpdate(
-            id,
+    public async deleteById(id: string): Promise<ListingType> {
+        return Listing.findOneAndUpdate(
+            { _id: id, isDeleted: false },
             {
                 isDeleted: true,
                 isActive: false,
@@ -44,8 +44,8 @@ class ListingRepository {
         );
     }
 
-    public async deleteAllByUserId(userId: string): Promise<any> {
-        return Listing.updateMany(
+    public async deleteAllByUserId(userId: string): Promise<void> {
+        await Listing.updateMany(
             { userId, isDeleted: false },
             {
                 $set: {
@@ -57,21 +57,21 @@ class ListingRepository {
         );
     }
 
-    public async deactivateManyByUserId(userId: string): Promise<any> {
-        return Listing.updateMany(
+    public async deactivateManyByUserId(userId: string): Promise<void> {
+        await Listing.updateMany(
             { userId, isDeleted: false },
             { $set: { isActive: false } },
         );
     }
 
-    public async activateManyByUserId(userId: string): Promise<any> {
-        return Listing.updateMany(
+    public async activateManyByUserId(userId: string): Promise<void> {
+        await Listing.updateMany(
             { userId, isProfanity: false, isDeleted: false },
             { $set: { isActive: true } },
         );
     }
 
-    public async countByUserId(userId: string): Promise<number> {
+    public countByUserId(userId: string): Promise<number> {
         return Listing.countDocuments({ userId, isDeleted: false });
     }
 }

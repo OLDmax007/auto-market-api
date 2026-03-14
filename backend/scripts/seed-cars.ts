@@ -2,7 +2,7 @@ import {Car} from "../src/modules/car/car.model";
 import {CarMap} from "../src/modules/car/car.map";
 
 
-export const seedCars = async () => {
+export const seedCars = async ():Promise<void> => {
     try {
         await Car.deleteMany({});
         const carsToInsert = Object.entries(CarMap).map(([make, models]) => ({

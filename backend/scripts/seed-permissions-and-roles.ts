@@ -4,7 +4,7 @@ import {PlatformRole} from "../src/modules/user/models/platform-role.model";
 import {platformRolePermissionsMap} from "../src/modules/user/platform-role-perm.map";
 
 
-export const seedPermissionsAndRoles = async () => {
+export const seedPermissionsAndRoles = async ():Promise<void> => {
 
     for (const [roleName, perms] of Object.entries(platformRolePermissionsMap)) {
         const existingRole = await PlatformRole.findOne({ role: roleName });

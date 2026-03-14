@@ -11,7 +11,7 @@ import {UserType} from "../src/modules/user/types/user.type";
 import {userAccessService} from "../src/modules/user/services/user-access.service";
 import {subscriptionService} from "../src/modules/subscription/subscription.service";
 
-const seedAdmin = async () => {
+const seedAdmin = async ():Promise<void> => {
     try {
         const {
             SEED_ADMIN_EMAIL,

@@ -1,5 +1,3 @@
-import { DeleteResult } from "mongoose";
-
 import { Token } from "./token.model";
 import { TokenPairType, TokenType } from "./token.type";
 
@@ -15,14 +13,15 @@ class TokenRepository {
     public create(dto: TokenPairType & { userId: string }): Promise<TokenType> {
         return Token.create(dto);
     }
-    public deleteAllByUserId(userId: string): Promise<DeleteResult> {
-        return Token.deleteMany({ userId });
+    public async deleteAllByUserId(userId: string): Promise<void> {
+        await Token.deleteMany({ userId });
     }
 
-    public deleteOneByParams(
+    public async deleteOneByParams(
         params: Partial<TokenType>,
-    ): Promise<DeleteResult> {
-        return Token.deleteOne(params);
+    ): Promise<number> {
+        const result = await Token.deleteOne(params);
+        return result.deletedCount;
     }
 
     public deleteBeforeDate = async (date: Date): Promise<number> => {

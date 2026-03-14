@@ -2,10 +2,10 @@ import {seedLocations} from "./seed-locations";
 import {seedCars} from "./seed-cars";
 import {pricingService} from "../src/modules/listing/services/pricing.service";
 import {dataBaseService} from "../src/common/services/database.service";
-import {seedAdmin} from "./seed.admin";
+import {seedAdmin} from "./seed-admin";
 import {seedPermissionsAndRoles} from "./seed-permissions-and-roles";
 
-const mainSeed = async () => {
+const mainSeed = async ():Promise<void> => {
     try {
         await dataBaseService.connectToDB();
         await pricingService.updateRates()

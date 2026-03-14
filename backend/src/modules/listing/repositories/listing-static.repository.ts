@@ -10,11 +10,15 @@ class ListingStaticsRepository {
         return ListingStatics.findOne({ listingId });
     }
 
-    public createViews(dto: ListingStaticsCreateDtoType) {
+    public createViews(
+        dto: ListingStaticsCreateDtoType,
+    ): Promise<ListingStaticsType> {
         return ListingStatics.create(dto);
     }
 
-    public incrementViewsByListingId(listingId: string) {
+    public incrementViewsByListingId(
+        listingId: string,
+    ): Promise<ListingStaticsType> {
         return ListingStatics.findOneAndUpdate(
             { listingId },
             {
@@ -29,10 +33,10 @@ class ListingStaticsRepository {
         );
     }
 
-    public resetViews(period: PeriodEnum) {
-        return ListingStatics.updateMany(
+    public async resetViews(period: PeriodEnum): Promise<void> {
+        await ListingStatics.updateMany(
             {},
-            { $set: { [`views.${period}`]: 50 } },
+            { $set: { [`views.${period}`]: 0 } },
         );
     }
 }

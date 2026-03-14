@@ -65,7 +65,9 @@ class ListingStaticsService {
         };
     }
 
-    public async getViewsByListingId(listingId: string) {
+    public async getViewsByListingId(
+        listingId: string,
+    ): Promise<ListingStaticsType> {
         const stats =
             await listingStaticRepository.getViewsByListingId(listingId);
         if (!stats) {
@@ -77,16 +79,18 @@ class ListingStaticsService {
         return stats;
     }
 
-    public async createViews(dto: ListingStaticsCreateDtoType) {
+    public async createViews(
+        dto: ListingStaticsCreateDtoType,
+    ): Promise<ListingStaticsType> {
         return listingStaticRepository.createViews(dto);
     }
 
-    public async incrementViewsByListingId(listingId: string) {
+    public async incrementViewsByListingId(listingId: string): Promise<void> {
         await this.getViewsByListingId(listingId);
         await listingStaticRepository.incrementViewsByListingId(listingId);
     }
 
-    public async resetViews(period: PeriodEnum) {
+    public async resetViews(period: PeriodEnum): Promise<void> {
         if (!period) {
             throw new ApiError(HttpStatusEnum.BAD_REQUEST, "Period not found");
         }
