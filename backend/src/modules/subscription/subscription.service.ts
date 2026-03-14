@@ -1,0 +1,142 @@
+import { HttpStatusEnum } from "../../common/enums/http-status.enum";
+import { ApiError } from "../../common/errors/api.error";
+import { ensureIsStatusSame } from "../../common/helpers/ensure.helper";
+import { userRepository } from "../user/repositories/user.repository";
+import { platformRoleService } from "../user/services/platform-role.service";
+import { userService } from "../user/services/user.service";
+import { userAccessService } from "../user/services/user-access.service";
+import { UserInitiatorType } from "../user/types/user.type";
+import { PaymentStatusEnum } from "./enums/payment-status.enum";
+import { SubscriptionPlanEnum } from "./enums/subscription-plan.enum";
+import { paymentRepository } from "./repositories/payment.repository";
+import { subscriptionRepository } from "./repositories/subscription.repository";
+import { SUBSCRIPTION_PLANS } from "./subscription.constants";
+import {
+    SubscriptionCreateType,
+    SubscriptionType,
+} from "./types/subcription.type";
+
+class SubscriptionService {
+    public async getById(subscriptionId: string): Promise<SubscriptionType> {
+        const subscription =
+            await subscriptionRepository.getById(subscriptionId);
+        if (!subscription) {
+            throw new ApiError(
+                HttpStatusEnum.NOT_FOUND,
+                "Subscription not found",
+            );
+        }
+        return subscription;
+    }
+
+    public async upgradeToPremium(userId: string): Promise<SubscriptionType> {
+        const { subscriptionId, balance } = await userService.getById(userId);
+
+        const { planType } = await this.getById(subscriptionId);
+
+        if (planType === SubscriptionPlanEnum.PREMIUM) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "User already has PREMIUM subscription",
+            );
+        }
+        const { price, currency } =
+            SUBSCRIPTION_PLANS[SubscriptionPlanEnum.PREMIUM];
+
+        if (balance.amount < price) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                "User does not has enough money",
+            );
+        }
+
+        await paymentRepository.create({
+            subscriptionId,
+            userId,
+            price: {
+                amount: price,
+                currency: currency,
+            },
+            paidAt: new Date(),
+            status: PaymentStatusEnum.SUCCESS,
+        });
+
+        const newTotalAmount = Math.round((balance.amount - price) * 100) / 100;
+
+        await userRepository.updateById(userId, {
+            balance: {
+                amount: newTotalAmount,
+                currency: currency,
+            },
+        });
+
+        return subscriptionRepository.updateById(subscriptionId, {
+            price: {
+                amount: price,
+                currency,
+            },
+            activeFrom: new Date(),
+            planType: SubscriptionPlanEnum.PREMIUM,
+        });
+    }
+
+    public async setStatusByUserId({
+        userId,
+        initiatorId,
+        initiatorRole,
+        isActive,
+    }: UserInitiatorType & { isActive: boolean }): Promise<SubscriptionType> {
+        const user = await userService.getById(userId);
+
+        if (!userAccessService.isSelfAction(userId, initiatorId)) {
+            const { role } = await platformRoleService.getPlatformRoleById(
+                user.platformRoleId,
+            );
+            userAccessService.checkIsStaff(role, initiatorRole);
+        }
+        const subscription = await this.getById(user.subscriptionId);
+        ensureIsStatusSame(
+            subscription.isActive,
+            isActive,
+            `Subscription is already ${isActive ? "activated" : "deactivated"}`,
+        );
+
+        return subscriptionRepository.updateById(subscription._id, {
+            isActive,
+        });
+    }
+
+    public async setSubscriptionPlanByUserId(
+        { userId, initiatorId, initiatorRole }: UserInitiatorType,
+        dto: { newPlan: SubscriptionPlanEnum },
+    ): Promise<SubscriptionType> {
+        const user = await userService.getById(userId);
+        const subscription = await this.getById(user.subscriptionId);
+
+        if (subscription.planType === dto.newPlan) {
+            throw new ApiError(
+                HttpStatusEnum.BAD_REQUEST,
+                `User already has ${dto.newPlan.toUpperCase()} subscription`,
+            );
+        }
+        if (!userAccessService.isSelfAction(userId, initiatorId)) {
+            const { role } = await platformRoleService.getPlatformRoleById(
+                user.platformRoleId,
+            );
+            userAccessService.checkIsStaff(role, initiatorRole);
+        }
+        return subscriptionRepository.updateById(subscription._id, {
+            activeFrom: new Date(),
+            activeTo: null,
+            planType: dto.newPlan,
+        });
+    }
+
+    public async create(
+        dto: SubscriptionCreateType,
+    ): Promise<SubscriptionType> {
+        return subscriptionRepository.create(dto);
+    }
+}
+
+export const subscriptionService = new SubscriptionService();

@@ -1,0 +1,37 @@
+import axios from "axios";
+
+import { URLS } from "../../common/constants/urls.constants";
+import { HttpStatusEnum } from "../../common/enums/http-status.enum";
+import { ApiError } from "../../common/errors/api.error";
+import { rateRepository } from "./rate.repository";
+import {
+    FormattedRatesType,
+    NonUAHCurrencyType,
+    PrivatBankRateType,
+} from "./rate.type";
+
+class PrivatBankService {
+    public async getRates(): Promise<PrivatBankRateType[]> {
+        const { data } = await axios.get<PrivatBankRateType[]>(URLS.privatBank);
+
+        if (!data?.length) {
+            throw new ApiError(HttpStatusEnum.NOT_FOUND, "Rates not found");
+        }
+
+        return data;
+    }
+    public async getRatesFormatted(): Promise<FormattedRatesType> {
+        const rates = await rateRepository.getAll();
+        const formattedRates = rates.reduce((acc, rate) => {
+            acc[rate.ccy as NonUAHCurrencyType] = {
+                buy: Number(rate.buy),
+                sale: Number(rate.sale),
+            };
+            return acc;
+        }, {});
+
+        return formattedRates as FormattedRatesType;
+    }
+}
+
+export const privatBankService = new PrivatBankService();
