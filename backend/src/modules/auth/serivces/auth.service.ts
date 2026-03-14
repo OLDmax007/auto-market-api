@@ -123,14 +123,14 @@ class AuthService {
         payload: TokenPayloadType,
         refreshTokenInput: string,
     ): Promise<Pick<TokenType, "accessToken" | "refreshToken">> {
-        const result = await tokenRepository.deleteOneByParams({
+        const count = await tokenRepository.deleteOneByParams({
             userId: payload.userId,
             refreshToken: refreshTokenInput,
         });
-        if (!result || result.deletedCount === 0) {
+        if (count === 0) {
             throw new ApiError(
                 HttpStatusEnum.UNAUTHORIZED,
-                "Invalid session. Please login again.",
+                "Invalid session! Please login again",
             );
         }
         const tokens = tokenService.generateTokens({
